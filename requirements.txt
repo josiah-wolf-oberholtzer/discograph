@@ -1,3 +1,4 @@
 -e git://github.com/josiah-wolf-oberholtzer/discgraph.git#egg=discgraph
 discogs-client
+mongoengine
 pytest
