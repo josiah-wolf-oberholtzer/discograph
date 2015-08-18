@@ -1,5 +1,4 @@
 import os
-import gzip
 from xml.etree import ElementTree
 
 
@@ -29,9 +28,21 @@ releases_xml_path = os.path.join(
     )
 
 
-def iterparse(xml_path, tag):
-    gzip_file = gzip.GzipFile(xml_path, 'r')
-    context = ElementTree.iterparse(gzip_file, events=('start', 'end',))
+def clean_element(element):
+    image_tags = element.findall('images')
+    if image_tags:
+        element.remove(*image_tags)
+    url_tags = element.findall('urls')
+    if url_tags:
+        element.remove(*url_tags)
+    return element
+
+
+def iterparse(source, tag):
+    context = ElementTree.iterparse(
+        source,
+        events=('start', 'end',),
+        )
     context = iter(context)
     _, root = next(context)
     depth = 0
@@ -42,10 +53,5 @@ def iterparse(xml_path, tag):
             else:
                 depth -= 1
                 if depth == 0:
-                    yield element
+                    yield clean_element(element)
                     root.clear()
-
-
-def clean_element(element):
-    image_tags = element.findall('images')
-    element.remove(*image_tags)
