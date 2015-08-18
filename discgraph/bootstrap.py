@@ -1,4 +1,6 @@
+import gzip
 import os
+from xml.dom import minidom
 from xml.etree import ElementTree
 
 
@@ -28,14 +30,15 @@ releases_xml_path = os.path.join(
     )
 
 
-def clean_element(element):
-    image_tags = element.findall('images')
-    if image_tags:
-        element.remove(*image_tags)
-    url_tags = element.findall('urls')
-    if url_tags:
-        element.remove(*url_tags)
-    return element
+def clean_elements(elements):
+    for element in elements:
+        image_tags = element.findall('images')
+        if image_tags:
+            element.remove(*image_tags)
+        url_tags = element.findall('urls')
+        if url_tags:
+            element.remove(*url_tags)
+        yield element
 
 
 def iterparse(source, tag):
@@ -53,5 +56,24 @@ def iterparse(source, tag):
             else:
                 depth -= 1
                 if depth == 0:
-                    yield clean_element(element)
+                    yield element
                     root.clear()
+
+
+def get_iterator(tag):
+    choices = {
+        'artist': artists_xml_path,
+        'label': labels_xml_path,
+        'master': masters_xml_path,
+        'release': releases_xml_path,
+        }
+    file_pointer = gzip.GzipFile(choices[tag], 'r')
+    iterator = iterparse(file_pointer, tag)
+    iterator = clean_elements(iterator)
+    return iterator
+
+
+def prettify(element):
+    string = ElementTree.tostring(element, 'utf-8')
+    reparsed = minidom.parseString(string)
+    return reparsed.toprettyxml(indent='    ')

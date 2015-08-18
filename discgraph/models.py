@@ -37,6 +37,7 @@ class Artist(mongoengine.Document):
         artists_xml_path = bootstrap.artists_xml_path
         with gzip.GzipFile(artists_xml_path, 'r') as file_pointer:
             artists_iterator = bootstrap.iterparse(file_pointer, 'artist')
+            artists_iterator = bootstrap.clean_elements(artists_iterator)
             for artist_element in artists_iterator:
                 artist_document = cls.from_element(artist_element)
                 print(artist_document.discogs_id, artist_document.name)
@@ -127,6 +128,7 @@ class Label(mongoengine.Document):
         labels_xml_path = bootstrap.labels_xml_path
         with gzip.GzipFile(labels_xml_path, 'r') as file_pointer:
             labels_iterator = bootstrap.iterparse(file_pointer, 'label')
+            labels_iterator = bootstrap.clean_elements(labels_iterator)
             for label_element in labels_iterator:
                 label_document = cls.from_element(label_element)
                 print(label_document.discogs_id, label_document.name)
