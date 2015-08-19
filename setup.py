@@ -9,7 +9,9 @@ if __name__ == '__main__':
         author_email='josiah.oberholtzer@gmail.com',
         install_requires=[
             'discogs-client',
+            'mongoengine'
             'pytest',
+            'six',
             ],
         license='MIT',
         name='discograph',

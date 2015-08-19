@@ -1,4 +1,4 @@
--e git://github.com/josiah-wolf-oberholtzer/discograph.git#egg=discograph
 discogs-client
 mongoengine
 pytest
+six
