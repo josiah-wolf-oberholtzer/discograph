@@ -7,7 +7,7 @@ class Artist(mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 
-    discogs_id = mongoengine.IntField(required=True, unique=True)
+    discogs_id = mongoengine.IntField(primary_key=True)
     name = mongoengine.StringField(required=True, unique=True)
     real_name = mongoengine.StringField(null=True)
     name_variations = mongoengine.ListField(mongoengine.StringField())
