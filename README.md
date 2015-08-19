@@ -1,1 +1,1 @@
-# discgraph
+# discograph

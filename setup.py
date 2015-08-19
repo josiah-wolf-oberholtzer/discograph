@@ -12,8 +12,8 @@ if __name__ == '__main__':
             'pytest',
             ],
         license='MIT',
-        name='discgraph',
+        name='discograph',
         packages=[
-            'discgraph',
+            'discograph',
             ],
         )

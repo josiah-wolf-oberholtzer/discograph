@@ -1,5 +1,7 @@
 import gzip
 import os
+import six
+import textwrap
 from xml.dom import minidom
 from xml.etree import ElementTree
 
@@ -77,3 +79,25 @@ def prettify(element):
     string = ElementTree.tostring(element, 'utf-8')
     reparsed = minidom.parseString(string)
     return reparsed.toprettyxml(indent='    ')
+
+
+def normalize(string, indent=None):
+    string = string.replace('\t', '    ')
+    lines = string.split('\n')
+    while lines and (not lines[0] or lines[0].isspace()):
+        lines.pop(0)
+    while lines and (not lines[-1] or lines[-1].isspace()):
+        lines.pop()
+    for i, line in enumerate(lines):
+        lines[i] = line.rstrip()
+    string = '\n'.join(lines)
+    string = textwrap.dedent(string)
+    if indent:
+        if not isinstance(indent, six.string_types):
+            indent = ' ' * abs(int(indent))
+        lines = string.split('\n')
+        for i, line in enumerate(lines):
+            if line:
+                lines[i] = '{}{}'.format(indent, line)
+        string = '\n'.join(lines)
+    return string

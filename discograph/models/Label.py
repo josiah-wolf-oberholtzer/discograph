@@ -25,7 +25,7 @@ class Label(mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discgraph import bootstrap
+        from discograph import bootstrap
         labels_xml_path = bootstrap.labels_xml_path
         with gzip.GzipFile(labels_xml_path, 'r') as file_pointer:
             labels_iterator = bootstrap.iterparse(file_pointer, 'label')

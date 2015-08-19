@@ -30,7 +30,7 @@ class Artist(mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discgraph import bootstrap
+        from discograph import bootstrap
         artists_xml_path = bootstrap.artists_xml_path
         with gzip.GzipFile(artists_xml_path, 'r') as file_pointer:
             artists_iterator = bootstrap.iterparse(file_pointer, 'artist')
