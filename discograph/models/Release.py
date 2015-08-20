@@ -34,6 +34,11 @@ class Release(Model, mongoengine.Document):
         else:
             artists = None
         # companies
+        companies = element.find('companies')
+        if companies is not None and len(companies):
+            companies = [models.CompanyCredit.from_element(_) for _ in companies]
+        else:
+            companies = None
         # country
         country = element.find('country').text
         # data quality
@@ -83,6 +88,7 @@ class Release(Model, mongoengine.Document):
         # construct
         release_document = cls(
             artists=artists,
+            companies=companies,
             country=country,
             data_quality=data_quality,
             extra_artists=extra_artists,

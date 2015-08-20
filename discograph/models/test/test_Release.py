@@ -386,7 +386,26 @@ class Test(unittest.TestCase):
                             ),
                         ),
                     ],
-                companies=[],
+                companies=[
+                    discograph.models.CompanyCredit(
+                        company=discograph.models.Label(
+                            has_been_scraped=False,
+                            name=u'Columbia Records',
+                            sublabels=[],
+                            ),
+                        entity_type=10,
+                        entity_type_name=u'Manufactured By',
+                        ),
+                    discograph.models.CompanyCredit(
+                        company=discograph.models.Label(
+                            has_been_scraped=False,
+                            name=u'Columbia Records',
+                            sublabels=[],
+                            ),
+                        entity_type=9,
+                        entity_type_name=u'Distributed By',
+                        ),
+                    ],
                 country=u'US',
                 data_quality=u'Correct',
                 extra_artists=[
