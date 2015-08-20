@@ -1,3 +1,4 @@
+import datetime
 import mongoengine
 from discograph.models.Model import Model
 
@@ -16,7 +17,6 @@ class Release(Model, mongoengine.Document):
     identifiers = mongoengine.EmbeddedDocumentListField('Identifier')
     labels = mongoengine.EmbeddedDocumentListField('LabelCredit')
     master_id = mongoengine.IntField()
-    notes = mongoengine.StringField()
     release_date = mongoengine.DateTimeField()
     styles = mongoengine.ListField(mongoengine.StringField())
     title = mongoengine.StringField()
@@ -74,8 +74,14 @@ class Release(Model, mongoengine.Document):
         else:
             labels = None
         # master_id
-        # notes
+        master_id = element.find('master_id')
+        if master_id is not None:
+            master_id = int(master_id.text)
         # release_date
+        release_date = element.find('released')
+        if release_date is not None:
+            release_date = release_date.text
+            release_date = datetime.datetime.strptime(release_date, '%Y-%m-%d')
         # styles
         styles = element.find('styles')
         if styles is not None and len(styles):
@@ -96,6 +102,8 @@ class Release(Model, mongoengine.Document):
             genres=genres,
             identifiers=identifiers,
             labels=labels,
+            master_id=master_id,
+            release_date=release_date,
             styles=styles,
             title=title,
             )

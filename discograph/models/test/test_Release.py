@@ -450,6 +450,8 @@ class Test(unittest.TestCase):
                             ),
                         ),
                     ],
+                master_id=66526,
+                release_date=datetime.datetime(1999, 7, 13, 0, 0),
                 styles=[
                     u'Techno',
                     u'Tech House',
