@@ -1,3 +1,4 @@
+from __future__ import print_function
 import gzip
 import mongoengine
 import traceback
@@ -9,7 +10,7 @@ class Artist(Model, mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 
-    discogs_id = mongoengine.IntField(primary_key=True)
+    discogs_id = mongoengine.IntField(required=True, unique=True)
     name = mongoengine.StringField(required=True, unique=True)
     real_name = mongoengine.StringField(null=True)
     name_variations = mongoengine.ListField(mongoengine.StringField())
@@ -47,13 +48,17 @@ class Artist(Model, mongoengine.Document):
     @classmethod
     def bootstrap(cls):
         from discograph import bootstrap
+        cls.drop_collection()
         artists_xml_path = bootstrap.artists_xml_path
         with gzip.GzipFile(artists_xml_path, 'r') as file_pointer:
             artists_iterator = bootstrap.iterparse(file_pointer, 'artist')
             artists_iterator = bootstrap.clean_elements(artists_iterator)
             for artist_element in artists_iterator:
                 artist_document = cls.from_element(artist_element)
-                print(artist_document.discogs_id, artist_document.name)
+                print(u'{}: {}'.format(
+                    artist_document.discogs_id,
+                    artist_document.name,
+                    ))
 
     @classmethod
     def from_id_and_name(cls, discogs_id, name):

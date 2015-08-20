@@ -1,3 +1,4 @@
+from __future__ import print_function
 import datetime
 import gzip
 import mongoengine
@@ -12,7 +13,7 @@ class Release(Model, mongoengine.Document):
     companies = mongoengine.EmbeddedDocumentListField('CompanyCredit')
     country = mongoengine.StringField()
     data_quality = mongoengine.StringField()
-    discogs_id = mongoengine.IntField()
+    discogs_id = mongoengine.IntField(required=True, unique=True)
     extra_artists = mongoengine.EmbeddedDocumentListField('ArtistCredit')
     formats = mongoengine.EmbeddedDocumentListField('Format')
     genres = mongoengine.ListField(mongoengine.StringField())
@@ -30,13 +31,17 @@ class Release(Model, mongoengine.Document):
     @classmethod
     def bootstrap(cls):
         from discograph import bootstrap
+        cls.drop_collection()
         releases_xml_path = bootstrap.releases_xml_path
         with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
             releases_iterator = bootstrap.iterparse(file_pointer, 'release')
             releases_iterator = bootstrap.clean_elements(releases_iterator)
             for release_element in releases_iterator:
                 release_document = cls.from_element(release_element)
-                print(release_document.discogs_id)
+                print(u'{}: {}'.format(
+                    release_document.discogs_id,
+                    release_document.title,
+                    ))
 
     @classmethod
     def from_element(cls, element):
@@ -54,7 +59,9 @@ class Release(Model, mongoengine.Document):
         else:
             companies = None
         # country
-        country = element.find('country').text
+        country = element.find('country')
+        if country is not None:
+            country = country.text
         # data quality
         data_quality = element.find('data_quality').text
         # discogs id
@@ -96,14 +103,18 @@ class Release(Model, mongoengine.Document):
         # release_date
         release_date = element.find('released')
         if release_date is not None:
-            release_date = [int(_) for _ in release_date.text.split('-')]
-            print(release_date)
-            if release_date[1] == 0:
-                release_date[1] = 1
-            if release_date[2] == 0:
-                release_date[2] = 1
-            print(release_date)
-            release_date = datetime.datetime(*release_date)
+            release_date = release_date.text
+            massaged_release_date = release_date.split('-')
+            massaged_release_date = [int(_) for _ in massaged_release_date]
+            while len(massaged_release_date) < 3:
+                massaged_release_date.append(1)
+            if massaged_release_date[2] == 0:
+                massaged_release_date[2] = 1
+            if massaged_release_date[1] == 0:
+                massaged_release_date[1] = 1
+            year, month, day = massaged_release_date
+            massaged_release_date = datetime.datetime(year, month, 1)
+            release_date = massaged_release_date + datetime.timedelta(days=day)
         # status
         status = element.attrib.get('status')
         # styles

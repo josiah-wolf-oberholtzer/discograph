@@ -1,3 +1,4 @@
+from __future__ import print_function
 import gzip
 import mongoengine
 from discograph.models.Model import Model
@@ -27,13 +28,17 @@ class Label(Model, mongoengine.Document):
     @classmethod
     def bootstrap(cls):
         from discograph import bootstrap
+        cls.drop_collection()
         labels_xml_path = bootstrap.labels_xml_path
         with gzip.GzipFile(labels_xml_path, 'r') as file_pointer:
             labels_iterator = bootstrap.iterparse(file_pointer, 'label')
             labels_iterator = bootstrap.clean_elements(labels_iterator)
             for label_element in labels_iterator:
                 label_document = cls.from_element(label_element)
-                print(label_document.discogs_id, label_document.name)
+                print(u'{}: {}'.format(
+                    label_document.discogs_id,
+                    label_document.name,
+                    ))
 
     @classmethod
     def from_name(cls, name):
