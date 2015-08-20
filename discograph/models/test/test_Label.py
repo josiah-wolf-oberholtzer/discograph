@@ -9,8 +9,9 @@ from discograph import models
 class Test(unittest.TestCase):
 
     def setUp(self):
-        mongoengine.connect('discograph:test')
-        models.Label.drop_collection()
+        database_name = 'discograph:test'
+        client = mongoengine.connect(database_name)
+        client.drop_database(database_name)
 
     def test_01(self):
         iterator = bootstrap.get_iterator('label')

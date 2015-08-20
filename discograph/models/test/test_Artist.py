@@ -9,8 +9,9 @@ from discograph import models
 class Test(unittest.TestCase):
 
     def setUp(self):
-        mongoengine.connect('discograph:test')
-        models.Artist.drop_collection()
+        database_name = 'discograph:test'
+        client = mongoengine.connect(database_name)
+        client.drop_database(database_name)
 
     def test_01(self):
         iterator = bootstrap.get_iterator('artist')
@@ -52,11 +53,11 @@ class Test(unittest.TestCase):
         expected = stringtools.normalize(u'''
             discograph.models.Artist(
                 aliases=[
-                    'ADCL',
-                    'Alexi Delano & Cari Lekebusch',
-                    'Crushed Insect & The Sick Puppy',
-                    'Puente Latino',
-                    'Yakari & Delano',
+                    u'ADCL',
+                    u'Alexi Delano & Cari Lekebusch',
+                    u'Crushed Insect & The Sick Puppy',
+                    u'Puente Latino',
+                    u'Yakari & Delano',
                     ],
                 discogs_id=2,
                 has_been_scraped=True,
@@ -80,12 +81,12 @@ class Test(unittest.TestCase):
                     ],
                 name=u'Mr. James Barth & A.D.',
                 name_variations=[
-                    'Mr Barth & A.D.',
-                    'MR JAMES BARTH & A. D.',
-                    'Mr. Barth & A.D.',
-                    'Mr. James Barth & A. D.',
+                    u'Mr Barth & A.D.',
+                    u'MR JAMES BARTH & A. D.',
+                    u'Mr. Barth & A.D.',
+                    u'Mr. James Barth & A. D.',
                     ],
-                real_name='Mr. James Barth & A.D.',
+                real_name=u'Mr. James Barth & A.D.',
                 )
             ''')
         assert actual == expected
