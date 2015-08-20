@@ -3,4 +3,4 @@ from discograph import bootstrap
 from discograph import models
 
 
-mongodb_client = mongoengine.connect('discograph')
+mongodb_client = mongoengine.connect('discgraph')
