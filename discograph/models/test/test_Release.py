@@ -370,3 +370,42 @@ class Test(unittest.TestCase):
             </release>
             ''')
         assert actual.splitlines() == expected.splitlines()
+        release_document = models.Release.from_element(release_element)
+        actual = format(release_document)
+        expected = stringtools.normalize(u'''
+            discograph.models.Release(
+                artists=[
+                    discograph.models.ArtistCredit(
+                        artist=discograph.models.Artist(
+                            aliases=[],
+                            discogs_id=3,
+                            has_been_scraped=False,
+                            members=[],
+                            name=u'Josh Wink',
+                            name_variations=[],
+                            ),
+                        ),
+                    ],
+                companies=[],
+                extra_artists=[
+                    discograph.models.ArtistCredit(
+                        artist=discograph.models.Artist(
+                            aliases=[],
+                            discogs_id=3,
+                            has_been_scraped=False,
+                            members=[],
+                            name=u'Josh Wink',
+                            name_variations=[],
+                            ),
+                        role=u'DJ Mix',
+                        ),
+                    ],
+                formats=[],
+                genres=[],
+                identifier=[],
+                labels=[],
+                styles=[],
+                tracklist=[],
+                )
+            ''')
+        assert actual == expected
