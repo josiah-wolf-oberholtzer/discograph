@@ -80,8 +80,14 @@ class Release(Model, mongoengine.Document):
         # release_date
         release_date = element.find('released')
         if release_date is not None:
-            release_date = release_date.text
-            release_date = datetime.datetime.strptime(release_date, '%Y-%m-%d')
+            release_date = [int(_) for _ in release_date.text.split('-')]
+            print(release_date)
+            if release_date[1] == 0:
+                release_date[1] = 1
+            if release_date[2] == 0:
+                release_date[2] = 1
+            print(release_date)
+            release_date = datetime.datetime(*release_date)
         # styles
         styles = element.find('styles')
         if styles is not None and len(styles):

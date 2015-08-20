@@ -16,6 +16,278 @@ class Test(unittest.TestCase):
     def test_01(self):
         iterator = bootstrap.get_iterator('release')
         release_element = next(iterator)
+        actual = stringtools.normalize(bootstrap.prettify(release_element))
+        expected = stringtools.normalize(u'''
+            <?xml version="1.0" ?>
+            <release id="1" status="Accepted">
+                <artists>
+                    <artist>
+                        <id>1</id>
+                        <name>Persuader, The</name>
+                        <anv/>
+                        <join/>
+                        <role/>
+                        <tracks/>
+                    </artist>
+                </artists>
+                <title>Stockholm</title>
+                <labels>
+                    <label catno="SK032" name="Svek"/>
+                </labels>
+                <extraartists>
+                    <artist>
+                        <id>239</id>
+                        <name>Jesper Dahlb\xe4ck</name>
+                        <anv/>
+                        <join/>
+                        <role>Music By [All Tracks By]</role>
+                        <tracks/>
+                    </artist>
+                </extraartists>
+                <formats>
+                    <format name="Vinyl" qty="2" text="">
+                        <descriptions>
+                            <description>12&quot;</description>
+                            <description>33 \u2153 RPM</description>
+                        </descriptions>
+                    </format>
+                </formats>
+                <genres>
+                    <genre>Electronic</genre>
+                </genres>
+                <styles>
+                    <style>Deep House</style>
+                </styles>
+                <country>Sweden</country>
+                <released>1999-03-00</released>
+                <notes>The song titles are the names of Stockholm's districts.
+            </notes>
+                <data_quality>Complete and Correct</data_quality>
+                <tracklist>
+                    <track>
+                        <position>A</position>
+                        <title>\xd6stermalm</title>
+                        <duration>4:45</duration>
+                    </track>
+                    <track>
+                        <position>B1</position>
+                        <title>Vasastaden</title>
+                        <duration>6:11</duration>
+                    </track>
+                    <track>
+                        <position>B2</position>
+                        <title>Kungsholmen</title>
+                        <duration>2:49</duration>
+                    </track>
+                    <track>
+                        <position>C1</position>
+                        <title>S\xf6dermalm</title>
+                        <duration>5:38</duration>
+                    </track>
+                    <track>
+                        <position>C2</position>
+                        <title>Norrmalm</title>
+                        <duration>4:52</duration>
+                    </track>
+                    <track>
+                        <position>D</position>
+                        <title>Gamla Stan</title>
+                        <duration>5:16</duration>
+                    </track>
+                </tracklist>
+                <identifiers>
+                    <identifier description="A-Side" type="Matrix / Runout" value="MPO SK 032 A1 G PHRUPMASTERGENERAL T27 LONDON"/>
+                    <identifier description="B-Side" type="Matrix / Runout" value="MPO SK 032 B1"/>
+                    <identifier description="C-Side" type="Matrix / Runout" value="MPO SK 032 C1"/>
+                    <identifier description="D-Side" type="Matrix / Runout" value="MPO SK 032 D1"/>
+                </identifiers>
+                <videos>
+                    <video duration="290" embed="true" src="http://www.youtube.com/watch?v=AHuQWcylaU4">
+                        <title>The Persuader (Jesper Dahlb\xe4ck) - \xd6stermalm</title>
+                        <description>The Persuader (Jesper Dahlb\xe4ck) - \xd6stermalm</description>
+                    </video>
+                    <video duration="380" embed="true" src="http://www.youtube.com/watch?v=5rA8CTKKEP4">
+                        <title>The Persuader - Vasastaden</title>
+                        <description>The Persuader - Vasastaden</description>
+                    </video>
+                    <video duration="335" embed="true" src="http://www.youtube.com/watch?v=QVdDhOnoR8k">
+                        <title>The Persuader-Stockholm-Sodermalm</title>
+                        <description>The Persuader-Stockholm-Sodermalm</description>
+                    </video>
+                    <video duration="289" embed="true" src="http://www.youtube.com/watch?v=hy47qgyJeG0">
+                        <title>The Persuader - Norrmalm</title>
+                        <description>The Persuader - Norrmalm</description>
+                    </video>
+                </videos>
+                <companies>
+                    <company>
+                        <id>271046</id>
+                        <name>The Globe Studios</name>
+                        <catno/>
+                        <entity_type>23</entity_type>
+                        <entity_type_name>Recorded At</entity_type_name>
+                        <resource_url>http://api.discogs.com/labels/271046</resource_url>
+                    </company>
+                    <company>
+                        <id>56025</id>
+                        <name>MPO</name>
+                        <catno/>
+                        <entity_type>17</entity_type>
+                        <entity_type_name>Pressed By</entity_type_name>
+                        <resource_url>http://api.discogs.com/labels/56025</resource_url>
+                    </company>
+                </companies>
+            </release>
+            ''')
+        assert actual.splitlines() == expected.splitlines()
+        release_document = models.Release.from_element(release_element)
+        actual = format(release_document)
+        expected = stringtools.normalize(u"""
+            discograph.models.Release(
+                artists=[
+                    discograph.models.ArtistCredit(
+                        artist=discograph.models.Artist(
+                            aliases=[],
+                            discogs_id=1,
+                            has_been_scraped=False,
+                            members=[],
+                            name=u'Persuader, The',
+                            name_variations=[],
+                            ),
+                        ),
+                    ],
+                companies=[
+                    discograph.models.CompanyCredit(
+                        company=discograph.models.Label(
+                            has_been_scraped=False,
+                            name=u'The Globe Studios',
+                            sublabels=[],
+                            ),
+                        entity_type=23,
+                        entity_type_name=u'Recorded At',
+                        ),
+                    discograph.models.CompanyCredit(
+                        company=discograph.models.Label(
+                            has_been_scraped=False,
+                            name=u'MPO',
+                            sublabels=[],
+                            ),
+                        entity_type=17,
+                        entity_type_name=u'Pressed By',
+                        ),
+                    ],
+                country=u'Sweden',
+                data_quality=u'Complete and Correct',
+                extra_artists=[
+                    discograph.models.ArtistCredit(
+                        artist=discograph.models.Artist(
+                            aliases=[],
+                            discogs_id=239,
+                            has_been_scraped=False,
+                            members=[],
+                            name=u'Jesper Dahlb\\xe4ck',
+                            name_variations=[],
+                            ),
+                        role=u'Music By [All Tracks By]',
+                        ),
+                    ],
+                formats=[
+                    discograph.models.Format(
+                        descriptions=[
+                            u'12"',
+                            u'33 \\u2153 RPM',
+                            ],
+                        name=u'Vinyl',
+                        quantity=2,
+                        ),
+                    ],
+                genres=[
+                    u'Electronic',
+                    ],
+                identifiers=[
+                    discograph.models.Identifier(
+                        type_=u'Matrix / Runout',
+                        value=u'MPO SK 032 A1 G PHRUPMASTERGENERAL T27 LONDON',
+                        ),
+                    discograph.models.Identifier(
+                        type_=u'Matrix / Runout',
+                        value=u'MPO SK 032 B1',
+                        ),
+                    discograph.models.Identifier(
+                        type_=u'Matrix / Runout',
+                        value=u'MPO SK 032 C1',
+                        ),
+                    discograph.models.Identifier(
+                        type_=u'Matrix / Runout',
+                        value=u'MPO SK 032 D1',
+                        ),
+                    ],
+                labels=[
+                    discograph.models.LabelCredit(
+                        catalog_number=u'SK032',
+                        label=discograph.models.Label(
+                            has_been_scraped=False,
+                            name=u'Svek',
+                            sublabels=[],
+                            ),
+                        ),
+                    ],
+                release_date=datetime.datetime(1999, 3, 1, 0, 0),
+                styles=[
+                    u'Deep House',
+                    ],
+                title=u'Stockholm',
+                tracklist=[
+                    discograph.models.Track(
+                        artists=[],
+                        duration=u'4:45',
+                        extra_artists=[],
+                        position=u'A',
+                        title=u'\\xd6stermalm',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        duration=u'6:11',
+                        extra_artists=[],
+                        position=u'B1',
+                        title=u'Vasastaden',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        duration=u'2:49',
+                        extra_artists=[],
+                        position=u'B2',
+                        title=u'Kungsholmen',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        duration=u'5:38',
+                        extra_artists=[],
+                        position=u'C1',
+                        title=u'S\\xf6dermalm',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        duration=u'4:52',
+                        extra_artists=[],
+                        position=u'C2',
+                        title=u'Norrmalm',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        duration=u'5:16',
+                        extra_artists=[],
+                        position=u'D',
+                        title=u'Gamla Stan',
+                        ),
+                    ],
+                )
+            """)
+        assert actual == expected
+
+    def test_02(self):
+        iterator = bootstrap.get_iterator('release')
+        release_element = next(iterator)
         release_element = next(iterator)
         release_element = next(iterator)
         actual = stringtools.normalize(bootstrap.prettify(release_element))
