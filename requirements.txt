@@ -1,4 +1,4 @@
-abjad
+-e git://github.com/Abjad/abjad.git#egg=abjad
 discogs-client
 mongoengine
 pytest
