@@ -1,6 +1,7 @@
 import gzip
 import mongoengine
 import traceback
+from abjad.tools import systemtools
 from discograph.models.Model import Model
 
 
@@ -26,6 +27,20 @@ class Artist(Model, mongoengine.Document):
             ('$name', '$real_name', '$aliases', '$name_variations'),
             ],
         }
+
+    ### PRIVATE PROPERTIES ###
+
+    @property
+    def _storage_format_specification(self):
+        keyword_argument_names = sorted(self._fields)
+        if 'id' in keyword_argument_names:
+            keyword_argument_names.remove('id')
+        if 'groups' in keyword_argument_names:
+            keyword_argument_names.remove('groups')
+        return systemtools.StorageFormatSpecification(
+            self,
+            keyword_argument_names=keyword_argument_names,
+            )
 
     ### PUBLIC METHODS ###
 
