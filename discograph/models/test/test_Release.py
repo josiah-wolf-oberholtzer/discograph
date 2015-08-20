@@ -387,6 +387,7 @@ class Test(unittest.TestCase):
                         ),
                     ],
                 companies=[],
+                data_quality=u'Correct',
                 extra_artists=[
                     discograph.models.ArtistCredit(
                         artist=discograph.models.Artist(
@@ -401,10 +402,16 @@ class Test(unittest.TestCase):
                         ),
                     ],
                 formats=[],
-                genres=[],
-                identifier=[],
+                genres=[
+                    u'Electronic',
+                    ],
+                identifiers=[],
                 labels=[],
-                styles=[],
+                styles=[
+                    u'Techno',
+                    u'Tech House',
+                    ],
+                title=u'Profound Sounds Vol. 1',
                 tracklist=[],
                 )
             ''')
