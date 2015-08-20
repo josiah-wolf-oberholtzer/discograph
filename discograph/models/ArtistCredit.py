@@ -6,8 +6,8 @@ class ArtistCredit(Model, mongoengine.EmbeddedDocument):
 
     ### MONGOENGINE FIELDS ###
 
-    artist = mongoengine.ReferenceField('Artist')
     anv = mongoengine.StringField()
+    artist = mongoengine.ReferenceField('Artist')
     join = mongoengine.StringField()
     role = mongoengine.StringField()
     tracks = mongoengine.StringField()

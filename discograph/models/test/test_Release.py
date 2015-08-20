@@ -387,6 +387,7 @@ class Test(unittest.TestCase):
                         ),
                     ],
                 companies=[],
+                country=u'US',
                 data_quality=u'Correct',
                 extra_artists=[
                     discograph.models.ArtistCredit(
@@ -401,11 +402,25 @@ class Test(unittest.TestCase):
                         role=u'DJ Mix',
                         ),
                     ],
-                formats=[],
+                formats=[
+                    discograph.models.Format(
+                        descriptions=[
+                            u'Compilation',
+                            u'Mixed',
+                            ],
+                        name=u'CD',
+                        quantity=1,
+                        ),
+                    ],
                 genres=[
                     u'Electronic',
                     ],
-                identifiers=[],
+                identifiers=[
+                    discograph.models.Identifier(
+                        type_=u'Barcode',
+                        value=u'074646362822',
+                        ),
+                    ],
                 labels=[],
                 styles=[
                     u'Techno',
