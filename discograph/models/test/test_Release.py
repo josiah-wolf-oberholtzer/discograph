@@ -372,7 +372,7 @@ class Test(unittest.TestCase):
         assert actual.splitlines() == expected.splitlines()
         release_document = models.Release.from_element(release_element)
         actual = format(release_document)
-        expected = stringtools.normalize(u'''
+        expected = stringtools.normalize(u"""
             discograph.models.Release(
                 artists=[
                     discograph.models.ArtistCredit(
@@ -457,7 +457,356 @@ class Test(unittest.TestCase):
                     u'Tech House',
                     ],
                 title=u'Profound Sounds Vol. 1',
-                tracklist=[],
+                tracklist=[
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=5,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Heiko Laux',
+                                    name_variations=[],
+                                    ),
+                                join=u'&',
+                                ),
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=4,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Johannes Heil',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'7:00',
+                        extra_artists=[],
+                        position=u'1',
+                        title=u'Untitled 8',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                anv=u'K.A.B.',
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=15525,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Karl Axel Bissler',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'5:28',
+                        extra_artists=[],
+                        position=u'2',
+                        title=u'Anjua (Sneaky 3)',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=7,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Sylk 130',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'5:25',
+                        extra_artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=8,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Mood II Swing',
+                                    name_variations=[],
+                                    ),
+                                role=u'Remix',
+                                ),
+                            ],
+                        position=u'3',
+                        title=u'When The Funk Hits The Fan (Mood II Swing When The Dub Hits The Fan)',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=1,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Persuader, The',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'4:27',
+                        extra_artists=[],
+                        position=u'4',
+                        title=u"What's The Time, Mr. Templar",
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=267132,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Care Company (2)',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'5:36',
+                        extra_artists=[],
+                        position=u'5',
+                        title=u'Vol. 2',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=6981,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Gez Varley',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'3:37',
+                        extra_artists=[],
+                        position=u'6',
+                        title=u'Political Prisoner',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=11,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'DJ Dozia',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'5:03',
+                        extra_artists=[],
+                        position=u'7',
+                        title=u'Pop Kulture',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=10702,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u"Nerio's Dubwork",
+                                    name_variations=[],
+                                    ),
+                                join=u'Meets',
+                                ),
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=233190,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Kathy Lee',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'5:42',
+                        extra_artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=23,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Alex Hi-Fi',
+                                    name_variations=[],
+                                    ),
+                                role=u'Remix',
+                                ),
+                            ],
+                        position=u'8',
+                        title=u'K-Mart Shopping (Hi-Fi Mix)',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=13,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Blaze',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'5:47',
+                        extra_artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=14,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Eight Miles High',
+                                    name_variations=[],
+                                    ),
+                                role=u'Remix',
+                                ),
+                            ],
+                        position=u'9',
+                        title=u'Lovelee Dae (Eight Miles High Mix)',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=67226,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Stacey Pullen',
+                                    name_variations=[],
+                                    ),
+                                join=u'Presents',
+                                ),
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=7554,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Black Odyssey',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'6:06',
+                        extra_artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=67226,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Stacey Pullen',
+                                    name_variations=[],
+                                    ),
+                                role=u'Presenter',
+                                ),
+                            ],
+                        position=u'10',
+                        title=u'Sweat',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=3906,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Christian Smith & John Selway',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'3:16',
+                        extra_artists=[],
+                        position=u'11',
+                        title=u'Silver',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=3,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Josh Wink',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'2:46',
+                        extra_artists=[],
+                        position=u'12',
+                        title=u'Untitled',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=19,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Sound Associates',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'3:41',
+                        extra_artists=[],
+                        position=u'13',
+                        title=u'Boom Box',
+                        ),
+                    discograph.models.Track(
+                        artists=[
+                            discograph.models.ArtistCredit(
+                                artist=discograph.models.Artist(
+                                    aliases=[],
+                                    discogs_id=20,
+                                    has_been_scraped=False,
+                                    members=[],
+                                    name=u'Percy X',
+                                    name_variations=[],
+                                    ),
+                                join=u',',
+                                ),
+                            ],
+                        duration=u'3:39',
+                        extra_artists=[],
+                        position=u'14',
+                        title=u'Track 2',
+                        ),
+                    ],
                 )
-            ''')
+            """)
         assert actual == expected

@@ -91,6 +91,11 @@ class Release(Model, mongoengine.Document):
         # title
         title = element.find('title').text
         # tracklist
+        tracklist = element.find('tracklist')
+        if tracklist is not None and len(tracklist):
+            tracklist = [models.Track.from_element(_) for _ in tracklist]
+        else:
+            tracklist = None
         # construct
         release_document = cls(
             artists=artists,
@@ -106,5 +111,6 @@ class Release(Model, mongoengine.Document):
             release_date=release_date,
             styles=styles,
             title=title,
+            tracklist=tracklist,
             )
         return release_document
