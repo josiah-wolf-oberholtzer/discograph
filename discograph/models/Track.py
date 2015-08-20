@@ -1,5 +1,6 @@
 import mongoengine
+from discograph.models.Model import Model
 
 
-class Track(mongoengine.EmbeddedDocument):
+class Track(Model, mongoengine.EmbeddedDocument):
     pass

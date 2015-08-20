@@ -1,8 +1,9 @@
 import gzip
 import mongoengine
+from discograph.models.Model import Model
 
 
-class Label(mongoengine.Document):
+class Label(Model, mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 

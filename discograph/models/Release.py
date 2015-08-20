@@ -1,7 +1,8 @@
 import mongoengine
+from discograph.models.Model import Model
 
 
-class Release(mongoengine.Document):
+class Release(Model, mongoengine.Document):
 
     ### PUBLIC METHODS ###
 

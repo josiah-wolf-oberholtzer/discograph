@@ -1,5 +1,6 @@
 import mongoengine
+from discograph.models.Model import Model
 
 
-class LabelCredit(mongoengine.EmbeddedDocument):
+class LabelCredit(Model, mongoengine.EmbeddedDocument):
     pass

@@ -1,5 +1,6 @@
 import mongoengine
+from discograph.models.Model import Model
 
 
-class CompanyCredit(mongoengine.EmbeddedDocument):
+class CompanyCredit(Model, mongoengine.EmbeddedDocument):
     pass

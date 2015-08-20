@@ -1,9 +1,10 @@
 import gzip
 import mongoengine
 import traceback
+from discograph.models.Model import Model
 
 
-class Artist(mongoengine.Document):
+class Artist(Model, mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 

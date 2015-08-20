@@ -1,7 +1,8 @@
 import mongoengine
+from discograph.models.Model import Model
 
 
-class Master(mongoengine.Document):
+class Master(Model, mongoengine.Document):
 
     ### PUBLIC METHODS ###
 
