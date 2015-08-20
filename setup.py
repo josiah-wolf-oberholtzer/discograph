@@ -8,6 +8,7 @@ if __name__ == '__main__':
         author='Josiah Wolf Oberholtzer',
         author_email='josiah.oberholtzer@gmail.com',
         install_requires=[
+            'abjad',
             'discogs-client',
             'mongoengine'
             'pytest',
