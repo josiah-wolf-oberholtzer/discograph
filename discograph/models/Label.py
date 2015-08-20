@@ -57,7 +57,7 @@ class Label(Model, mongoengine.Document):
         if sublabels is not None and len(sublabels):
             sublabels = [_.text for _ in sublabels if _.text]
             if sublabels:
-                sublabels = cls.objects(name=sublabels)
+                sublabels = [cls.from_name(_) for _ in sublabels]
         else:
             sublabels = []
         parent_label = element.find('parentLabel')
