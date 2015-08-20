@@ -1,4 +1,5 @@
 import datetime
+import gzip
 import mongoengine
 from discograph.models.Model import Model
 
@@ -11,6 +12,7 @@ class Release(Model, mongoengine.Document):
     companies = mongoengine.EmbeddedDocumentListField('CompanyCredit')
     country = mongoengine.StringField()
     data_quality = mongoengine.StringField()
+    discogs_id = mongoengine.IntField()
     extra_artists = mongoengine.EmbeddedDocumentListField('ArtistCredit')
     formats = mongoengine.EmbeddedDocumentListField('Format')
     genres = mongoengine.ListField(mongoengine.StringField())
@@ -18,11 +20,23 @@ class Release(Model, mongoengine.Document):
     labels = mongoengine.EmbeddedDocumentListField('LabelCredit')
     master_id = mongoengine.IntField()
     release_date = mongoengine.DateTimeField()
+    status = mongoengine.StringField()
     styles = mongoengine.ListField(mongoengine.StringField())
     title = mongoengine.StringField()
     tracklist = mongoengine.EmbeddedDocumentListField('Track')
 
     ### PUBLIC METHODS ###
+
+    @classmethod
+    def bootstrap(cls):
+        from discograph import bootstrap
+        releases_xml_path = bootstrap.releases_xml_path
+        with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
+            releases_iterator = bootstrap.iterparse(file_pointer, 'release')
+            releases_iterator = bootstrap.clean_elements(releases_iterator)
+            for release_element in releases_iterator:
+                release_document = cls.from_element(release_element)
+                print(release_document.discogs_id)
 
     @classmethod
     def from_element(cls, element):
@@ -43,6 +57,8 @@ class Release(Model, mongoengine.Document):
         country = element.find('country').text
         # data quality
         data_quality = element.find('data_quality').text
+        # discogs id
+        discogs_id = int(element.attrib.get('id'))
         # extra artists
         extra_artists = element.find('extraartists')
         if extra_artists is not None and len(extra_artists):
@@ -88,6 +104,8 @@ class Release(Model, mongoengine.Document):
                 release_date[2] = 1
             print(release_date)
             release_date = datetime.datetime(*release_date)
+        # status
+        status = element.attrib.get('status')
         # styles
         styles = element.find('styles')
         if styles is not None and len(styles):
@@ -108,6 +126,7 @@ class Release(Model, mongoengine.Document):
             companies=companies,
             country=country,
             data_quality=data_quality,
+            discogs_id=discogs_id,
             extra_artists=extra_artists,
             formats=formats,
             genres=genres,
@@ -115,8 +134,10 @@ class Release(Model, mongoengine.Document):
             labels=labels,
             master_id=master_id,
             release_date=release_date,
+            status=status,
             styles=styles,
             title=title,
             tracklist=tracklist,
             )
+        release_document.save()
         return release_document

@@ -178,6 +178,7 @@ class Test(unittest.TestCase):
                     ],
                 country=u'Sweden',
                 data_quality=u'Complete and Correct',
+                discogs_id=1,
                 extra_artists=[
                     discograph.models.ArtistCredit(
                         artist=discograph.models.Artist(
@@ -233,6 +234,7 @@ class Test(unittest.TestCase):
                         ),
                     ],
                 release_date=datetime.datetime(1999, 3, 1, 0, 0),
+                status=u'Accepted',
                 styles=[
                     u'Deep House',
                     ],
@@ -680,6 +682,7 @@ class Test(unittest.TestCase):
                     ],
                 country=u'US',
                 data_quality=u'Correct',
+                discogs_id=3,
                 extra_artists=[
                     discograph.models.ArtistCredit(
                         artist=discograph.models.Artist(
@@ -724,6 +727,7 @@ class Test(unittest.TestCase):
                     ],
                 master_id=66526,
                 release_date=datetime.datetime(1999, 7, 13, 0, 0),
+                status=u'Accepted',
                 styles=[
                     u'Techno',
                     u'Tech House',
