@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import mongoengine
 import unittest
+from abjad import stringtools
 from discograph import bootstrap
 from discograph import models
 
@@ -13,27 +14,36 @@ class Test(unittest.TestCase):
     def test_01(self):
         iterator = bootstrap.get_iterator('artist')
         artist_element = next(iterator)
-        assert bootstrap.prettify(artist_element) == bootstrap.normalize(u'''
+        artist_element = next(iterator)
+        actual = bootstrap.prettify(artist_element)
+        expected = stringtools.normalize(u'''
             <?xml version="1.0" ?>
             <artist>
-                <id>1</id>
-                <name>Persuader, The</name>
-                <realname>Jesper Dahlbäck</realname>
+                <id>2</id>
+                <name>Mr. James Barth &amp; A.D.</name>
+                <realname>Cari Lekebusch &amp; Alexi Delano</realname>
                 <profile/>
                 <data_quality>Correct</data_quality>
                 <namevariations>
-                    <name>Persuader</name>
-                    <name>Presuader, The</name>
+                    <name>Mr Barth &amp; A.D.</name>
+                    <name>MR JAMES BARTH &amp; A. D.</name>
+                    <name>Mr. Barth &amp; A.D.</name>
+                    <name>Mr. James Barth &amp; A. D.</name>
                 </namevariations>
                 <aliases>
-                    <name>Dick Track</name>
-                    <name>Faxid</name>
-                    <name>Groove Machine</name>
-                    <name>Janne Me' Amazonen</name>
-                    <name>Jesper Dahlbäck</name>
-                    <name>Lenk</name>
-                    <name>Pinguin Man, The</name>
+                    <name>ADCL</name>
+                    <name>Alexi Delano &amp; Cari Lekebusch</name>
+                    <name>Crushed Insect &amp; The Sick Puppy</name>
+                    <name>Puente Latino</name>
+                    <name>Yakari &amp; Delano</name>
                 </aliases>
+                <members>
+                    <id>26</id>
+                    <name>Alexi Delano</name>
+                    <id>27</id>
+                    <name>Cari Lekebusch</name>
+                </members>
             </artist>
             ''')
+        assert actual.splitlines() == expected.splitlines()
         artist_document = models.Artist.from_element(artist_element)
