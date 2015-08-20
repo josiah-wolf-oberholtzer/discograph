@@ -63,6 +63,11 @@ class Release(Model, mongoengine.Document):
         else:
             identifiers = None
         # labels
+        labels = element.find('labels')
+        if labels is not None and len(labels):
+            labels = [models.LabelCredit.from_element(_) for _ in labels]
+        else:
+            labels = None
         # master_id
         # notes
         # release_date
@@ -84,6 +89,7 @@ class Release(Model, mongoengine.Document):
             formats=formats,
             genres=genres,
             identifiers=identifiers,
+            labels=labels,
             styles=styles,
             title=title,
             )

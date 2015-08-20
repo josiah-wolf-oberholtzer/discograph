@@ -421,7 +421,16 @@ class Test(unittest.TestCase):
                         value=u'074646362822',
                         ),
                     ],
-                labels=[],
+                labels=[
+                    discograph.models.LabelCredit(
+                        catalog_number=u'CK 63628',
+                        label=discograph.models.Label(
+                            has_been_scraped=False,
+                            name=u'Ruffhouse Records',
+                            sublabels=[],
+                            ),
+                        ),
+                    ],
                 styles=[
                     u'Techno',
                     u'Tech House',
