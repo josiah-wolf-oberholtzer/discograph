@@ -35,7 +35,7 @@ class Label(Model, mongoengine.Document):
             labels_iterator = bootstrap.clean_elements(labels_iterator)
             for label_element in labels_iterator:
                 label_document = cls.from_element(label_element)
-                print(u'{}: {}'.format(
+                print(u'LABEL {}: {}'.format(
                     label_document.discogs_id,
                     label_document.name,
                     ))

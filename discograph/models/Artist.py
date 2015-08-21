@@ -55,7 +55,7 @@ class Artist(Model, mongoengine.Document):
             artists_iterator = bootstrap.clean_elements(artists_iterator)
             for artist_element in artists_iterator:
                 artist_document = cls.from_element(artist_element)
-                print(u'{}: {}'.format(
+                print(u'ARTIST {}: {}'.format(
                     artist_document.discogs_id,
                     artist_document.name,
                     ))

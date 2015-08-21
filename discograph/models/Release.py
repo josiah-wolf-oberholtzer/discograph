@@ -14,7 +14,6 @@ class Release(Model, mongoengine.Document):
     date_no_dashes_regex = re.compile('^(\d{4})(\d{2})(\d{2})$')
     year_regex = re.compile('^\d\d\d\d$')
 
-
     ### MONGOENGINE FIELDS ###
 
     artists = mongoengine.EmbeddedDocumentListField('ArtistCredit')
@@ -46,7 +45,7 @@ class Release(Model, mongoengine.Document):
             releases_iterator = bootstrap.clean_elements(releases_iterator)
             for release_element in releases_iterator:
                 release_document = cls.from_element(release_element)
-                print(u'{}: {}'.format(
+                print(u'RELEASE {}: {}'.format(
                     release_document.discogs_id,
                     release_document.title,
                     ))
