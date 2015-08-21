@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-import mongoengine.connection
+import mongoengine
 import unittest
 from abjad import stringtools
 from discograph import bootstrap

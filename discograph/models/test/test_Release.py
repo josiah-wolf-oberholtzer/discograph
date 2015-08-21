@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
-from __future__ import unicode_literals
-import mongoengine.connection
+import mongoengine
 import unittest
 from abjad import stringtools
 from discograph import bootstrap
