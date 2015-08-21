@@ -152,6 +152,10 @@ class Release(Model, mongoengine.Document):
 
     @classmethod
     def parse_release_date(cls, release_date):
+        release_date = release_date.strip()
+        # empty string
+        if not release_date:
+            return None
         # yyyy-mm-dd
         match = cls.date_regex.match(release_date)
         if match:
@@ -167,7 +171,7 @@ class Release(Model, mongoengine.Document):
         if match:
             year, month, day = match.groups()
             return cls.validate_release_date(year, month, day)
-        # other
+        # other: "?", "????", "None", "Unknown"
         return None
 
     @classmethod
