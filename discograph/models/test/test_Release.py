@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
-import mongoengine
+from __future__ import unicode_literals
+import mongoengine.connection
 import unittest
 from abjad import stringtools
 from discograph import bootstrap
@@ -8,10 +9,14 @@ from discograph import models
 
 class Test(unittest.TestCase):
 
+    database_name = 'discograph:test'
+
     def setUp(self):
-        database_name = 'discograph:test'
-        client = mongoengine.connect(database_name)
-        client.drop_database(database_name)
+        self.database = mongoengine.connect(self.database_name)
+
+    def tearDown(self):
+        self.database.drop_database(self.database_name)
+        self.database.close()
 
     def test_01(self):
         iterator = bootstrap.get_iterator('release')

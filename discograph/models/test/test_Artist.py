@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+from __future__ import unicode_literals
 import mongoengine
 import unittest
 from abjad import stringtools
@@ -8,17 +9,21 @@ from discograph import models
 
 class Test(unittest.TestCase):
 
+    database_name = 'discograph:test'
+
     def setUp(self):
-        database_name = 'discograph:test'
-        client = mongoengine.connect(database_name)
-        client.drop_database(database_name)
+        self.database = mongoengine.connect(self.database_name)
+
+    def tearDown(self):
+        self.database.drop_database(self.database_name)
+        self.database.close()
 
     def test_01(self):
         iterator = bootstrap.get_iterator('artist')
         artist_element = next(iterator)
         artist_element = next(iterator)
         actual = bootstrap.prettify(artist_element)
-        expected = stringtools.normalize(u'''
+        expected = stringtools.normalize('''
             <?xml version="1.0" ?>
             <artist>
                 <id>2</id>
@@ -50,14 +55,14 @@ class Test(unittest.TestCase):
         assert actual.splitlines() == expected.splitlines()
         artist_document = models.Artist.from_element(artist_element)
         actual = format(artist_document)
-        expected = stringtools.normalize(u'''
+        expected = stringtools.normalize('''
             discograph.models.Artist(
                 aliases=[
-                    u'ADCL',
-                    u'Alexi Delano & Cari Lekebusch',
-                    u'Crushed Insect & The Sick Puppy',
-                    u'Puente Latino',
-                    u'Yakari & Delano',
+                    'ADCL',
+                    'Alexi Delano & Cari Lekebusch',
+                    'Crushed Insect & The Sick Puppy',
+                    'Puente Latino',
+                    'Yakari & Delano',
                     ],
                 discogs_id=2,
                 has_been_scraped=True,
@@ -81,12 +86,12 @@ class Test(unittest.TestCase):
                     ],
                 name=u'Mr. James Barth & A.D.',
                 name_variations=[
-                    u'Mr Barth & A.D.',
-                    u'MR JAMES BARTH & A. D.',
-                    u'Mr. Barth & A.D.',
-                    u'Mr. James Barth & A. D.',
+                    'Mr Barth & A.D.',
+                    'MR JAMES BARTH & A. D.',
+                    'Mr. Barth & A.D.',
+                    'Mr. James Barth & A. D.',
                     ],
-                real_name=u'Mr. James Barth & A.D.',
+                real_name='Mr. James Barth & A.D.',
                 )
             ''')
         assert actual == expected

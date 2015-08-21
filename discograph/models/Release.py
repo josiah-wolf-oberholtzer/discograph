@@ -2,10 +2,18 @@ from __future__ import print_function
 import datetime
 import gzip
 import mongoengine
+import re
 from discograph.models.Model import Model
 
 
 class Release(Model, mongoengine.Document):
+
+    ### CLASS VARIABLES ###
+
+    date_regex = re.compile('^(\d{4})-(\d{2})-(\d{2})$')
+    date_no_dashes_regex = re.compile('^(\d{4})(\d{2})(\d{2})$')
+    year_regex = re.compile('^\d\d\d\d$')
+
 
     ### MONGOENGINE FIELDS ###
 
@@ -103,18 +111,7 @@ class Release(Model, mongoengine.Document):
         # release_date
         release_date = element.find('released')
         if release_date is not None:
-            release_date = release_date.text
-            massaged_release_date = release_date.split('-')
-            massaged_release_date = [int(_) for _ in massaged_release_date]
-            while len(massaged_release_date) < 3:
-                massaged_release_date.append(1)
-            if massaged_release_date[2] == 0:
-                massaged_release_date[2] = 1
-            if massaged_release_date[1] == 0:
-                massaged_release_date[1] = 1
-            year, month, day = massaged_release_date
-            massaged_release_date = datetime.datetime(year, month, 1)
-            release_date = massaged_release_date + datetime.timedelta(days=day)
+            release_date = cls.parse_release_date(release_date.text)
         # status
         status = element.attrib.get('status')
         # styles
@@ -152,3 +149,38 @@ class Release(Model, mongoengine.Document):
             )
         release_document.save()
         return release_document
+
+    @classmethod
+    def parse_release_date(cls, release_date):
+        # yyyy-mm-dd
+        match = cls.date_regex.match(release_date)
+        if match:
+            year, month, day = match.groups()
+            return cls.validate_release_date(year, month, day)
+        # yyyy
+        match = cls.date_no_dashes_regex.match(release_date)
+        if match:
+            year, month, day = match.group(), 1, 1
+            return cls.validate_release_date(year, month, day)
+        # yyyymmdd
+        match = cls.date_no_dashes_regex.match(release_date)
+        if match:
+            year, month, day = match.groups()
+            return cls.validate_release_date(year, month, day)
+        # other
+        return None
+
+    @classmethod
+    def validate_release_date(cls, year, month, day):
+        year = int(year)
+        if month.isdigit():
+            month = int(month) or 1
+        else:
+            month = 1
+        if day.isdigit():
+            day = int(day) or 1
+        else:
+            day = 1
+        date = datetime.datetime(year, month, 1)
+        date = date + datetime.timedelta(days=day - 1)
+        return date
