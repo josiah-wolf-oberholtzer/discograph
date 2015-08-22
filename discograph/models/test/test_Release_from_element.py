@@ -1356,7 +1356,6 @@ class Test(unittest.TestCase):
             """)
         release_element = ElementTree.fromstring(source)
         release_document = models.Release.from_element(release_element)
-        raise Exception('DATE PARSING IS BORKED: TEST ATOMICALLY.')
         actual = format(release_document)
         expected = stringtools.normalize(u"""
             discograph.models.Release(
@@ -1401,7 +1400,7 @@ class Test(unittest.TestCase):
                         ),
                     ],
                 master_id=86193,
-                release_date=datetime.datetime(2002, 2, 6, 0, 0),
+                release_date=datetime.datetime(2002, 1, 1, 0, 0),
                 status=u'Accepted',
                 styles=[
                     u'Acid House',
