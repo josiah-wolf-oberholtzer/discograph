@@ -4,6 +4,7 @@ import unittest
 from abjad import stringtools
 from discograph import bootstrap
 from discograph import models
+from xml.etree import ElementTree
 
 
 class Test(unittest.TestCase):
@@ -1085,6 +1086,365 @@ class Test(unittest.TestCase):
                         extra_artists=[],
                         position=u'14',
                         title=u'Track 2',
+                        ),
+                    ],
+                )
+            """)
+        assert actual == expected
+
+    def test_03(self):
+        source = stringtools.normalize(r"""
+            <?xml version="1.0" ?>
+            <release id="138522" status="Accepted">
+                <artists>
+                    <artist>
+                        <id>12584</id>
+                        <name>Felix Kubin</name>
+                        <anv/>
+                        <join/>
+                        <role/>
+                        <tracks/>
+                    </artist>
+                </artists>
+                <title>Jetlag Disco</title>
+                <labels>
+                    <label catno="a19" name="A-Musik"/>
+                </labels>
+                <extraartists/>
+                <formats>
+                    <format name="CD" qty="1" text="">
+                        <descriptions>
+                            <description>Mini</description>
+                        </descriptions>
+                    </format>
+                </formats>
+                <genres>
+                    <genre>Electronic</genre>
+                </genres>
+                <styles>
+                    <style>Acid House</style>
+                    <style>Experimental</style>
+                    <style>Happy Hardcore</style>
+                </styles>
+                <country>Germany</country>
+                <released>20020206</released>
+                <master_id>86193</master_id>
+                <data_quality>Correct</data_quality>
+                <tracklist>
+                    <track>
+                        <position>1</position>
+                        <title>Phonebashing</title>
+                        <duration/>
+                    </track>
+                    <track>
+                        <position>2</position>
+                        <title>Groscher Lausangriff</title>
+                        <duration/>
+                    </track>
+                    <track>
+                        <position>3</position>
+                        <title>Mondgesang</title>
+                        <duration/>
+                    </track>
+                    <track>
+                        <position>4</position>
+                        <title>Hotel Supernova</title>
+                        <duration/>
+                    </track>
+                    <track>
+                        <position>5</position>
+                        <title>I lost My Heart In Reykjavik</title>
+                        <duration/>
+                    </track>
+                    <track>
+                        <position>6</position>
+                        <title>Liebe Mutter</title>
+                        <duration/>
+                    </track>
+                </tracklist>
+                <videos>
+                    <video duration="187" embed="true" src="http://www.youtube.com/watch?v=C2B97vlcIE8">
+                        <title>Felix Kubin - Phonobashing (a19 V)</title>
+                        <description>Felix Kubin - Phonobashing (a19 V)</description>
+                    </video>
+                    <video duration="249" embed="true" src="http://www.youtube.com/watch?v=7M4RIeePO48">
+                        <title>Felix Kubin Hotel Supernova</title>
+                        <description>Felix Kubin Hotel Supernova</description>
+                    </video>
+                </videos>
+                <companies/>
+            </release>
+            """)
+        release_element = ElementTree.fromstring(source)
+        release_document = models.Release.from_element(release_element)
+        actual = format(release_document)
+        expected = stringtools.normalize(u"""
+            discograph.models.Release(
+                artists=[
+                    discograph.models.ArtistCredit(
+                        artist=discograph.models.Artist(
+                            aliases=[],
+                            discogs_id=12584,
+                            has_been_scraped=False,
+                            members=[],
+                            name=u'Felix Kubin',
+                            name_variations=[],
+                            ),
+                        ),
+                    ],
+                companies=[],
+                country=u'Germany',
+                data_quality=u'Correct',
+                discogs_id=138522,
+                extra_artists=[],
+                formats=[
+                    discograph.models.Format(
+                        descriptions=[
+                            u'Mini',
+                            ],
+                        name=u'CD',
+                        quantity=1,
+                        ),
+                    ],
+                genres=[
+                    u'Electronic',
+                    ],
+                identifiers=[],
+                labels=[
+                    discograph.models.LabelCredit(
+                        catalog_number=u'a19',
+                        label=discograph.models.Label(
+                            has_been_scraped=False,
+                            name=u'A-Musik',
+                            sublabels=[],
+                            ),
+                        ),
+                    ],
+                master_id=86193,
+                release_date=datetime.datetime(2002, 2, 6, 0, 0),
+                status=u'Accepted',
+                styles=[
+                    u'Acid House',
+                    u'Experimental',
+                    u'Happy Hardcore',
+                    ],
+                title=u'Jetlag Disco',
+                tracklist=[
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'1',
+                        title=u'Phonebashing',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'2',
+                        title=u'Groscher Lausangriff',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'3',
+                        title=u'Mondgesang',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'4',
+                        title=u'Hotel Supernova',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'5',
+                        title=u'I lost My Heart In Reykjavik',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'6',
+                        title=u'Liebe Mutter',
+                        ),
+                    ],
+                )
+            """)
+        assert actual == expected
+
+    def test_04(self):
+        source = stringtools.normalize(r"""
+            <?xml version="1.0" ?>
+            <release id="138522" status="Accepted">
+                <artists>
+                    <artist>
+                        <id>12584</id>
+                        <name>Felix Kubin</name>
+                        <anv/>
+                        <join/>
+                        <role/>
+                        <tracks/>
+                    </artist>
+                </artists>
+                <title>Jetlag Disco</title>
+                <labels>
+                    <label catno="a19" name="A-Musik"/>
+                </labels>
+                <extraartists/>
+                <formats>
+                    <format name="CD" qty="1" text="">
+                        <descriptions>
+                            <description>Mini</description>
+                        </descriptions>
+                    </format>
+                </formats>
+                <genres>
+                    <genre>Electronic</genre>
+                </genres>
+                <styles>
+                    <style>Acid House</style>
+                    <style>Experimental</style>
+                    <style>Happy Hardcore</style>
+                </styles>
+                <country>Germany</country>
+                <released>2002</released>
+                <master_id>86193</master_id>
+                <data_quality>Correct</data_quality>
+                <tracklist>
+                    <track>
+                        <position>1</position>
+                        <title>Phonebashing</title>
+                        <duration/>
+                    </track>
+                    <track>
+                        <position>2</position>
+                        <title>Groscher Lausangriff</title>
+                        <duration/>
+                    </track>
+                    <track>
+                        <position>3</position>
+                        <title>Mondgesang</title>
+                        <duration/>
+                    </track>
+                    <track>
+                        <position>4</position>
+                        <title>Hotel Supernova</title>
+                        <duration/>
+                    </track>
+                    <track>
+                        <position>5</position>
+                        <title>I lost My Heart In Reykjavik</title>
+                        <duration/>
+                    </track>
+                    <track>
+                        <position>6</position>
+                        <title>Liebe Mutter</title>
+                        <duration/>
+                    </track>
+                </tracklist>
+                <videos>
+                    <video duration="187" embed="true" src="http://www.youtube.com/watch?v=C2B97vlcIE8">
+                        <title>Felix Kubin - Phonobashing (a19 V)</title>
+                        <description>Felix Kubin - Phonobashing (a19 V)</description>
+                    </video>
+                    <video duration="249" embed="true" src="http://www.youtube.com/watch?v=7M4RIeePO48">
+                        <title>Felix Kubin Hotel Supernova</title>
+                        <description>Felix Kubin Hotel Supernova</description>
+                    </video>
+                </videos>
+                <companies/>
+            </release>
+            """)
+        release_element = ElementTree.fromstring(source)
+        release_document = models.Release.from_element(release_element)
+        raise Exception('DATE PARSING IS BORKED: TEST ATOMICALLY.')
+        actual = format(release_document)
+        expected = stringtools.normalize(u"""
+            discograph.models.Release(
+                artists=[
+                    discograph.models.ArtistCredit(
+                        artist=discograph.models.Artist(
+                            aliases=[],
+                            discogs_id=12584,
+                            has_been_scraped=False,
+                            members=[],
+                            name=u'Felix Kubin',
+                            name_variations=[],
+                            ),
+                        ),
+                    ],
+                companies=[],
+                country=u'Germany',
+                data_quality=u'Correct',
+                discogs_id=138522,
+                extra_artists=[],
+                formats=[
+                    discograph.models.Format(
+                        descriptions=[
+                            u'Mini',
+                            ],
+                        name=u'CD',
+                        quantity=1,
+                        ),
+                    ],
+                genres=[
+                    u'Electronic',
+                    ],
+                identifiers=[],
+                labels=[
+                    discograph.models.LabelCredit(
+                        catalog_number=u'a19',
+                        label=discograph.models.Label(
+                            has_been_scraped=False,
+                            name=u'A-Musik',
+                            sublabels=[],
+                            ),
+                        ),
+                    ],
+                master_id=86193,
+                release_date=datetime.datetime(2002, 2, 6, 0, 0),
+                status=u'Accepted',
+                styles=[
+                    u'Acid House',
+                    u'Experimental',
+                    u'Happy Hardcore',
+                    ],
+                title=u'Jetlag Disco',
+                tracklist=[
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'1',
+                        title=u'Phonebashing',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'2',
+                        title=u'Groscher Lausangriff',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'3',
+                        title=u'Mondgesang',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'4',
+                        title=u'Hotel Supernova',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'5',
+                        title=u'I lost My Heart In Reykjavik',
+                        ),
+                    discograph.models.Track(
+                        artists=[],
+                        extra_artists=[],
+                        position=u'6',
+                        title=u'Liebe Mutter',
                         ),
                     ],
                 )
