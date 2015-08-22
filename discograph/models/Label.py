@@ -27,12 +27,12 @@ class Label(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discograph import bootstrap
+        from discograph.bootstrap import Bootstrap
         cls.drop_collection()
-        labels_xml_path = bootstrap.labels_xml_path
+        labels_xml_path = Bootstrap.labels_xml_path
         with gzip.GzipFile(labels_xml_path, 'r') as file_pointer:
-            labels_iterator = bootstrap.iterparse(file_pointer, 'label')
-            labels_iterator = bootstrap.clean_elements(labels_iterator)
+            labels_iterator = Bootstrap.iterparse(file_pointer, 'label')
+            labels_iterator = Bootstrap.clean_elements(labels_iterator)
             for label_element in labels_iterator:
                 label_document = cls.from_element(label_element)
                 print(u'LABEL {}: {}'.format(

@@ -18,11 +18,11 @@ class Test(unittest.TestCase):
         self.database.close()
 
     def test_01(self):
-        iterator = bootstrap.get_iterator('label')
+        iterator = bootstrap.Bootstrap.get_iterator('label')
         label_element = next(iterator)
         label_element = next(iterator)
         label_element = next(iterator)
-        actual = stringtools.normalize(bootstrap.prettify(label_element))
+        actual = stringtools.normalize(bootstrap.Bootstrap.prettify(label_element))
         expected = stringtools.normalize(u'''
             <?xml version="1.0" ?>
             <label>

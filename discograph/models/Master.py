@@ -20,12 +20,12 @@ class Master(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discograph import bootstrap
+        from discograph.bootstrap import Bootstrap
         cls.drop_collection()
-        masters_xml_path = bootstrap.masters_xml_path
+        masters_xml_path = Bootstrap.masters_xml_path
         with gzip.GzipFile(masters_xml_path, 'r') as file_pointer:
-            masters_iterator = bootstrap.iterparse(file_pointer, 'master')
-            masters_iterator = bootstrap.clean_elements(masters_iterator)
+            masters_iterator = Bootstrap.iterparse(file_pointer, 'master')
+            masters_iterator = Bootstrap.clean_elements(masters_iterator)
             for master_element in masters_iterator:
                 master_document = cls.from_element(master_element)
                 print(u'MASTER {}: {}'.format(

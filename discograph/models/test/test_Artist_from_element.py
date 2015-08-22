@@ -18,10 +18,10 @@ class Test(unittest.TestCase):
         self.database.close()
 
     def test_01(self):
-        iterator = bootstrap.get_iterator('artist')
+        iterator = bootstrap.Bootstrap.get_iterator('artist')
         artist_element = next(iterator)
         artist_element = next(iterator)
-        actual = bootstrap.prettify(artist_element)
+        actual = bootstrap.Bootstrap.prettify(artist_element)
         expected = stringtools.normalize('''
             <?xml version="1.0" ?>
             <artist>

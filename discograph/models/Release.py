@@ -38,12 +38,12 @@ class Release(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discograph import bootstrap
+        from discograph.bootstrap import Bootstrap
         cls.drop_collection()
-        releases_xml_path = bootstrap.releases_xml_path
+        releases_xml_path = Bootstrap.releases_xml_path
         with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
-            releases_iterator = bootstrap.iterparse(file_pointer, 'release')
-            releases_iterator = bootstrap.clean_elements(releases_iterator)
+            releases_iterator = Bootstrap.iterparse(file_pointer, 'release')
+            releases_iterator = Bootstrap.clean_elements(releases_iterator)
             for release_element in releases_iterator:
                 try:
                     release_document = cls.from_element(release_element)
@@ -52,7 +52,7 @@ class Release(Model, mongoengine.Document):
                         release_document.title,
                         ))
                 except:
-                    print(bootstrap.prettify(release_element))
+                    print(Bootstrap.prettify(release_element))
 
     def extract_relations(self):
         result = []

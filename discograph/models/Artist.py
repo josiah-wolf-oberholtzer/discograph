@@ -47,12 +47,12 @@ class Artist(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discograph import bootstrap
+        from discograph.bootstrap import Bootstrap
         cls.drop_collection()
-        artists_xml_path = bootstrap.artists_xml_path
+        artists_xml_path = Bootstrap.artists_xml_path
         with gzip.GzipFile(artists_xml_path, 'r') as file_pointer:
-            artists_iterator = bootstrap.iterparse(file_pointer, 'artist')
-            artists_iterator = bootstrap.clean_elements(artists_iterator)
+            artists_iterator = Bootstrap.iterparse(file_pointer, 'artist')
+            artists_iterator = Bootstrap.clean_elements(artists_iterator)
             for artist_element in artists_iterator:
                 artist_document = cls.from_element(artist_element)
                 print(u'ARTIST {}: {}'.format(

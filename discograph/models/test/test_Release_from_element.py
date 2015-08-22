@@ -19,9 +19,9 @@ class Test(unittest.TestCase):
         self.database.close()
 
     def test_01(self):
-        iterator = bootstrap.get_iterator('release')
+        iterator = bootstrap.Bootstrap.get_iterator('release')
         release_element = next(iterator)
-        actual = stringtools.normalize(bootstrap.prettify(release_element))
+        actual = stringtools.normalize(bootstrap.Bootstrap.prettify(release_element))
         expected = stringtools.normalize(u'''
             <?xml version="1.0" ?>
             <release id="1" status="Accepted">
@@ -293,11 +293,11 @@ class Test(unittest.TestCase):
         assert actual == expected
 
     def test_02(self):
-        iterator = bootstrap.get_iterator('release')
+        iterator = bootstrap.Bootstrap.get_iterator('release')
         release_element = next(iterator)
         release_element = next(iterator)
         release_element = next(iterator)
-        actual = stringtools.normalize(bootstrap.prettify(release_element))
+        actual = stringtools.normalize(bootstrap.Bootstrap.prettify(release_element))
         expected = stringtools.normalize(u'''
             <?xml version="1.0" ?>
             <release id="3" status="Accepted">
