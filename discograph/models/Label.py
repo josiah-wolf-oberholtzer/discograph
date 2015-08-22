@@ -40,6 +40,19 @@ class Label(Model, mongoengine.Document):
                     label_document.name,
                     ))
 
+    def extract_relations(self):
+        from discograph import models
+        relations = []
+        if not self.sublabels:
+            return relations
+        for sublabel in self.sublabels:
+            relation = models.LabelLabelRelation(
+                label=sublabel,
+                parent_label=self,
+                )
+            relations.append(relation)
+        return relations
+
     @classmethod
     def from_name(cls, name):
         query_set = cls.objects(name=name)

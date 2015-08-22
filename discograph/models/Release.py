@@ -50,6 +50,10 @@ class Release(Model, mongoengine.Document):
                     release_document.title,
                     ))
 
+    def extract_relations(self):
+        result = []
+        return result
+
     @classmethod
     def from_element(cls, element):
         from discograph import models

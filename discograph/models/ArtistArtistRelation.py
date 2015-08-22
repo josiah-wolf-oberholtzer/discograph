@@ -8,7 +8,7 @@ class ArtistArtistRelation(Model, mongoengine.Document):
 
     artist_one = mongoengine.ReferenceField('Artist')
     artist_two = mongoengine.ReferenceField('Artist')
-    relation_type = mongoengine.StringField()
+    role = mongoengine.StringField()
     release = mongoengine.ReferenceField('Release')
 
     ### MONGOENGINE META ###
