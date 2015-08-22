@@ -71,9 +71,9 @@ class Release(Model, mongoengine.Document):
             discogs_id=int(element.attrib.get('id')),
             status=element.attrib.get('status'),
             )
-        release_document = cls(**data)
-        release_document.save()
-        return release_document
+        document = cls(**data)
+        document.save()
+        return document
 
     @classmethod
     def parse_release_date(cls, release_date):
