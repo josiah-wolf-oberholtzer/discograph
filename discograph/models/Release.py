@@ -3,7 +3,10 @@ import datetime
 import gzip
 import mongoengine
 import re
+import sys
 import traceback
+import concurrent.futures
+from abjad.tools import systemtools
 from discograph.bootstrap import Bootstrap
 from discograph.models.ArtistCredit import ArtistCredit
 from discograph.models.CompanyCredit import CompanyCredit
@@ -56,35 +59,47 @@ class Release(Model, mongoengine.Document):
     @classmethod
     def bootstrap(cls):
         cls.drop_collection()
-        cls.drop_collection()
         releases_xml_path = Bootstrap.releases_xml_path
         with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
             releases_iterator = Bootstrap.iterparse(file_pointer, 'release')
             releases_iterator = Bootstrap.clean_elements(releases_iterator)
-            for release_element in releases_iterator:
-                try:
-                    release_document = cls.from_element(release_element)
-                    print(u'RELEASE {}: {}'.format(
-                        release_document.discogs_id,
-                        release_document.title,
-                        ))
-                except:
-                    print(Bootstrap.prettify(release_element))
+            if sys.version_info[0] == 3:
+                executor_class = concurrent.futures.ProcessPoolExecutor
+                with executor_class(max_workers=8) as executor:
+                    for release_element in releases_iterator:
+                        executor.submit(
+                            cls.from_element,
+                            release_element,
+                            verbose=True,
+                            return_document=False,
+                            )
+            else:
+                for release_element in releases_iterator:
+                    cls.from_element(release_element, verbose=True)
 
     def extract_relations(self):
         result = []
         return result
 
     @classmethod
-    def from_element(cls, element):
-        data = cls.tags_to_fields(element)
-        data.update(
-            discogs_id=int(element.attrib.get('id')),
-            status=element.attrib.get('status'),
-            )
-        document = cls(**data)
-        document.save()
-        return document
+    def from_element(cls, element, verbose=False, return_document=True):
+        with systemtools.Timer(verbose=False) as timer:
+            data = cls.tags_to_fields(element)
+            data.update(
+                discogs_id=int(element.attrib.get('id')),
+                status=element.attrib.get('status'),
+                )
+            document = cls(**data)
+            document.save()
+        if verbose:
+            message = u'RELEASE {} [{}]: {}'.format(
+                document.discogs_id,
+                timer.elapsed_time,
+                document.title,
+                )
+            print(message)
+        if return_document:
+            return document
 
     @classmethod
     def parse_release_date(cls, release_date):
