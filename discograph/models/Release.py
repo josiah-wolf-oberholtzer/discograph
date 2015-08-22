@@ -3,6 +3,7 @@ import datetime
 import gzip
 import mongoengine
 import re
+import traceback
 from discograph.models.Model import Model
 
 
@@ -44,11 +45,14 @@ class Release(Model, mongoengine.Document):
             releases_iterator = bootstrap.iterparse(file_pointer, 'release')
             releases_iterator = bootstrap.clean_elements(releases_iterator)
             for release_element in releases_iterator:
-                release_document = cls.from_element(release_element)
-                print(u'RELEASE {}: {}'.format(
-                    release_document.discogs_id,
-                    release_document.title,
-                    ))
+                try:
+                    release_document = cls.from_element(release_element)
+                    print(u'RELEASE {}: {}'.format(
+                        release_document.discogs_id,
+                        release_document.title,
+                        ))
+                except:
+                    print(bootstrap.prettify(release_element))
 
     def extract_relations(self):
         result = []
@@ -164,30 +168,36 @@ class Release(Model, mongoengine.Document):
         if match:
             year, month, day = match.groups()
             return cls.validate_release_date(year, month, day)
-        # yyyy
-        match = cls.date_no_dashes_regex.match(release_date)
-        if match:
-            year, month, day = match.group(), 1, 1
-            return cls.validate_release_date(year, month, day)
         # yyyymmdd
         match = cls.date_no_dashes_regex.match(release_date)
         if match:
             year, month, day = match.groups()
+            return cls.validate_release_date(year, month, day)
+        # yyyy
+        match = cls.year_regex.match(release_date)
+        if match:
+            year, month, day = match.group(), '1', '1'
             return cls.validate_release_date(year, month, day)
         # other: "?", "????", "None", "Unknown"
         return None
 
     @classmethod
     def validate_release_date(cls, year, month, day):
-        year = int(year)
-        if month.isdigit():
-            month = int(month) or 1
-        else:
-            month = 1
-        if day.isdigit():
-            day = int(day) or 1
-        else:
-            day = 1
-        date = datetime.datetime(year, month, 1)
-        date = date + datetime.timedelta(days=day - 1)
+        try:
+            year = int(year)
+            if month.isdigit():
+                month = int(month)
+            if month < 1:
+                month = 1
+            if day.isdigit():
+                day = int(day)
+            if day < 1:
+                day = 1
+            date = datetime.datetime(year, month, 1, 0, 0)
+            day_offset = day - 1
+            date = date + datetime.timedelta(days=day_offset)
+        except ValueError:
+            traceback.print_exc()
+            print('BAD DATE:', year, month, day)
+            date = None
         return date
