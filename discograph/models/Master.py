@@ -16,6 +16,16 @@ class Master(Model, mongoengine.Document):
     styles = mongoengine.ListField(mongoengine.StringField())
     title = mongoengine.StringField()
 
+    ### MONGOENGINE META ###
+
+    meta = {
+        'indexes': [
+            'discogs_id',
+            'title',
+            '$title',
+            ],
+        }
+
     ### PUBLIC METHODS ###
 
     @classmethod

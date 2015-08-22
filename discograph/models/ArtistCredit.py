@@ -1,4 +1,5 @@
 import mongoengine
+from discograph.bootstrap import Bootstrap
 from discograph.models.Model import Model
 
 
@@ -17,18 +18,21 @@ class ArtistCredit(Model, mongoengine.EmbeddedDocument):
     @classmethod
     def from_element(cls, element):
         from discograph import models
-        artist_discogs_id = int(element.find('id').text)
-        artist_name = element.find('name').text
-        artist = models.Artist.from_id_and_name(artist_discogs_id, artist_name)
-        anv = element.find('anv').text or None
-        join = element.find('join').text or None
-        role = element.find('role').text or None
-        tracks = element.find('tracks').text or None
-        artist_credit_document = cls(
-            artist=artist,
-            anv=anv,
-            join=join,
-            role=role,
-            tracks=tracks,
-            )
-        return artist_credit_document
+        data = cls.tags_to_fields(element)
+        name = data['name']
+        discogs_id = data['discogs_id']
+        del(data['name'])
+        del(data['discogs_id'])
+        data['artist'] = models.Artist.from_id_and_name(discogs_id, name)
+        document = cls(**data)
+        return document
+
+
+ArtistCredit._tags_to_fields_mapping = {
+    'anv': ('anv', Bootstrap.element_to_string),
+    'id': ('discogs_id', Bootstrap.element_to_integer),
+    'join': ('join', Bootstrap.element_to_string),
+    'name': ('name', Bootstrap.element_to_string),
+    'role': ('role', Bootstrap.element_to_string),
+    'tracks': ('tracks', Bootstrap.element_to_string),
+    }

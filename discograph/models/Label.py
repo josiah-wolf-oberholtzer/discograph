@@ -18,6 +18,7 @@ class Label(Model, mongoengine.Document):
 
     meta = {
         'indexes': [
+            'discogs_id',
             'name',
             '$name',
             ],
@@ -55,7 +56,8 @@ class Label(Model, mongoengine.Document):
 
     @classmethod
     def from_name(cls, name):
-        query_set = cls.objects(name=name)
+        index = [('name', 1)]
+        query_set = cls.objects(name=name).hint(index).only('has_been_scraped')
         count = query_set.count()
         if count:
             assert count == 1

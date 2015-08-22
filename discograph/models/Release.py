@@ -41,10 +41,21 @@ class Release(Model, mongoengine.Document):
     title = mongoengine.StringField()
     tracklist = mongoengine.EmbeddedDocumentListField('Track')
 
+    ### MONGOENGINE META ###
+
+    meta = {
+        'indexes': [
+            'discogs_id',
+            'title',
+            '$title',
+            ],
+        }
+
     ### PUBLIC METHODS ###
 
     @classmethod
     def bootstrap(cls):
+        cls.drop_collection()
         cls.drop_collection()
         releases_xml_path = Bootstrap.releases_xml_path
         with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:

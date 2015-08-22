@@ -24,6 +24,7 @@ class Artist(Model, mongoengine.Document):
 
     meta = {
         'indexes': [
+            'discogs_id',
             'name',
             ('$name', '$real_name', '$aliases', '$name_variations'),
             ],
@@ -76,7 +77,9 @@ class Artist(Model, mongoengine.Document):
 
     @classmethod
     def from_id_and_name(cls, discogs_id, name):
-        query_set = cls.objects(discogs_id=discogs_id)
+        index = [('discogs_id', 1)]
+        query_set = cls.objects(discogs_id=discogs_id).hint(index).only(
+            'has_been_scraped',)
         if query_set.count():
             return query_set[0]
         document = cls(discogs_id=discogs_id, name=name)

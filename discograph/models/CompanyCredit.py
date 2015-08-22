@@ -1,4 +1,5 @@
 import mongoengine
+from discograph.bootstrap import Bootstrap
 from discograph.models.Model import Model
 
 
@@ -16,15 +17,15 @@ class CompanyCredit(Model, mongoengine.EmbeddedDocument):
     @classmethod
     def from_element(cls, element):
         from discograph import models
-        catalog_number = element.find('catno').text or None
-        company_name = element.find('name').text
-        company = models.Label.from_name(company_name)
-        entity_type = int(element.find('entity_type').text)
-        entity_type_name = element.find('entity_type_name').text
-        document = cls(
-            catalog_number=catalog_number,
-            company=company,
-            entity_type=entity_type,
-            entity_type_name=entity_type_name,
-            )
+        data = cls.tags_to_fields(element)
+        data['company'] = models.Label.from_name(data['company'])
+        document = cls(**data)
         return document
+
+
+CompanyCredit._tags_to_fields_mapping = {
+    'catno': ('catalog_number', Bootstrap.element_to_string),
+    'name': ('company', Bootstrap.element_to_string),
+    'entity_type': ('entity_type', Bootstrap.element_to_integer),
+    'entity_type_name': ('entity_type_name', Bootstrap.element_to_string)
+    }
