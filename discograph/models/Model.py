@@ -3,6 +3,8 @@ from abjad.tools import systemtools
 
 class Model(object):
 
+    ### SPECIAL METHODS ###
+
     def __format__(self, format_specification=''):
         from abjad.tools import systemtools
         if format_specification in ('', 'storage'):
@@ -12,6 +14,8 @@ class Model(object):
     def __repr__(self):
         from abjad.tools import systemtools
         return systemtools.StorageFormatManager.get_repr_format(self)
+
+    ### PRIVATE PROPERTIES ###
 
     @property
     def _storage_format_specification(self):
@@ -26,3 +30,22 @@ class Model(object):
     @property
     def _repr_specification(self):
         return self._storage_format_specification
+
+    ### PUBLIC METHODS ###
+
+    @classmethod
+    def from_elements(cls, element):
+        if element is not None and len(element):
+            return [cls.from_element(_) for _ in element]
+        return None
+
+    @classmethod
+    def tags_to_fields(cls, element):
+        data = {}
+        for child_element in element:
+            entry = cls._tags_to_fields_mapping.get(child_element.tag, None)
+            if entry is None:
+                continue
+            field_name, procedure = entry
+            data[field_name] = procedure(child_element)
+        return data

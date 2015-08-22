@@ -4,7 +4,14 @@ import gzip
 import mongoengine
 import re
 import traceback
+from discograph.bootstrap import Bootstrap
+from discograph.models.ArtistCredit import ArtistCredit
+from discograph.models.CompanyCredit import CompanyCredit
+from discograph.models.Format import Format
+from discograph.models.Identifier import Identifier
+from discograph.models.LabelCredit import LabelCredit
 from discograph.models.Model import Model
+from discograph.models.Track import Track
 
 
 class Release(Model, mongoengine.Document):
@@ -38,7 +45,6 @@ class Release(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discograph.bootstrap import Bootstrap
         cls.drop_collection()
         releases_xml_path = Bootstrap.releases_xml_path
         with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
@@ -60,100 +66,12 @@ class Release(Model, mongoengine.Document):
 
     @classmethod
     def from_element(cls, element):
-        from discograph import models
-        # artists
-        artists = element.find('artists')
-        if artists is not None and len(artists):
-            artists = [models.ArtistCredit.from_element(_) for _ in artists]
-        else:
-            artists = None
-        # companies
-        companies = element.find('companies')
-        if companies is not None and len(companies):
-            companies = [models.CompanyCredit.from_element(_) for _ in companies]
-        else:
-            companies = None
-        # country
-        country = element.find('country')
-        if country is not None:
-            country = country.text
-        # data quality
-        data_quality = element.find('data_quality').text
-        # discogs id
-        discogs_id = int(element.attrib.get('id'))
-        # extra artists
-        extra_artists = element.find('extraartists')
-        if extra_artists is not None and len(extra_artists):
-            extra_artists = [models.ArtistCredit.from_element(_) for _ in extra_artists]
-        else:
-            extra_artists = None
-        # formats
-        formats = element.find('formats')
-        if formats is not None and len(formats):
-            formats = [models.Format.from_element(_) for _ in formats]
-        else:
-            formats = None
-        # genres
-        genres = element.find('genres')
-        if genres is not None and len(genres):
-            genres = [_.text for _ in genres]
-        else:
-            genres = None
-        # identifiers
-        identifiers = element.find('identifiers')
-        if identifiers is not None and len(identifiers):
-            identifiers = [models.Identifier.from_element(_) for _ in identifiers]
-        else:
-            identifiers = None
-        # labels
-        labels = element.find('labels')
-        if labels is not None and len(labels):
-            labels = [models.LabelCredit.from_element(_) for _ in labels]
-        else:
-            labels = None
-        # master_id
-        master_id = element.find('master_id')
-        if master_id is not None:
-            master_id = int(master_id.text)
-        # release_date
-        release_date = element.find('released')
-        if release_date is not None:
-            release_date = cls.parse_release_date(release_date.text)
-        # status
-        status = element.attrib.get('status')
-        # styles
-        styles = element.find('styles')
-        if styles is not None and len(styles):
-            styles = [_.text for _ in styles]
-        else:
-            styles = None
-        # title
-        title = element.find('title').text
-        # tracklist
-        tracklist = element.find('tracklist')
-        if tracklist is not None and len(tracklist):
-            tracklist = [models.Track.from_element(_) for _ in tracklist]
-        else:
-            tracklist = None
-        # construct
-        release_document = cls(
-            artists=artists,
-            companies=companies,
-            country=country,
-            data_quality=data_quality,
-            discogs_id=discogs_id,
-            extra_artists=extra_artists,
-            formats=formats,
-            genres=genres,
-            identifiers=identifiers,
-            labels=labels,
-            master_id=master_id,
-            release_date=release_date,
-            status=status,
-            styles=styles,
-            title=title,
-            tracklist=tracklist,
+        data = cls.tags_to_fields(element)
+        data.update(
+            discogs_id=int(element.attrib.get('id')),
+            status=element.attrib.get('status'),
             )
+        release_document = cls(**data)
         release_document.save()
         return release_document
 
@@ -201,3 +119,21 @@ class Release(Model, mongoengine.Document):
             print('BAD DATE:', year, month, day)
             date = None
         return date
+
+
+Release._tags_to_fields_mapping = {
+    'artists': ('artists', ArtistCredit.from_elements),
+    'companies': ('companies', CompanyCredit.from_elements),
+    'country': ('country', Bootstrap.element_to_string),
+    'data_quality': ('data_quality', Bootstrap.element_to_string),
+    'extraartists': ('extra_artists', ArtistCredit.from_elements),
+    'formats': ('formats', Format.from_elements),
+    'genres': ('genres', Bootstrap.element_to_strings),
+    'identifiers': ('identifiers', Identifier.from_elements),
+    'labels': ('labels', LabelCredit.from_elements),
+    'master_id': ('master_id', Bootstrap.element_to_integer),
+    'released': ('release_date', Bootstrap.element_to_datetime),
+    'styles': ('styles', Bootstrap.element_to_strings),
+    'title': ('title', Bootstrap.element_to_string),
+    'tracklist': ('tracklist', Track.from_elements),
+    }
