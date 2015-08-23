@@ -35,8 +35,6 @@ class Artist(Model, mongoengine.Document):
     @property
     def _storage_format_specification(self):
         keyword_argument_names = sorted(self._fields)
-        if 'id' in keyword_argument_names:
-            keyword_argument_names.remove('id')
         if 'groups' in keyword_argument_names:
             keyword_argument_names.remove('groups')
         return systemtools.StorageFormatSpecification(
