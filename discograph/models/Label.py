@@ -30,6 +30,8 @@ class Label(Model, mongoengine.Document):
     @property
     def _storage_format_specification(self):
         keyword_argument_names = sorted(self._fields)
+        if 'id' in keyword_argument_names:
+            keyword_argument_names.remove('id')
         if 'parent_label' in keyword_argument_names:
             keyword_argument_names.remove('parent_label')
         return systemtools.StorageFormatSpecification(
