@@ -1,6 +1,7 @@
 from __future__ import print_function
 import gzip
 import mongoengine
+from abjad.tools import systemtools
 from discograph.models.Model import Model
 
 
@@ -23,6 +24,18 @@ class Label(Model, mongoengine.Document):
             '$name',
             ],
         }
+
+    ### PRIVATE PROPERTIES ###
+
+    @property
+    def _storage_format_specification(self):
+        keyword_argument_names = sorted(self._fields)
+        if 'parent_label' in keyword_argument_names:
+            keyword_argument_names.remove('parent_label')
+        return systemtools.StorageFormatSpecification(
+            self,
+            keyword_argument_names=keyword_argument_names,
+            )
 
     ### PUBLIC METHODS ###
 
