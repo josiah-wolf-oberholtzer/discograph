@@ -22,6 +22,10 @@ class Model(object):
         keyword_argument_names = sorted(self._fields)
         if 'id' in keyword_argument_names:
             keyword_argument_names.remove('id')
+        for keyword_argument_name in keyword_argument_names[:]:
+            value = getattr(self, keyword_argument_name)
+            if isinstance(value, list) and not value:
+                keyword_argument_names.remove(keyword_argument_name)
         return systemtools.StorageFormatSpecification(
             self,
             keyword_argument_names=keyword_argument_names,
