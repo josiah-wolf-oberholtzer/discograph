@@ -1,5 +1,6 @@
 from discograph.models.Artist import Artist
 from discograph.models.ArtistCredit import ArtistCredit
+from discograph.models.ArtistRole import ArtistRole
 from discograph.models.CompanyCredit import CompanyCredit
 from discograph.models.Format import Format
 from discograph.models.Identifier import Identifier
