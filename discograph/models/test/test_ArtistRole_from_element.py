@@ -111,3 +111,12 @@ class Test(unittest.TestCase):
             models.ArtistRole(name='Words By', detail='elemented By'),
             models.ArtistRole(name='Producer'),
             ]
+
+    def test_10(self):
+        element = xml.etree.ElementTree.fromstring('<test></test>')
+        element.text = 'Engineer [Remix] [Assistant], Producer'
+        roles = models.ArtistRole.from_element(element)
+        assert roles == [
+            models.ArtistRole(name='Engineer', detail='Remix, Assistant'),
+            models.ArtistRole(name='Producer'),
+            ]
