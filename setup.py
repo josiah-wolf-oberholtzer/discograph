@@ -10,6 +10,7 @@ if __name__ == '__main__':
         install_requires=[
             'abjad',
             'discogs-client',
+            'extras-mongoengine',
             'mongoengine',
             'pytest',
             'six',

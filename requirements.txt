@@ -1,3 +1,4 @@
+-e git://github.com/MongoEngine/extras-mongoengine.git#egg=extras-mongoengine
 abjad
 discogs-client
 mongoengine
