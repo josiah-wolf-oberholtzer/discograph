@@ -67,23 +67,17 @@ class Test(unittest.TestCase):
                 has_been_scraped=True,
                 members=[
                     discograph.models.Artist(
-                        aliases=[],
                         discogs_id=26,
                         has_been_scraped=False,
-                        members=[],
-                        name=u'Alexi Delano',
-                        name_variations=[],
+                        name='Alexi Delano',
                         ),
                     discograph.models.Artist(
-                        aliases=[],
                         discogs_id=27,
                         has_been_scraped=False,
-                        members=[],
-                        name=u'Cari Lekebusch',
-                        name_variations=[],
+                        name='Cari Lekebusch',
                         ),
                     ],
-                name=u'Mr. James Barth & A.D.',
+                name='Mr. James Barth & A.D.',
                 name_variations=[
                     'Mr Barth & A.D.',
                     'MR JAMES BARTH & A. D.',

@@ -34,6 +34,10 @@ class Label(Model, mongoengine.Document):
             keyword_argument_names.remove('id')
         if 'parent_label' in keyword_argument_names:
             keyword_argument_names.remove('parent_label')
+        for keyword_argument_name in keyword_argument_names[:]:
+            value = getattr(self, keyword_argument_name)
+            if isinstance(value, list) and not value:
+                keyword_argument_names.remove(keyword_argument_name)
         return systemtools.StorageFormatSpecification(
             self,
             keyword_argument_names=keyword_argument_names,

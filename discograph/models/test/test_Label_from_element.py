@@ -58,17 +58,15 @@ class Test(unittest.TestCase):
             discograph.models.Label(
                 discogs_id=3,
                 has_been_scraped=True,
-                name=u'Seasons Recordings',
+                name='Seasons Recordings',
                 sublabels=[
                     discograph.models.Label(
                         has_been_scraped=False,
-                        name=u'Seasons Classics',
-                        sublabels=[],
+                        name='Seasons Classics',
                         ),
                     discograph.models.Label(
                         has_been_scraped=False,
-                        name=u'Seasons Limited',
-                        sublabels=[],
+                        name='Seasons Limited',
                         ),
                     ],
                 )
