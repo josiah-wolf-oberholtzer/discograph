@@ -11,7 +11,7 @@ class ArtistCredit(Model, mongoengine.EmbeddedDocument):
     anv = mongoengine.StringField()
     artist = mongoengine.ReferenceField('Artist')
     join = mongoengine.StringField()
-    roles = mongoengine.ListField(mongoengine.ReferenceField('ArtistRole'))
+    roles = mongoengine.EmbeddedDocumentListField('ArtistRole')
     tracks = mongoengine.StringField()
 
     ### PUBLIC METHODS ###

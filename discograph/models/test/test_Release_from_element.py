@@ -186,7 +186,12 @@ class Test(unittest.TestCase):
                             has_been_scraped=False,
                             name='Jesper Dahlbäck',
                             ),
-                        roles=['Music By [All Tracks By]'],
+                        roles=[
+                            discograph.models.ArtistRole(
+                                detail='All Tracks By',
+                                name='Music By',
+                                ),
+                            ],
                         ),
                     ],
                 formats=[
@@ -662,7 +667,11 @@ class Test(unittest.TestCase):
                             has_been_scraped=False,
                             name='Josh Wink',
                             ),
-                        roles=['DJ Mix'],
+                        roles=[
+                            discograph.models.ArtistRole(
+                                name='DJ Mix',
+                                ),
+                            ],
                         ),
                     ],
                 formats=[
@@ -752,7 +761,11 @@ class Test(unittest.TestCase):
                                     has_been_scraped=False,
                                     name='Mood II Swing',
                                     ),
-                                roles=['Remix'],
+                                roles=[
+                                    discograph.models.ArtistRole(
+                                        name='Remix',
+                                        ),
+                                    ],
                                 ),
                             ],
                         position='3',
@@ -845,7 +858,11 @@ class Test(unittest.TestCase):
                                     has_been_scraped=False,
                                     name='Alex Hi-Fi',
                                     ),
-                                roles=['Remix'],
+                                roles=[
+                                    discograph.models.ArtistRole(
+                                        name='Remix',
+                                        ),
+                                    ],
                                 ),
                             ],
                         position='8',
@@ -870,7 +887,11 @@ class Test(unittest.TestCase):
                                     has_been_scraped=False,
                                     name='Eight Miles High',
                                     ),
-                                roles=['Remix'],
+                                roles=[
+                                    discograph.models.ArtistRole(
+                                        name='Remix',
+                                        ),
+                                    ],
                                 ),
                             ],
                         position='9',
@@ -903,7 +924,11 @@ class Test(unittest.TestCase):
                                     has_been_scraped=False,
                                     name='Stacey Pullen',
                                     ),
-                                roles=['Presenter'],
+                                roles=[
+                                    discograph.models.ArtistRole(
+                                        name='Presenter',
+                                        ),
+                                    ],
                                 ),
                             ],
                         position='10',
