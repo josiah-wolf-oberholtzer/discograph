@@ -7,7 +7,6 @@ class ArtistRole(Model, mongoengine.EmbeddedDocument):
 
     ### CLASS VARIABLES ###
 
-    _name_detail_pattern = re.compile('(.+)(\[.+\]\s*)+')
     _bracket_pattern = re.compile('\[(.+?)\]')
 
     ### MONGOENGINE FIELDS ###
@@ -43,12 +42,6 @@ class ArtistRole(Model, mongoengine.EmbeddedDocument):
 
     @classmethod
     def from_text(cls, text):
-#        match = cls._name_detail_pattern.match(text)
-#        if match is not None:
-#            name, detail = match.groups()
-#            name, detail = name.strip(), detail.strip()
-#        else:
-#            name, detail = text.strip(), None
         details = []
         index = 0
         match = cls._bracket_pattern.search(text, index)
