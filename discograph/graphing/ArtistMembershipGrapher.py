@@ -7,16 +7,21 @@ class ArtistMembershipGrapher(object):
 
     ### INITIALIZER ###
 
-    def __init__(self, artist, degree):
-        assert isinstance(artist, models.Artist)
-        assert 0 < degree
-        self.artist = artist
-        self.degree = degree
+    def __init__(self, artists, degree=3):
+        assert len(artists)
+        assert all(isinstance(_, models.Artist) for _ in artists)
+        assert 0 < int(degree)
+        self.artists = tuple(artists)
+        self.degree = int(degree)
 
     ### SPECIAL METHODS ###
 
     def __graph__(self):
-        artist_ids, artist_id_edges = self.discover_artist_membership()
+        (
+            artist_ids,
+            artist_id_edges,
+            alias_edges,
+            ) = self.discover_artist_membership()
         artist_id_to_node_mapping = {}
         graphviz_graph = documentationtools.GraphvizGraph(
             attributes=dict(
@@ -26,7 +31,6 @@ class ArtistMembershipGrapher(object):
                 output_order='edgesfirst',
                 overlap='prism',
                 penwidth=2,
-                root='node{}'.format(self.artist.discogs_id),
                 splines='spline',
                 style=('dotted', 'rounded'),
                 truecolor=True,
@@ -66,11 +70,22 @@ class ArtistMembershipGrapher(object):
             tail_node = artist_id_to_node_mapping[tail_id]
             edge = documentationtools.GraphvizEdge()
             edge.attach(head_node, tail_node)
+        for head_id, tail_id in alias_edges:
+            head_node = artist_id_to_node_mapping[head_id]
+            tail_node = artist_id_to_node_mapping[tail_id]
+            edge = documentationtools.GraphvizEdge(
+                attributes={
+                    'dir': 'none',
+                    'style': 'dotted',
+                    },
+                )
+            edge.attach(head_node, tail_node)
+        root_node_names = ['node{}'.format(_.discogs_id) for _ in self.artists]
         for node in graphviz_graph:
             edge_count_weighting = len(node.edges)
             edge_count_weighting = math.sqrt(edge_count_weighting)
             node.attributes['fontsize'] = 12 + edge_count_weighting
-            if node.name == 'node{}'.format(self.artist.discogs_id):
+            if node.name in root_node_names:
                 node.attributes['fillcolor'] = 'black'
                 node.attributes['fontcolor'] = 'white'
                 node.attributes['fontsize'] = 20
@@ -79,9 +94,10 @@ class ArtistMembershipGrapher(object):
     ### PUBLIC METHODS ###
 
     def discover_artist_membership(self):
-        edges = set()
+        alias_edges = set()
+        membership_edges = set()
         artist_ids_visited = set()
-        artist_ids_to_visit = set([self.artist.discogs_id])
+        artist_ids_to_visit = set(_.discogs_id for _ in self.artists)
         for i in range(self.degree + 1):
             current_artist_ids_to_visit = list(artist_ids_to_visit)
             artist_ids_to_visit.clear()
@@ -90,24 +106,38 @@ class ArtistMembershipGrapher(object):
                 if artist_id in artist_ids_visited:
                     continue
                 artist = models.Artist.objects.get(discogs_id=artist_id)
+                for alias in artist.aliases:
+                    if i < self.degree:
+                        alias_query = models.Artist.objects(name=alias)
+                        if not alias_query.count():
+                            continue
+                        alias = alias_query.first()
+                        artist_ids_to_visit.add(alias.discogs_id)
+                        edge = (artist.discogs_id, alias.discogs_id)
+                        edge = tuple(sorted(edge))
+                        alias_edges.add(edge)
                 for group in artist.groups:
                     if i < self.degree:
                         artist_ids_to_visit.add(group.discogs_id)
                         edge = (artist.discogs_id, group.discogs_id)
-                        edges.add(edge)
+                        membership_edges.add(edge)
                 for member in artist.members:
                     if i < self.degree:
                         artist_ids_to_visit.add(member.discogs_id)
                         edge = (member.discogs_id, artist.discogs_id)
-                        edges.add(edge)
+                        membership_edges.add(edge)
                 artist_ids_visited.add(artist_id)
-            message = 'DEGREE {}: {} artists, {} edges'.format(
+            message = 'DEGREE {}: {} artists, {} membership edges, {} alias edges'.format(
                 i,
                 len(artist_ids_visited),
-                len(edges),
+                len(membership_edges),
+                len(alias_edges),
                 )
             print(message)
-        for head, tail in edges:
+        for head, tail in membership_edges:
             assert head in artist_ids_visited
             assert tail in artist_ids_visited
-        return artist_ids_visited, edges
+        for head, tail in alias_edges:
+            assert head in artist_ids_visited
+            assert tail in artist_ids_visited
+        return artist_ids_visited, membership_edges, alias_edges
