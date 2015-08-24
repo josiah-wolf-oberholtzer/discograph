@@ -82,8 +82,10 @@ class Artist(Model, mongoengine.Document):
     @classmethod
     def from_id_and_name(cls, discogs_id, name):
         index = [('discogs_id', 1)]
-        query_set = cls.objects(discogs_id=discogs_id).hint(index).only(
-            'has_been_scraped',)
+        query_set = cls.objects(discogs_id=discogs_id)\
+            .hint(index)\
+            .only('discogs_id', 'has_been_scraped', 'name')\
+            .no_dereference()
         if query_set.count():
             return query_set[0]
         document = cls(discogs_id=discogs_id, name=name)
