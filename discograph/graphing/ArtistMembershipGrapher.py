@@ -3,6 +3,10 @@ from abjad import documentationtools
 from discograph import models
 
 
+# TODO: add all aliases within same degree (they should have relative degree 0)
+# TODO: match discogs id against name and degree (use dict, not set).
+
+
 class ArtistMembershipGrapher(object):
 
     ### INITIALIZER ###
@@ -19,33 +23,34 @@ class ArtistMembershipGrapher(object):
     def __graph__(self):
         (
             artist_ids,
-            artist_id_edges,
-            alias_edges,
+            edges,
+            clusters,
             ) = self.discover_artist_membership()
         artist_id_to_node_mapping = {}
+        cluster_id_to_cluster_mapping = {}
         graphviz_graph = documentationtools.GraphvizGraph(
             attributes=dict(
                 bgcolor='transparent',
-                color='lightslategrey',
                 fontname='Arial',
                 output_order='edgesfirst',
                 overlap='prism',
                 penwidth=2,
+                sep='+10',
+                esep='+10',
                 splines='spline',
-                style=('dotted', 'rounded'),
+                style=('bold', 'filled', 'rounded'),
                 truecolor=True,
                 ),
             edge_attributes=dict(
                 penwidth=2,
                 ),
             node_attributes=dict(
-                colorscheme='pastel19',
+                colorscheme='rdylbu9',
                 penwidth=2,
                 ),
             )
-        for i, artist_id in enumerate(artist_ids):
-            artist = models.Artist.objects.get(discogs_id=artist_id)
-            if not artist.members:
+        for artist_id, (distance, artist_name, has_members) in artist_ids.items():
+            if not has_members:
                 fontname = 'Arial'
                 shape = 'box'
                 style = ('bold', 'filled', 'rounded')
@@ -54,31 +59,40 @@ class ArtistMembershipGrapher(object):
                 shape = 'circle'
                 style = ('bold', 'filled')
             node = documentationtools.GraphvizNode(
-                name='node{}'.format(artist.discogs_id),
+                name='node{}'.format(artist_id),
                 attributes=dict(
-                    fillcolor=i % 9 + 1,
+                    fillcolor=distance + 1,
                     fontname=fontname,
-                    label=r'\n'.join(artist.name.split()),
+                    label=r'\n'.join(artist_name.split()),
                     shape=shape,
                     style=style,
                     ),
                 )
             artist_id_to_node_mapping[artist_id] = node
-            graphviz_graph.append(node)
-        for head_id, tail_id in artist_id_edges:
+            if artist_id in clusters:
+                cluster_id = clusters[artist_id]
+                if cluster_id not in cluster_id_to_cluster_mapping:
+                    cluster = documentationtools.GraphvizSubgraph(
+                        is_cluster=False,
+                        name='alias{}'.format(cluster_id)
+                        )
+                    cluster_id_to_cluster_mapping[cluster_id] = cluster
+                    graphviz_graph.append(cluster)
+                cluster = cluster_id_to_cluster_mapping[cluster_id]
+                cluster.append(node)
+            else:
+                graphviz_graph.append(node)
+        for head_id, tail_id, role in edges:
             head_node = artist_id_to_node_mapping[head_id]
             tail_node = artist_id_to_node_mapping[tail_id]
-            edge = documentationtools.GraphvizEdge()
-            edge.attach(head_node, tail_node)
-        for head_id, tail_id in alias_edges:
-            head_node = artist_id_to_node_mapping[head_id]
-            tail_node = artist_id_to_node_mapping[tail_id]
-            edge = documentationtools.GraphvizEdge(
-                attributes={
+            if role == 'Alias':
+                attributes = {
                     'dir': 'none',
                     'style': 'dotted',
-                    },
-                )
+                    }
+            else:
+                attributes = {}
+            edge = documentationtools.GraphvizEdge(attributes=attributes)
             edge.attach(head_node, tail_node)
         root_node_names = ['node{}'.format(_.discogs_id) for _ in self.artists]
         for node in graphviz_graph:
@@ -94,50 +108,78 @@ class ArtistMembershipGrapher(object):
     ### PUBLIC METHODS ###
 
     def discover_artist_membership(self):
-        alias_edges = set()
-        membership_edges = set()
-        artist_ids_visited = set()
+        template = (
+            'DEGREE {}: {} artists, '
+            '{} edges, '
+            '{} clusters'
+            )
+
+        cluster_count = 0
+        clusters = {}
+        edges = set()
+        artist_ids_visited = dict()
         artist_ids_to_visit = set(_.discogs_id for _ in self.artists)
-        for i in range(self.degree + 1):
+
+        for distance in range(self.degree + 1):
             current_artist_ids_to_visit = list(artist_ids_to_visit)
             artist_ids_to_visit.clear()
             while current_artist_ids_to_visit:
                 artist_id = current_artist_ids_to_visit.pop()
                 if artist_id in artist_ids_visited:
                     continue
+
                 artist = models.Artist.objects.get(discogs_id=artist_id)
+                aliases = []
                 for alias in artist.aliases:
-                    if i < self.degree:
-                        alias_query = models.Artist.objects(name=alias)
-                        if not alias_query.count():
-                            continue
-                        alias = alias_query.first()
-                        artist_ids_to_visit.add(alias.discogs_id)
-                        edge = (artist.discogs_id, alias.discogs_id)
-                        edge = tuple(sorted(edge))
-                        alias_edges.add(edge)
+                    if self.degree <= distance:
+                        continue
+                    alias_query = models.Artist.objects(name=alias)
+                    if not alias_query.count():
+                        continue
+                    aliases.append(alias_query.first())
+
+                if len(aliases) and artist_id not in clusters:
+                    #print('INCREMENTING CLUSTER COUNTER', artist.name)
+                    cluster_count += 1
+                    clusters[artist_id] = cluster_count
+
+                for alias in aliases:
+                    if alias.discogs_id not in artist_ids_visited:
+                        current_artist_ids_to_visit.append(alias.discogs_id)
+                        edge = sorted([artist.discogs_id, alias.discogs_id])
+                        edge.append('Alias')
+                        edge = tuple(edge)
+                        edges.add(edge)
+                    clusters[alias.discogs_id] = cluster_count
+
                 for group in artist.groups:
-                    if i < self.degree:
+                    if distance < self.degree:
                         artist_ids_to_visit.add(group.discogs_id)
-                        edge = (artist.discogs_id, group.discogs_id)
-                        membership_edges.add(edge)
+                        edge = (
+                            artist.discogs_id,
+                            group.discogs_id,
+                            'Member Of',
+                            )
+                        edges.add(edge)
                 for member in artist.members:
-                    if i < self.degree:
+                    if distance < self.degree:
                         artist_ids_to_visit.add(member.discogs_id)
-                        edge = (member.discogs_id, artist.discogs_id)
-                        membership_edges.add(edge)
-                artist_ids_visited.add(artist_id)
-            message = 'DEGREE {}: {} artists, {} membership edges, {} alias edges'.format(
-                i,
+                        edge = (
+                            member.discogs_id,
+                            artist.discogs_id,
+                            'Member Of',
+                            )
+                        edges.add(edge)
+                value = (distance, artist.name, bool(artist.members))
+                artist_ids_visited[artist_id] = value
+            message = template.format(
+                distance,
                 len(artist_ids_visited),
-                len(membership_edges),
-                len(alias_edges),
+                len(edges),
+                cluster_count,
                 )
             print(message)
-        for head, tail in membership_edges:
+        for head, tail, _ in edges:
             assert head in artist_ids_visited
             assert tail in artist_ids_visited
-        for head, tail in alias_edges:
-            assert head in artist_ids_visited
-            assert tail in artist_ids_visited
-        return artist_ids_visited, membership_edges, alias_edges
+        return artist_ids_visited, edges, clusters
