@@ -22,13 +22,13 @@ class ArtistRole(Model, mongoengine.EmbeddedDocument):
         if element is None or not element.text:
             return artist_roles
         current_text = ''
-        in_bracket = False
+        bracket_depth = 0
         for character in element.text:
-            if not in_bracket and character == '[':
-                in_bracket = True
-            elif in_bracket and character == ']':
-                in_bracket = False
-            elif not in_bracket and character == ',':
+            if character == '[':
+                bracket_depth += 1
+            elif character == ']':
+                bracket_depth -= 1
+            elif not bracket_depth and character == ',':
                 current_text = current_text.strip()
                 if current_text:
                     artist_roles.append(cls.from_text(current_text))
@@ -42,15 +42,32 @@ class ArtistRole(Model, mongoengine.EmbeddedDocument):
 
     @classmethod
     def from_text(cls, text):
+        name = ''
+        current_buffer = ''
         details = []
-        index = 0
-        match = cls._bracket_pattern.search(text, index)
-        if match is not None:
-            name = text[:match.start()].strip()
-            while match is not None:
-                details.extend(match.groups())
-                match = cls._bracket_pattern.search(text, match.end())
-        else:
-            name = text
-        detail = ', '.join(details) or None
+        had_detail = False
+        bracket_depth = 0
+        for character in text:
+            if character == '[':
+                bracket_depth += 1
+                if bracket_depth == 1 and not had_detail:
+                    name = current_buffer
+                    current_buffer = ''
+                    had_detail = True
+                elif 1 < bracket_depth:
+                    current_buffer += character
+            elif character == ']':
+                bracket_depth -= 1
+                if not bracket_depth:
+                    details.append(current_buffer)
+                    current_buffer = ''
+                else:
+                    current_buffer += character
+            else:
+                current_buffer += character
+        if current_buffer and not had_detail:
+            name = current_buffer
+        name = name.strip()
+        detail = ', '.join(_.strip() for _ in details)
+        detail = detail or None
         return cls(name=name, detail=detail)
