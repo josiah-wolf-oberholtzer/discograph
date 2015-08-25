@@ -21,11 +21,7 @@ class ArtistMembershipGrapher(object):
     ### SPECIAL METHODS ###
 
     def __graph__(self):
-        (
-            artist_ids,
-            edges,
-            clusters,
-            ) = self.discover_artist_membership()
+        nodes, edges = self.discover_artist_membership()
         artist_id_to_node_mapping = {}
         cluster_id_to_cluster_mapping = {}
         graphviz_graph = documentationtools.GraphvizGraph(
@@ -49,7 +45,15 @@ class ArtistMembershipGrapher(object):
                 penwidth=2,
                 ),
             )
-        for artist_id, (distance, artist_name, has_members) in artist_ids.items():
+        for node in nodes:
+            (
+                artist_id,
+                artist_name,
+                cluster_id,
+                distance,
+                has_members,
+                ) = node
+
             if not has_members:
                 fontname = 'Arial'
                 shape = 'box'
@@ -69,8 +73,7 @@ class ArtistMembershipGrapher(object):
                     ),
                 )
             artist_id_to_node_mapping[artist_id] = node
-            if artist_id in clusters:
-                cluster_id = clusters[artist_id]
+            if cluster_id is not None:
                 if cluster_id not in cluster_id_to_cluster_mapping:
                     cluster = documentationtools.GraphvizSubgraph(
                         is_cluster=False,
@@ -113,13 +116,11 @@ class ArtistMembershipGrapher(object):
             '{} edges, '
             '{} clusters'
             )
-
         cluster_count = 0
         clusters = {}
         edges = set()
         artist_ids_visited = dict()
         artist_ids_to_visit = set(_.discogs_id for _ in self.artists)
-
         for distance in range(self.degree + 1):
             current_artist_ids_to_visit = list(artist_ids_to_visit)
             artist_ids_to_visit.clear()
@@ -178,4 +179,15 @@ class ArtistMembershipGrapher(object):
         for head, tail, _ in edges:
             assert head in artist_ids_visited
             assert tail in artist_ids_visited
-        return artist_ids_visited, edges, clusters
+        nodes = []
+        for artist_id, payload in artist_ids_visited.items():
+            distance, artist_name, has_members = payload
+            node = [
+                artist_id,
+                artist_name,
+                clusters.get(artist_id, None),
+                distance,
+                has_members,
+                ]
+            nodes.append(tuple(node))
+        return tuple(sorted(nodes)), tuple(sorted(edges))
