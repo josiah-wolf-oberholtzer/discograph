@@ -1,12 +1,15 @@
 from discograph import models
 import unittest
-import xml.etree.cElementTree
+try:
+    from xml.etree import cElementTree as ElementTree
+except ImportError:
+    from xml.etree import ElementTree
 
 
 class Test(unittest.TestCase):
 
     def test_1(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = (
             'Shekere [Xequere, Original Musician], Guiro [Original Musician], '
             'Claves [Original Musician]'
@@ -22,7 +25,7 @@ class Test(unittest.TestCase):
             ]
 
     def test_2(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = (
             'Co-producer, Arranged By, Directed By, Other [Guided By], '
             'Other [Created By]'
@@ -37,7 +40,7 @@ class Test(unittest.TestCase):
             ]
 
     def test_3(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = (
             'Organ [Original Musician], '
             'Electric Piano [Rhodes, Original Musician]'
@@ -55,7 +58,7 @@ class Test(unittest.TestCase):
             ]
 
     def test_4(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = "Photography By ['hats' And 'spray' Photos By]"
         roles = models.ArtistRole.from_element(element)
         assert roles == [
@@ -66,7 +69,7 @@ class Test(unittest.TestCase):
             ]
 
     def test_5(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = 'Strings '
         roles = models.ArtistRole.from_element(element)
         assert roles == [
@@ -74,7 +77,7 @@ class Test(unittest.TestCase):
             ]
 
     def test_6(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = 'Piano, Synthesizer [Moog], Programmed By'
         roles = models.ArtistRole.from_element(element)
         assert roles == [
@@ -84,7 +87,7 @@ class Test(unittest.TestCase):
             ]
 
     def test_7(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = 'Percussion [Misc.]'
         roles = models.ArtistRole.from_element(element)
         assert roles == [
@@ -92,7 +95,7 @@ class Test(unittest.TestCase):
             ]
 
     def test_8(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = 'Painting [Uncredited; Detail Of <i>"The Transfiguration"</i>]'
         roles = models.ArtistRole.from_element(element)
         assert roles == [
@@ -103,7 +106,7 @@ class Test(unittest.TestCase):
             ]
 
     def test_9(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = 'Composed By, Words By [elemented By], Producer'
         roles = models.ArtistRole.from_element(element)
         assert roles == [
@@ -113,7 +116,7 @@ class Test(unittest.TestCase):
             ]
 
     def test_10(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = 'Engineer [Remix] [Assistant], Producer'
         roles = models.ArtistRole.from_element(element)
         assert roles == [
@@ -122,7 +125,7 @@ class Test(unittest.TestCase):
             ]
 
     def test_11(self):
-        element = xml.etree.cElementTree.fromstring('<test></test>')
+        element = ElementTree.fromstring('<test></test>')
         element.text = 'Performer [Enigmatic [K] Voice, Moog, Korg Vocoder], Lyrics By'
         roles = models.ArtistRole.from_element(element)
         assert roles == [

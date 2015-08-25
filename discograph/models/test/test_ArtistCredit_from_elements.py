@@ -1,9 +1,12 @@
 # -*- encoding: utf-8 -*-
 import mongoengine
 import unittest
-import xml.etree.cElementTree
 from abjad.tools import stringtools
 from discograph import models
+try:
+    from xml.etree import cElementTree as ElementTree
+except ImportError:
+    from xml.etree import ElementTree
 
 
 class Test(unittest.TestCase):
@@ -30,7 +33,7 @@ class Test(unittest.TestCase):
                 </artist>
             </artists>
             '''
-        element = xml.etree.cElementTree.fromstring(source)
+        element = ElementTree.fromstring(source)
         artist_credits = models.ArtistCredit.from_elements(element)
         assert format(artist_credits[0]) == stringtools.normalize(r'''
             discograph.models.ArtistCredit(
@@ -55,7 +58,7 @@ class Test(unittest.TestCase):
                 </artist>
             </extraartists>
             '''
-        element = xml.etree.cElementTree.fromstring(source)
+        element = ElementTree.fromstring(source)
         artist_credits = models.ArtistCredit.from_elements(element)
         assert format(artist_credits[0]) == stringtools.normalize(r'''
             discograph.models.ArtistCredit(

@@ -4,7 +4,10 @@ import unittest
 from abjad import stringtools
 from discograph import bootstrap
 from discograph import models
-from xml.etree import cElementTree
+try:
+    from xml.etree import cElementTree as ElementTree
+except ImportError:
+    from xml.etree import ElementTree
 
 
 class Test(unittest.TestCase):
@@ -1082,7 +1085,7 @@ class Test(unittest.TestCase):
                 <companies/>
             </release>
             """)
-        release_element = cElementTree.fromstring(source)
+        release_element = ElementTree.fromstring(source)
         release_document = models.Release.from_element(release_element)
         actual = format(release_document)
         expected = stringtools.normalize(u"""
@@ -1234,7 +1237,7 @@ class Test(unittest.TestCase):
                 <companies/>
             </release>
             """)
-        release_element = cElementTree.fromstring(source)
+        release_element = ElementTree.fromstring(source)
         release_document = models.Release.from_element(release_element)
         actual = format(release_document)
         expected = stringtools.normalize(u"""

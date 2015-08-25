@@ -4,7 +4,10 @@ import os
 import re
 import traceback
 from xml.dom import minidom
-from xml.etree import cElementTree
+try:
+    from xml.etree import cElementTree as ElementTree
+except ImportError:
+    from xml.etree import ElementTree
 
 
 class Bootstrap(object):
@@ -99,7 +102,7 @@ class Bootstrap(object):
 
     @staticmethod
     def iterparse(source, tag):
-        context = cElementTree.iterparse(
+        context = ElementTree.iterparse(
             source,
             events=('start', 'end',),
             )
@@ -131,7 +134,7 @@ class Bootstrap(object):
 
     @staticmethod
     def prettify(element):
-        string = cElementTree.tostring(element, 'utf-8')
+        string = ElementTree.tostring(element, 'utf-8')
         reparsed = minidom.parseString(string)
         return reparsed.toprettyxml(indent='    ')
 
