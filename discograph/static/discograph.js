@@ -1,3 +1,7 @@
+var color = d3.scale.category20b();
+var can_load_new_data = false;
+var base_url = "/api/cluster/"
+
 var w = window,
     d = document,
     e = d.documentElement,
@@ -9,50 +13,38 @@ var svg = d3.select("body").append("svg")
     .attr("width", x)
     .attr("height", y);
 
-var color = d3.scale.category20b();
+var nodes = [];
+var links = [];
+var nodeMap = d3.map();
+var linkMap = d3.map();
 
 var force = d3.layout.force()
-    .linkStrength(0.1)
+    .nodes(nodes)
+    .links(links)
+    .linkStrength(0.2)
     .friction(0.9)
-    .linkDistance(10)
-    .charge(-200)
+    .linkDistance(20)
+    .charge(-300)
     .gravity(0.1)
     .theta(0.8)
     .alpha(0.1)
     .size([x, y])
     .on("tick", tick);
 
-var drag = force.drag()
-    .on("dragstart", dragstart);
+var node = svg.selectAll(".node"),
+    link = svg.selectAll(".link");
 
-var link = svg.selectAll(".link");
+var startForceLayout = function() {
 
-var node = svg.selectAll(".node");
+    link = link.data(force.links(), function(d) { 
+        var key = d.source.id + "-" + d.target.id;
+        if (d.dotted) {
+            key = key + '-dotted';
+        }
+        return key;
+    });
 
-var url = "/api/cluster/152882"
-
-var dispatcher = d3.dispatch('jsonLoad');
-
-d3.select('#loadData').on('click', function() {
-    d3.json(url, callback);
-});
-
-dispatcher.on('jsonLoad', function(data) {
-    console.log(data);
-});
-
-var callback = function(error, graph) {
-    if (error) throw error;
-
-    dispatcher.jsonLoad(graph);
-
-    force
-        .nodes(graph.nodes)
-        .links(graph.links)
-        .start();
-
-    link = link.data(graph.links)
-        .enter().append("line")
+    var linkEnter = link.enter().append("line")
         .attr("class", "link")
         .style("stroke-width", 1)
         .style("stroke-dasharray", function(d) {
@@ -62,28 +54,41 @@ var callback = function(error, graph) {
                 return "";
             }});
 
-    node = node.data(graph.nodes)
+    link.exit().remove();
+
+    node = node.data(force.nodes(), function(d) { 
+        return d.id;
+    });
+
+    var nodeEnter = node
         .enter().append("g")
         .attr("class", "node")
         .style("fill", function(d) { return color(d.distance); })
-        .on('mousedown', function() {
-            var sel = d3.select(this);
-            sel.moveToFront();
-        })
-        .on("dblclick", dblclick)
-        .call(drag);
+        .call(force.drag)
+        .on("dblclick", function(d) {
+            if (can_load_new_data) {
+                can_load_new_data = false;
+                d3.json(base_url + d.id, loadData);
+            } else {
+                alert('Not yet!');
+            }
+        });
 
-    node.append("circle")
-        .attr("r", function(d) { return 5 + (d.member_count / 2) });
+    nodeEnter.append("circle")
+        .attr("r", function(d) { return 5 + (d.size / 2) });
 
-    node.append("title")
-        .text(function(d) { return d.artist_name; });
+    nodeEnter.append("title")
+        .text(function(d) { return d.name; });
 
-    node.append("text")
+    nodeEnter.append("text")
         .attr("dy", ".35em")
-        .attr("dx", function(d) { return 12 + (d.member_count / 2) })
-        .text(function(d) { return d.artist_name; });
+        .attr("dx", function(d) { return 12 + (d.size / 2) })
+        .text(function(d) { return d.name; });
 
+    node.exit().remove();
+
+    force.start();
+    
 }
 
 function tick() {
@@ -94,20 +99,6 @@ function tick() {
     node.attr("transform", function(d) { 
         return "translate(" + d.x + "," + d.y + ")";
     });
-    //node.attr("cx", function(d) { return d.x; })
-    //    .attr("cy", function(d) { return d.y; });
-}
-
-function dblclick(d) {
-    d3.select(this)
-        .classed("fixed", d.fixed = false)
-        .style("fill", function(d) { return color(d.distance) });
-}
-
-function dragstart(d) {
-    d3.select(this)
-        .classed("fixed", d.fixed = true)
-        .style("fill", function(d) { return "#f00" });
 }
 
 function updateWindow(){
@@ -117,3 +108,85 @@ function updateWindow(){
     force.size([x, y]).start();
 }
 window.onresize = updateWindow;
+
+function buildNodeMap(nodes) {
+    var map = d3.map();
+    nodes.forEach(function(node) {
+        map.set(node.id, node);
+    });
+    return map;
+}
+
+function buildLinkMap(links) {
+    var map = d3.map();
+    links.forEach(function(link) {
+        var key = link.source + "-" + link.target;
+        if (link.dotted) {
+            key = key + '-dotted';
+        }
+        map.set(key, link);
+    });
+    return map;
+}
+
+function updateData(json) {
+    var newNodeMap = buildNodeMap(json.nodes);
+    var newLinkMap = buildLinkMap(json.links);
+    var nodeKeysToRemove = [];
+    var linkKeysToRemove = [];
+    // Find keys for nodes to be removed.
+    nodeMap.keys().forEach(function(key) {
+        if (!newNodeMap.has(key)) {
+            nodeKeysToRemove.push(key);
+        };
+    });
+    // Find keys for links to be removed;
+    linkMap.keys().forEach(function(key) {
+        if (!newLinkMap.has(key)) {
+            linkKeysToRemove.push(key);
+        };
+    });
+    // Remove each old node matching each to-remove key.
+    nodeKeysToRemove.forEach(function(key) {
+        nodeMap.remove(key);
+    });
+    // Remove each old link matching each to-remove key.
+    linkKeysToRemove.forEach(function(key) {
+        linkMap.remove(key);
+    });
+    // Add in non-existent new nodes.
+    newNodeMap.entries().forEach(function(entry) {
+        console.log(entry);
+        if (!nodeMap.has(entry.key)) {
+            nodeMap.set(entry.key, entry.value);
+        }
+    });
+    // Add in non-existent new links, setting their source/target as needed.
+    newLinkMap.entries().forEach(function(entry) {
+        console.log(entry);
+        if (!linkMap.has(entry.key)) {
+            entry.value.source = nodeMap.get(entry.value.source);
+            entry.value.target = nodeMap.get(entry.value.target);
+            linkMap.set(entry.key, entry.value);
+        }
+    });
+    // Replace array contents with map values.
+    nodes.length = 0;
+    Array.prototype.push.apply(nodes, nodeMap.values());
+    links.length = 0;
+    Array.prototype.push.apply(links, linkMap.values());
+}
+
+var data = null;
+
+var loadData = function(error, json) {
+    if (error) return console.warn(error);
+    setTimeout(function() {
+        can_load_new_data = true;
+    }, 2000);
+    data = json;
+    updateData(json);
+    startForceLayout();
+}
+
+d3.json(base_url + 152882, loadData);

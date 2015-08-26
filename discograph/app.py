@@ -3,6 +3,7 @@ from flask import (
     Flask,
     abort,
     jsonify,
+    render_template,
     )
 
 
@@ -18,13 +19,19 @@ def route__api__cluster__artist_id(artist_id):
     except:
         abort(404)
     artist_graph = discograph.graphs.ArtistMembershipGrapher([artist], 3)
-    data = artist_graph.to_json()
+    data = artist_graph.to_json(max_nodes=100)
     return jsonify(data)
 
 
 @app.route('/<int:artist_id>', methods=['GET'])
 def route__artist_id(artist_id):
-    pass
+    return render_template('index.html')
+
+
+@app.route('/')
+@app.route('/index')
+def route():
+    return render_template('index.html')
 
 
 if __name__ == '__main__':
