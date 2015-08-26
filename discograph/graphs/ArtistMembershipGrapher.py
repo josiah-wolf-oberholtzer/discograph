@@ -1,5 +1,3 @@
-import collections
-import json
 import math
 from abjad import documentationtools
 from discograph import models
@@ -236,10 +234,4 @@ class ArtistMembershipGrapher(object):
                 'target': target,
                 }
             data['links'].append(link)
-        data = json.dumps(
-            data,
-            indent=4,
-            separators=(',', ': '),
-            sort_keys=True,
-            )
         return data
