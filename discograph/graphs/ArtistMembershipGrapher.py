@@ -1,3 +1,5 @@
+import collections
+import json
 import math
 from abjad import documentationtools
 from discograph import models
@@ -21,7 +23,7 @@ class ArtistMembershipGrapher(object):
     ### SPECIAL METHODS ###
 
     def __graph__(self):
-        nodes, edges = self.discover_artist_membership()
+        nodes, edges = self.analyze()
         artist_id_to_node_mapping = {}
         cluster_id_to_cluster_mapping = {}
         graphviz_graph = documentationtools.GraphvizGraph(
@@ -51,10 +53,10 @@ class ArtistMembershipGrapher(object):
                 artist_name,
                 cluster_id,
                 distance,
-                has_members,
+                member_count,
                 ) = node
 
-            if not has_members:
+            if not member_count:
                 fontname = 'Arial'
                 shape = 'box'
                 style = ('bold', 'filled', 'rounded')
@@ -110,7 +112,7 @@ class ArtistMembershipGrapher(object):
 
     ### PUBLIC METHODS ###
 
-    def discover_artist_membership(self):
+    def analyze(self):
         template = (
             'DEGREE {}: {} artists, '
             '{} edges, '
@@ -167,7 +169,7 @@ class ArtistMembershipGrapher(object):
                             'Member Of',
                             )
                         edges.add(edge)
-                value = (distance, artist.name, bool(artist.members))
+                value = (distance, artist.name, len(artist.members))
                 artist_ids_visited[artist_id] = value
             message = template.format(
                 distance,
@@ -181,13 +183,63 @@ class ArtistMembershipGrapher(object):
             assert tail in artist_ids_visited
         nodes = []
         for artist_id, payload in artist_ids_visited.items():
-            distance, artist_name, has_members = payload
+            distance, artist_name, member_count = payload
             node = [
                 artist_id,
                 artist_name,
                 clusters.get(artist_id, None),
                 distance,
-                has_members,
+                member_count,
                 ]
-            nodes.append(tuple(node))
-        return tuple(sorted(nodes)), tuple(sorted(edges))
+            nodes.append(node)
+        return nodes, sorted(edges)
+
+    def to_json(self):
+        nodes, edges = self.analyze()
+        data = {
+            'nodes': [],
+            'links': [],
+            }
+        node_ids = []
+        for node in nodes:
+            (
+                artist_id,
+                artist_name,
+                cluster_id,
+                distance,
+                member_count,
+                ) = node
+            node = {
+                'artist_id': artist_id,
+                'artist_name': artist_name,
+                'cluster_id': cluster_id,
+                'distance': distance,
+                'member_count': member_count,
+                }
+            data['nodes'].append(node)
+            node_ids.append(artist_id)
+        for edge in edges:
+            (
+                head_id,
+                tail_id,
+                role,
+                ) = edge
+            if role == 'Alias':
+                dotted = True
+            else:
+                dotted = False
+            target = node_ids.index(head_id)
+            source = node_ids.index(tail_id)
+            link = {
+                'dotted': dotted,
+                'source': source,
+                'target': target,
+                }
+            data['links'].append(link)
+        data = json.dumps(
+            data,
+            indent=4,
+            separators=(',', ': '),
+            sort_keys=True,
+            )
+        return data
