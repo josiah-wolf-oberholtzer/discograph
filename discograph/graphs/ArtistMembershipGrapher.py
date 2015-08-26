@@ -170,7 +170,7 @@ class ArtistMembershipGrapher(object):
                             'Member Of',
                             )
                         edges.add(edge)
-                value = (distance, artist.name, len(artist.members))
+                value = (distance, artist)
                 artist_ids_visited[artist_id] = value
             message = template.format(
                 distance,
@@ -184,14 +184,21 @@ class ArtistMembershipGrapher(object):
             _[1] in artist_ids_visited
             ]
         nodes = []
-        for artist_id, payload in artist_ids_visited.items():
-            distance, artist_name, member_count = payload
+        for artist_id, (distance, artist) in artist_ids_visited.items():
+            is_missing_edges = False
+            for group in artist.groups:
+                if group.discogs_id not in artist_ids_visited:
+                    is_missing_edges = True
+            for member in artist.members:
+                if member.discogs_id not in artist_ids_visited:
+                    is_missing_edges = True
             node = [
-                artist_id,
-                artist_name,
+                artist.discogs_id,
+                artist.name,
                 clusters.get(artist_id, None),
                 distance,
-                member_count,
+                len(artist.members),
+                is_missing_edges,
                 ]
             nodes.append(node)
         return nodes, sorted(edges)
@@ -208,14 +215,16 @@ class ArtistMembershipGrapher(object):
                 artist_name,
                 cluster_id,
                 distance,
-                member_count,
+                size,
+                is_missing_edges,
                 ) = node
             node = {
                 'id': artist_id,
                 'name': artist_name,
                 'group': cluster_id,
                 'distance': distance,
-                'size': member_count,
+                'size': size,
+                'incomplete': is_missing_edges,
                 }
             data['nodes'].append(node)
         for edge in edges:
