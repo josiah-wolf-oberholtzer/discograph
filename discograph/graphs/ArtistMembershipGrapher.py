@@ -110,7 +110,7 @@ class ArtistMembershipGrapher(object):
 
     ### PUBLIC METHODS ###
 
-    def analyze(self):
+    def analyze(self, max_nodes=None):
         template = (
             'DEGREE {}: {} artists, '
             '{} edges, '
@@ -122,9 +122,13 @@ class ArtistMembershipGrapher(object):
         artist_ids_visited = dict()
         artist_ids_to_visit = set(_.discogs_id for _ in self.artists)
         for distance in range(self.degree + 1):
+            if max_nodes and max_nodes <= len(artist_ids_visited):
+                break
             current_artist_ids_to_visit = list(artist_ids_to_visit)
             artist_ids_to_visit.clear()
             while current_artist_ids_to_visit:
+                if max_nodes and max_nodes <= len(artist_ids_visited):
+                    break
                 artist_id = current_artist_ids_to_visit.pop()
                 if artist_id in artist_ids_visited:
                     continue
@@ -138,7 +142,6 @@ class ArtistMembershipGrapher(object):
                         continue
                     aliases.append(alias_query.first())
                 if len(aliases) and artist_id not in clusters:
-                    #print('INCREMENTING CLUSTER COUNTER', artist.name)
                     cluster_count += 1
                     clusters[artist_id] = cluster_count
                 for alias in aliases:
@@ -176,9 +179,10 @@ class ArtistMembershipGrapher(object):
                 cluster_count,
                 )
             print(message)
-        for head, tail, _ in edges:
-            assert head in artist_ids_visited
-            assert tail in artist_ids_visited
+        edges = [_ for _ in edges
+            if _[0] in artist_ids_visited and
+            _[1] in artist_ids_visited
+            ]
         nodes = []
         for artist_id, payload in artist_ids_visited.items():
             distance, artist_name, member_count = payload
@@ -192,13 +196,12 @@ class ArtistMembershipGrapher(object):
             nodes.append(node)
         return nodes, sorted(edges)
 
-    def to_json(self):
-        nodes, edges = self.analyze()
+    def to_json(self, max_nodes=None):
+        nodes, edges = self.analyze(max_nodes=max_nodes)
         data = {
             'nodes': [],
             'links': [],
             }
-        node_ids = []
         for node in nodes:
             (
                 artist_id,
@@ -208,14 +211,13 @@ class ArtistMembershipGrapher(object):
                 member_count,
                 ) = node
             node = {
-                'artist_id': artist_id,
-                'artist_name': artist_name,
-                'cluster_id': cluster_id,
+                'id': artist_id,
+                'name': artist_name,
+                'group': cluster_id,
                 'distance': distance,
-                'member_count': member_count,
+                'size': member_count,
                 }
             data['nodes'].append(node)
-            node_ids.append(artist_id)
         for edge in edges:
             (
                 head_id,
@@ -226,12 +228,10 @@ class ArtistMembershipGrapher(object):
                 dotted = True
             else:
                 dotted = False
-            target = node_ids.index(head_id)
-            source = node_ids.index(tail_id)
             link = {
                 'dotted': dotted,
-                'source': source,
-                'target': target,
+                'source': tail_id,
+                'target': head_id,
                 }
             data['links'].append(link)
         return data
