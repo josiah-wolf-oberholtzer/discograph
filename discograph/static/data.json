@@ -1,0 +1,1283 @@
+{
+    "links": [
+        {
+            "dotted": false,
+            "source": 39,
+            "target": 89
+        },
+        {
+            "dotted": false,
+            "source": 84,
+            "target": 89
+        },
+        {
+            "dotted": false,
+            "source": 90,
+            "target": 89
+        },
+        {
+            "dotted": false,
+            "source": 37,
+            "target": 89
+        },
+        {
+            "dotted": false,
+            "source": 9,
+            "target": 89
+        },
+        {
+            "dotted": false,
+            "source": 10,
+            "target": 69
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 69
+        },
+        {
+            "dotted": true,
+            "source": 29,
+            "target": 69
+        },
+        {
+            "dotted": false,
+            "source": 30,
+            "target": 77
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 77
+        },
+        {
+            "dotted": true,
+            "source": 36,
+            "target": 53
+        },
+        {
+            "dotted": true,
+            "source": 94,
+            "target": 53
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 46
+        },
+        {
+            "dotted": true,
+            "source": 23,
+            "target": 78
+        },
+        {
+            "dotted": false,
+            "source": 86,
+            "target": 15
+        },
+        {
+            "dotted": false,
+            "source": 18,
+            "target": 15
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 15
+        },
+        {
+            "dotted": false,
+            "source": 6,
+            "target": 38
+        },
+        {
+            "dotted": false,
+            "source": 78,
+            "target": 38
+        },
+        {
+            "dotted": false,
+            "source": 59,
+            "target": 38
+        },
+        {
+            "dotted": false,
+            "source": 31,
+            "target": 38
+        },
+        {
+            "dotted": false,
+            "source": 9,
+            "target": 38
+        },
+        {
+            "dotted": false,
+            "source": 36,
+            "target": 38
+        },
+        {
+            "dotted": false,
+            "source": 94,
+            "target": 38
+        },
+        {
+            "dotted": false,
+            "source": 74,
+            "target": 38
+        },
+        {
+            "dotted": false,
+            "source": 71,
+            "target": 64
+        },
+        {
+            "dotted": false,
+            "source": 19,
+            "target": 64
+        },
+        {
+            "dotted": false,
+            "source": 73,
+            "target": 64
+        },
+        {
+            "dotted": false,
+            "source": 2,
+            "target": 64
+        },
+        {
+            "dotted": true,
+            "source": 65,
+            "target": 64
+        },
+        {
+            "dotted": false,
+            "source": 5,
+            "target": 64
+        },
+        {
+            "dotted": true,
+            "source": 17,
+            "target": 75
+        },
+        {
+            "dotted": false,
+            "source": 13,
+            "target": 11
+        },
+        {
+            "dotted": false,
+            "source": 31,
+            "target": 11
+        },
+        {
+            "dotted": false,
+            "source": 78,
+            "target": 12
+        },
+        {
+            "dotted": false,
+            "source": 68,
+            "target": 12
+        },
+        {
+            "dotted": false,
+            "source": 59,
+            "target": 12
+        },
+        {
+            "dotted": false,
+            "source": 31,
+            "target": 12
+        },
+        {
+            "dotted": false,
+            "source": 3,
+            "target": 16
+        },
+        {
+            "dotted": false,
+            "source": 78,
+            "target": 17
+        },
+        {
+            "dotted": false,
+            "source": 92,
+            "target": 17
+        },
+        {
+            "dotted": false,
+            "source": 31,
+            "target": 17
+        },
+        {
+            "dotted": false,
+            "source": 78,
+            "target": 20
+        },
+        {
+            "dotted": false,
+            "source": 92,
+            "target": 20
+        },
+        {
+            "dotted": false,
+            "source": 31,
+            "target": 20
+        },
+        {
+            "dotted": false,
+            "source": 67,
+            "target": 20
+        },
+        {
+            "dotted": false,
+            "source": 6,
+            "target": 32
+        },
+        {
+            "dotted": false,
+            "source": 3,
+            "target": 32
+        },
+        {
+            "dotted": false,
+            "source": 6,
+            "target": 33
+        },
+        {
+            "dotted": false,
+            "source": 59,
+            "target": 33
+        },
+        {
+            "dotted": false,
+            "source": 56,
+            "target": 33
+        },
+        {
+            "dotted": false,
+            "source": 31,
+            "target": 33
+        },
+        {
+            "dotted": false,
+            "source": 9,
+            "target": 33
+        },
+        {
+            "dotted": false,
+            "source": 93,
+            "target": 33
+        },
+        {
+            "dotted": false,
+            "source": 91,
+            "target": 34
+        },
+        {
+            "dotted": false,
+            "source": 6,
+            "target": 34
+        },
+        {
+            "dotted": false,
+            "source": 2,
+            "target": 34
+        },
+        {
+            "dotted": false,
+            "source": 3,
+            "target": 34
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 34
+        },
+        {
+            "dotted": false,
+            "source": 76,
+            "target": 34
+        },
+        {
+            "dotted": true,
+            "source": 95,
+            "target": 34
+        },
+        {
+            "dotted": false,
+            "source": 9,
+            "target": 70
+        },
+        {
+            "dotted": false,
+            "source": 39,
+            "target": 66
+        },
+        {
+            "dotted": false,
+            "source": 53,
+            "target": 66
+        },
+        {
+            "dotted": false,
+            "source": 63,
+            "target": 66
+        },
+        {
+            "dotted": false,
+            "source": 78,
+            "target": 66
+        },
+        {
+            "dotted": false,
+            "source": 51,
+            "target": 66
+        },
+        {
+            "dotted": false,
+            "source": 31,
+            "target": 66
+        },
+        {
+            "dotted": false,
+            "source": 36,
+            "target": 66
+        },
+        {
+            "dotted": false,
+            "source": 94,
+            "target": 66
+        },
+        {
+            "dotted": false,
+            "source": 88,
+            "target": 7
+        },
+        {
+            "dotted": false,
+            "source": 59,
+            "target": 7
+        },
+        {
+            "dotted": true,
+            "source": 0,
+            "target": 7
+        },
+        {
+            "dotted": false,
+            "source": 68,
+            "target": 85
+        },
+        {
+            "dotted": false,
+            "source": 59,
+            "target": 85
+        },
+        {
+            "dotted": false,
+            "source": 78,
+            "target": 14
+        },
+        {
+            "dotted": false,
+            "source": 92,
+            "target": 14
+        },
+        {
+            "dotted": false,
+            "source": 31,
+            "target": 14
+        },
+        {
+            "dotted": false,
+            "source": 36,
+            "target": 14
+        },
+        {
+            "dotted": false,
+            "source": 26,
+            "target": 14
+        },
+        {
+            "dotted": false,
+            "source": 94,
+            "target": 14
+        },
+        {
+            "dotted": false,
+            "source": 74,
+            "target": 14
+        },
+        {
+            "dotted": false,
+            "source": 80,
+            "target": 21
+        },
+        {
+            "dotted": false,
+            "source": 83,
+            "target": 21
+        },
+        {
+            "dotted": false,
+            "source": 61,
+            "target": 21
+        },
+        {
+            "dotted": false,
+            "source": 22,
+            "target": 21
+        },
+        {
+            "dotted": true,
+            "source": 87,
+            "target": 21
+        },
+        {
+            "dotted": false,
+            "source": 76,
+            "target": 21
+        },
+        {
+            "dotted": false,
+            "source": 27,
+            "target": 21
+        },
+        {
+            "dotted": true,
+            "source": 45,
+            "target": 21
+        },
+        {
+            "dotted": false,
+            "source": 45,
+            "target": 21
+        },
+        {
+            "dotted": false,
+            "source": 42,
+            "target": 21
+        },
+        {
+            "dotted": false,
+            "source": 44,
+            "target": 21
+        },
+        {
+            "dotted": false,
+            "source": 49,
+            "target": 62
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 62
+        },
+        {
+            "dotted": false,
+            "source": 91,
+            "target": 47
+        },
+        {
+            "dotted": false,
+            "source": 1,
+            "target": 47
+        },
+        {
+            "dotted": false,
+            "source": 80,
+            "target": 50
+        },
+        {
+            "dotted": false,
+            "source": 76,
+            "target": 50
+        },
+        {
+            "dotted": false,
+            "source": 2,
+            "target": 54
+        },
+        {
+            "dotted": true,
+            "source": 43,
+            "target": 54
+        },
+        {
+            "dotted": false,
+            "source": 3,
+            "target": 60
+        },
+        {
+            "dotted": false,
+            "source": 31,
+            "target": 52
+        },
+        {
+            "dotted": false,
+            "source": 72,
+            "target": 79
+        },
+        {
+            "dotted": false,
+            "source": 56,
+            "target": 79
+        },
+        {
+            "dotted": false,
+            "source": 4,
+            "target": 79
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 55
+        },
+        {
+            "dotted": false,
+            "source": 49,
+            "target": 25
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 25
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 57
+        },
+        {
+            "dotted": false,
+            "source": 82,
+            "target": 58
+        },
+        {
+            "dotted": false,
+            "source": 8,
+            "target": 58
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 58
+        },
+        {
+            "dotted": true,
+            "source": 24,
+            "target": 58
+        },
+        {
+            "dotted": false,
+            "source": 48,
+            "target": 58
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 28
+        },
+        {
+            "dotted": false,
+            "source": 41,
+            "target": 40
+        },
+        {
+            "dotted": false,
+            "source": 81,
+            "target": 87
+        },
+        {
+            "dotted": true,
+            "source": 45,
+            "target": 87
+        },
+        {
+            "dotted": true,
+            "source": 94,
+            "target": 36
+        },
+        {
+            "dotted": false,
+            "source": 9,
+            "target": 35
+        }
+    ],
+    "nodes": [
+        {
+            "artist_id": 751620,
+            "artist_name": "Georgie Fruit",
+            "cluster_id": 7,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 249863,
+            "artist_name": "Opion Somnium",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 3
+        },
+        {
+            "artist_id": 309256,
+            "artist_name": "Bablicon",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 3
+        },
+        {
+            "artist_id": 351425,
+            "artist_name": "Gerbils, The",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 4
+        },
+        {
+            "artist_id": 3548192,
+            "artist_name": "Carol Cleveland Sings",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 1
+        },
+        {
+            "artist_id": 2066448,
+            "artist_name": "Exciting Trio, The",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 3
+        },
+        {
+            "artist_id": 252434,
+            "artist_name": "Neutral Milk Hotel",
+            "cluster_id": null,
+            "distance": 0,
+            "member_count": 4
+        },
+        {
+            "artist_id": 403475,
+            "artist_name": "Kevin Barnes",
+            "cluster_id": 7,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 472707,
+            "artist_name": "Bouquet",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 3
+        },
+        {
+            "artist_id": 609301,
+            "artist_name": "Elephant Six Orchestra, The",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 5
+        },
+        {
+            "artist_id": 281366,
+            "artist_name": "James Yorkston And The Athletes",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 4
+        },
+        {
+            "artist_id": 363287,
+            "artist_name": "J. Kirk Pleasant",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 374040,
+            "artist_name": "Eric Harris",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 374041,
+            "artist_name": "Calvin, Don't Jump!",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 1
+        },
+        {
+            "artist_id": 429595,
+            "artist_name": "Will Cullen Hart",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 345116,
+            "artist_name": "Rachel Grimes",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 374047,
+            "artist_name": "John D'Azzo",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 374048,
+            "artist_name": "Peter Erchick",
+            "cluster_id": 5,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 103201,
+            "artist_name": "Rachel's",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 7
+        },
+        {
+            "artist_id": 14882,
+            "artist_name": "Toe",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 6
+        },
+        {
+            "artist_id": 374051,
+            "artist_name": "John Fernandes",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 458378,
+            "artist_name": "Aaron Moore (2)",
+            "cluster_id": 8,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 682119,
+            "artist_name": "Dragon Or Emperor",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 2
+        },
+        {
+            "artist_id": 776028,
+            "artist_name": "Ships, The",
+            "cluster_id": 3,
+            "distance": 2,
+            "member_count": 0
+        },
+        {
+            "artist_id": 1147690,
+            "artist_name": "Hand, The (3)",
+            "cluster_id": 9,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 835719,
+            "artist_name": "David Jaycock",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 1524780,
+            "artist_name": "Always Red Society",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 1
+        },
+        {
+            "artist_id": 2563631,
+            "artist_name": "Textile Trio",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 3
+        },
+        {
+            "artist_id": 835722,
+            "artist_name": "Jamie Crewe",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 1158978,
+            "artist_name": "J. Wright Presents",
+            "cluster_id": 4,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 421187,
+            "artist_name": "George (8)",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 1
+        },
+        {
+            "artist_id": 538181,
+            "artist_name": "Black Swan Network",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 9
+        },
+        {
+            "artist_id": 377158,
+            "artist_name": "Scott Spillane",
+            "cluster_id": null,
+            "distance": 1,
+            "member_count": 0
+        },
+        {
+            "artist_id": 377159,
+            "artist_name": "Julian Koster",
+            "cluster_id": null,
+            "distance": 1,
+            "member_count": 0
+        },
+        {
+            "artist_id": 377160,
+            "artist_name": "Jeremy Barnes",
+            "cluster_id": 1,
+            "distance": 1,
+            "member_count": 0
+        },
+        {
+            "artist_id": 1098057,
+            "artist_name": "Rick Benjamin",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 898378,
+            "artist_name": "Korena Pang",
+            "cluster_id": 2,
+            "distance": 2,
+            "member_count": 3
+        },
+        {
+            "artist_id": 517708,
+            "artist_name": "Ulysses (5)",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 4
+        },
+        {
+            "artist_id": 351055,
+            "artist_name": "Jeff Mangum",
+            "cluster_id": null,
+            "distance": 1,
+            "member_count": 0
+        },
+        {
+            "artist_id": 4944,
+            "artist_name": "Apples In Stereo, The",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 12
+        },
+        {
+            "artist_id": 835723,
+            "artist_name": "Lindsay Aitkenhead",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 547159,
+            "artist_name": "Big Eyes Family Players, The",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 12
+        },
+        {
+            "artist_id": 3218778,
+            "artist_name": "Wizards Of Oi",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 2
+        },
+        {
+            "artist_id": 1121116,
+            "artist_name": "Diminisher, The",
+            "cluster_id": 10,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 4317534,
+            "artist_name": "Blue Prostitutes, The",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 5
+        },
+        {
+            "artist_id": 3015007,
+            "artist_name": "Invisible Sports",
+            "cluster_id": 8,
+            "distance": 3,
+            "member_count": 1
+        },
+        {
+            "artist_id": 179557,
+            "artist_name": "James William Hindle",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 519783,
+            "artist_name": "Heather Trost",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 2473322,
+            "artist_name": "Plouf!",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 3
+        },
+        {
+            "artist_id": 484463,
+            "artist_name": "Big Eyes",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 4
+        },
+        {
+            "artist_id": 537463,
+            "artist_name": "Clarence Manuelo",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 277116,
+            "artist_name": "Sunshine Fix",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 1
+        },
+        {
+            "artist_id": 634237,
+            "artist_name": "Roxanne Martin",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 130686,
+            "artist_name": "Bill Doss, The",
+            "cluster_id": 2,
+            "distance": 2,
+            "member_count": 1
+        },
+        {
+            "artist_id": 543107,
+            "artist_name": "David McDonnell",
+            "cluster_id": 10,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 835718,
+            "artist_name": "Katherine Jackson",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 471943,
+            "artist_name": "Music Tapes, The",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 2
+        },
+        {
+            "artist_id": 835720,
+            "artist_name": "Gemma Green",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 835721,
+            "artist_name": "Shaun Alcock",
+            "cluster_id": 9,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 351114,
+            "artist_name": "Major Organ And The Adding Machine",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 5
+        },
+        {
+            "artist_id": 559895,
+            "artist_name": "William Westbrook",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 443330,
+            "artist_name": "Textile Orchestra",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 3
+        },
+        {
+            "artist_id": 507279,
+            "artist_name": "James Green (2)",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 168899,
+            "artist_name": "Sleeping Flies",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 5
+        },
+        {
+            "artist_id": 351386,
+            "artist_name": "Griffin Rodriguez",
+            "cluster_id": 6,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 664987,
+            "artist_name": "Blue Hawaii",
+            "cluster_id": 6,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 379552,
+            "artist_name": "Bill Doss",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 1724069,
+            "artist_name": "Supercluster",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 10
+        },
+        {
+            "artist_id": 347302,
+            "artist_name": "Elf Power",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 7
+        },
+        {
+            "artist_id": 95409,
+            "artist_name": "James Yorkston",
+            "cluster_id": 4,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 377161,
+            "artist_name": "Steve Jacobek",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 13240,
+            "artist_name": "HiM",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 12
+        },
+        {
+            "artist_id": 446137,
+            "artist_name": "Spinto Band, The",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 6
+        },
+        {
+            "artist_id": 75969,
+            "artist_name": "Orso",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 7
+        },
+        {
+            "artist_id": 4181698,
+            "artist_name": "Cranberry Lifecycle",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 2
+        },
+        {
+            "artist_id": 351427,
+            "artist_name": "Pipes You See, Pipes You Don't",
+            "cluster_id": 5,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 955847,
+            "artist_name": "Guignol",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 3
+        },
+        {
+            "artist_id": 115657,
+            "artist_name": "Suzy Mangion",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 252619,
+            "artist_name": "Olivia Tremor Control, The",
+            "cluster_id": 3,
+            "distance": 2,
+            "member_count": 6
+        },
+        {
+            "artist_id": 660177,
+            "artist_name": "Thomas Hughes",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 119766,
+            "artist_name": "Volcano The Bear",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 5
+        },
+        {
+            "artist_id": 871383,
+            "artist_name": "Amolvacy",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 3
+        },
+        {
+            "artist_id": 245208,
+            "artist_name": "Real Losers, The",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 3
+        },
+        {
+            "artist_id": 150745,
+            "artist_name": "Songs Of Norway",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 2
+        },
+        {
+            "artist_id": 91098,
+            "artist_name": "Minders, The",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 10
+        },
+        {
+            "artist_id": 419291,
+            "artist_name": "Andrew Rieger",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 91108,
+            "artist_name": "Hula Hoop",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 4
+        },
+        {
+            "artist_id": 871377,
+            "artist_name": "Nathaniel Amolvacy",
+            "cluster_id": 8,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 305640,
+            "artist_name": "Of Montreal",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 13
+        },
+        {
+            "artist_id": 88956,
+            "artist_name": "Robert Schneider",
+            "cluster_id": null,
+            "distance": 3,
+            "member_count": 0
+        },
+        {
+            "artist_id": 298732,
+            "artist_name": "Marbles (2)",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 1
+        },
+        {
+            "artist_id": 241907,
+            "artist_name": "A Hawk And A Hacksaw",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 2
+        },
+        {
+            "artist_id": 359158,
+            "artist_name": "Circulatory System",
+            "cluster_id": null,
+            "distance": 4,
+            "member_count": 5
+        },
+        {
+            "artist_id": 2207226,
+            "artist_name": "Chocolate USA",
+            "cluster_id": null,
+            "distance": 2,
+            "member_count": 1
+        },
+        {
+            "artist_id": 3699966,
+            "artist_name": "Synthetic Flying Machine",
+            "cluster_id": 2,
+            "distance": 2,
+            "member_count": 3
+        },
+        {
+            "artist_id": 1289215,
+            "artist_name": "Marta Tennae",
+            "cluster_id": 1,
+            "distance": 1,
+            "member_count": 0
+        }
+    ]
+}
