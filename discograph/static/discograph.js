@@ -1,4 +1,10 @@
-var color = d3.scale.category20b();
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+  this.parentNode.appendChild(this);
+  });
+};
+
+var color = d3.scale.category10();
 var can_load_new_data = false;
 var base_url = "/api/cluster/"
 
@@ -17,13 +23,15 @@ var nodes = [];
 var links = [];
 var nodeMap = d3.map();
 var linkMap = d3.map();
+var initialX = x / 2;
+var initialY = y / 2;
 
 var force = d3.layout.force()
     .nodes(nodes)
     .links(links)
     .linkStrength(0.2)
     .friction(0.9)
-    .linkDistance(20)
+    .linkDistance(50)
     .charge(-300)
     .gravity(0.1)
     .theta(0.8)
@@ -35,6 +43,8 @@ var node = svg.selectAll(".node"),
     link = svg.selectAll(".link");
 
 var startForceLayout = function() {
+
+    force.start();
 
     link = link.data(force.links(), function(d) { 
         var key = d.source.id + "-" + d.target.id;
@@ -66,6 +76,8 @@ var startForceLayout = function() {
         .style("fill", function(d) { return color(d.distance); })
         .call(force.drag)
         .on("dblclick", function(d) {
+            initialX = d.x;
+            initialY = d.y;
             if (can_load_new_data) {
                 can_load_new_data = false;
                 d3.json(base_url + d.id, loadData);
@@ -75,19 +87,23 @@ var startForceLayout = function() {
         });
 
     nodeEnter.append("circle")
-        .attr("r", function(d) { return 5 + (d.size / 2) });
+        .attr("r", function(d) { return 5 + (Math.sqrt(d.size) * 2) });
 
     nodeEnter.append("title")
         .text(function(d) { return d.name; });
 
     nodeEnter.append("text")
         .attr("dy", ".35em")
-        .attr("dx", function(d) { return 12 + (d.size / 2) })
+        .attr("dx", function(d) { return 12 + (Math.sqrt(d.size) * 2) })
         .text(function(d) { return d.name; });
 
     node.exit().remove();
 
-    force.start();
+    node.moveToFront();
+
+    node.transition()
+        .duration(2000)
+        .style("fill", function(d) { return color(d.distance); });
     
 }
 
@@ -96,9 +112,7 @@ function tick() {
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
-    node.attr("transform", function(d) { 
-        return "translate(" + d.x + "," + d.y + ")";
-    });
+    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 }
 
 function updateWindow(){
@@ -155,15 +169,20 @@ function updateData(json) {
         linkMap.remove(key);
     });
     // Add in non-existent new nodes.
+    // Update old nodes with distance info, etc.
     newNodeMap.entries().forEach(function(entry) {
-        console.log(entry);
-        if (!nodeMap.has(entry.key)) {
-            nodeMap.set(entry.key, entry.value);
+        var key = entry.key;
+        var value = entry.value;
+        if (nodeMap.has(key)) {
+            nodeMap.get(key).distance = value.distance; 
+        } else {
+            value.x = initialX + (Math.random() * 100) - 50;
+            value.y = initialY + (Math.random() * 100) - 50;
+            nodeMap.set(key, value);
         }
     });
     // Add in non-existent new links, setting their source/target as needed.
     newLinkMap.entries().forEach(function(entry) {
-        console.log(entry);
         if (!linkMap.has(entry.key)) {
             entry.value.source = nodeMap.get(entry.value.source);
             entry.value.target = nodeMap.get(entry.value.target);
