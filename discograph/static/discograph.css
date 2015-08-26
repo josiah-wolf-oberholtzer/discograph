@@ -1,0 +1,26 @@
+html,
+body,
+svg {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    }
+
+.link {
+    stroke: #999;
+    stroke-opacity: 0.6;
+    }
+
+.node {
+    cursor: move;
+    stroke: #fff;
+    stroke-width: 1.5px;
+    }
+
+.node text {
+    pointer-events: none;
+    fill: #000;
+    stroke: #000;
+    stroke-width: 0;
+    font: 10px sans-serif;
+    }
