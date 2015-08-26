@@ -9,8 +9,8 @@ if __name__ == '__main__':
         author_email='josiah.oberholtzer@gmail.com',
         install_requires=[
             'abjad',
-            'discogs-client',
             'extras-mongoengine',
+            'flask',
             'mongoengine',
             'pytest',
             'six',
