@@ -4,9 +4,13 @@ d3.selection.prototype.moveToFront = function() {
   });
 };
 
-var color = function(distance) {
-    var hue = ((distance / 8) * 360) % 360;
-    return d3.hsl(hue, 0.67, 0.5).toString();
+var color = function(d) {
+    var hue = ((d.distance / 12) * 360) % 360;
+    var variation_a = ((d.id % 5) - 2) / 20;
+    var variation_b = ((d.id % 9) - 4) / 80;
+    var saturation = 0.67 + variation_a;
+    var lightness = 0.5 + variation_b;
+    return d3.hsl(hue, saturation, lightness).toString();
 }
 
 var can_load_new_data = false;
@@ -86,7 +90,7 @@ var startForceLayout = function() {
     var nodeEnter = node
         .enter().append("g")
         .attr("class", "node")
-        .style("fill", function(d) { return color(d.distance); })
+        .style("fill", function(d) { return color(d); })
         .call(force.drag)
         .on("dblclick", function(d) {
             initialX = d.x;
@@ -147,7 +151,7 @@ var startForceLayout = function() {
 
     node.transition()
         .duration(1000)
-        .style("fill", function(d) { return color(d.distance); })
+        .style("fill", function(d) { return color(d); })
         .style("opacity", 1);
 
     link.transition()

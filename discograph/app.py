@@ -20,7 +20,7 @@ def route__api__cluster__artist_id(artist_id):
     except:
         abort(404)
     artist_graph = discograph.graphs.ArtistMembershipGrapher(
-        [artist], 8)
+        [artist], 12)
     data = artist_graph.to_json(max_nodes=100)
     return jsonify(data)
 
@@ -46,7 +46,7 @@ def route__api__cluster__random():
         if not artist.members and not artist.groups:
             artist = None
     artist_graph = discograph.graphs.ArtistMembershipGrapher(
-        [artist], 8)
+        [artist], 12)
     data = artist_graph.to_json(max_nodes=100)
     return jsonify(data)
 
