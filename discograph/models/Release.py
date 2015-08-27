@@ -74,8 +74,8 @@ class Release(Model, mongoengine.Document):
         discogs_id = int(element.attrib.get('id'))
         query_set = cls.objects(discogs_id=discogs_id)\
             .hint(index)\
-            .only('discogs_id', 'title')\
-            .no_dereference()
+            .only('discogs_id', 'title')
+            #.no_dereference()
         if 0 < query_set.count():
             document = query_set[0]
             message = u'RELEASE {} [preserved]: {}'.format(

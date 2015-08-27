@@ -78,8 +78,8 @@ class Label(Model, mongoengine.Document):
         index = [('name', 1)]
         query_set = cls.objects(name=name)\
             .hint(index)\
-            .only('has_been_scraped')\
-            .no_dereference()
+            .only('has_been_scraped')
+            #.no_dereference()
         count = query_set.count()
         if count:
             assert count == 1
