@@ -26,8 +26,6 @@ class Test(unittest.TestCase):
             {'distance': 3, 'group': None, 'id': 1511897, 'incomplete': False, 'name': 'Mind & Matter', 'size': 1},
             {'distance': 3, 'group': None, 'id': 78746, 'incomplete': True, 'name': "Jesse Johnson's Revue", 'size': 7},
             {'distance': 3, 'group': 5, 'id': 4215643, 'incomplete': False, 'name': 'Flyte Tyme (2)', 'size': 0},
-
-
             {'distance': 2, 'group': None, 'id': 100600, 'incomplete': False, 'name': 'Monte Moir', 'size': 0},
             {'distance': 2, 'group': None, 'id': 409502, 'incomplete': False, 'name': 'Mark Cardenas', 'size': 0},
             {'distance': 3, 'group': None, 'id': 4165408, 'incomplete': True, 'name': 'The Vanguard (3)', 'size': 6},
