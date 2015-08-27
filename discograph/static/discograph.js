@@ -86,15 +86,40 @@ var startForceLayout = function() {
             }
         });
 
+    nodeEnter.select(function(d, i) {return 0 < d.size ? this : null; })
+        .append("circle")
+        .attr("r", function(d) { return 12 + (Math.sqrt(d.size) * 2) });
+
     nodeEnter.append("circle")
-        .attr("r", function(d) { return 5 + (Math.sqrt(d.size) * 2) });
+        .attr("r", function(d) { return 9 + (Math.sqrt(d.size) * 2) });
+    
+    nodeEnter.append("path")
+        .attr("class", "more")
+        /*
+        .attr("transform", function(d) { 
+            var radius = 9 + (Math.sqrt(d.size) * 2);
+            var offset = Math.sqrt(Math.pow(radius, 2) * 2) / 2;
+            return "translate(" + -offset + "," + offset + ")";
+        })
+        */
+        .attr("d", d3.svg.symbol().type("cross").size(64))
+        .style("stroke-width", 0)
+        .style("fill-opacity", 1)
+        .style("fill", "#fff")
+        ;
 
     nodeEnter.append("title")
         .text(function(d) { return d.name; });
 
     nodeEnter.append("text")
         .attr("dy", ".35em")
-        .attr("dx", function(d) { return 12 + (Math.sqrt(d.size) * 2) })
+        .attr("dx", function(d) { 
+            var radius = 12 + (Math.sqrt(d.size) * 2);
+            if (0 < d.size) {
+                radius = radius + 3;
+            }
+            return radius;
+        })
         .text(function(d) { return d.name; });
 
     node.exit().remove();
@@ -104,7 +129,9 @@ var startForceLayout = function() {
     node.transition()
         .duration(2000)
         .style("fill", function(d) { return color(d.distance); });
-    
+
+    svg.selectAll(".node .more")
+        .style("opacity", function(d) {return d.incomplete ? 1 : 0; });
 }
 
 function tick() {
@@ -112,7 +139,9 @@ function tick() {
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
-    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+    node.attr("transform", function(d) { 
+        return "translate(" + d.x + "," + d.y + ")";
+    });
 }
 
 function updateWindow(){
@@ -174,7 +203,9 @@ function updateData(json) {
         var key = entry.key;
         var value = entry.value;
         if (nodeMap.has(key)) {
-            nodeMap.get(key).distance = value.distance; 
+            var node = nodeMap.get(key);
+            node.distance = value.distance; 
+            node.incomplete = value.incomplete;
         } else {
             value.x = initialX + (Math.random() * 100) - 50;
             value.y = initialY + (Math.random() * 100) - 50;
