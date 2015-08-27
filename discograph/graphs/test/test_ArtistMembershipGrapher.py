@@ -5,7 +5,10 @@ import unittest
 class Test(unittest.TestCase):
 
     def setUp(self):
-        discograph.connect()
+        self.client = discograph.connect()
+
+    def tearDown(self):
+        self.client.close()
 
     def test_1(self):
         artist = discograph.models.Artist.objects.get(name='Morris Day')
