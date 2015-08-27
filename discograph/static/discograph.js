@@ -37,21 +37,21 @@ var initialY = y / 2;
 var force = d3.layout.force()
     .nodes(nodes)
     .links(links)
-    .linkStrength(0.3)
-    .friction(0.9)
+    .linkStrength(0.5)
+    .friction(0.95)
     .linkDistance(function(e, i) {
         // Expand alias bramble bushes.
         if ((e.source.group === null) && (e.target.group === null)) {
             return 40;
         } else if (e.source.group == e.target.group) {
-            return 100;
+            return 50;
         } else {
             return 20;
         }
     })
-    .charge(-300)
-    .gravity(0.1)
-    .theta(0.8)
+    .charge(-400)
+    .gravity(0.15)
+    .theta(0.1)
     .alpha(0.1)
     .size([x, y])
     .on("tick", tick);
@@ -91,16 +91,19 @@ var startForceLayout = function() {
         .enter().append("g")
         .attr("class", "node")
         .style("fill", function(d) { return color(d); })
-        .call(force.drag)
-        .on("dblclick", function(d) {
-            initialX = d.x;
-            initialY = d.y;
-            if (can_load_new_data) {
-                svg.transition().duration(250).style("opacity", 0.333);
-                can_load_new_data = false;
-                d3.json(base_url + d.id, loadData);
-            }
-        });
+        .call(force.drag);
+
+    nodeEnter.on("dblclick", function(d) {
+        initialX = d.x;
+        initialY = d.y;
+        if (can_load_new_data) {
+            svg.transition().duration(250).style("opacity", 0.333);
+            can_load_new_data = false;
+            d3.json(base_url + d.id, loadData);
+            d3.select("body").attr("id", d.id);
+            window.history.pushState(null, null, "/" + d.id + "/");
+        }
+    });
 
     nodeEnter.select(function(d, i) {return 0 < d.size ? this : null; })
         .append("circle")
@@ -268,4 +271,4 @@ var loadData = function(error, json) {
     startForceLayout();
 }
 
-d3.json(base_url + "random", loadData);
+d3.json(base_url + d3.select("body").attr("id"), loadData);
