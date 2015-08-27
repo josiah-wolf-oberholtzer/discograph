@@ -26,7 +26,21 @@ class Artist(Model, mongoengine.Document):
         'indexes': [
             'discogs_id',
             'name',
-            ('$name', '$real_name', '$aliases', '$name_variations'),
+            {
+                'fields': (
+                    '$name',
+                    '$real_name',
+                    '$aliases',
+                    '$name_variations',
+                    ),
+                'default_language': 'english',
+                'weight': {
+                    'name': 10,
+                    'real_name': 1,
+                    'aliases': 1,
+                    'name_variations': 1,
+                    },
+                },
             ],
         }
 
