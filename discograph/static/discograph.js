@@ -96,8 +96,7 @@ var startForceLayout = function() {
             initialX = d.x;
             initialY = d.y;
             if (can_load_new_data) {
-                node.transition().duration(250).style("opacity", 0.333);
-                link.transition().duration(250).style("opacity", 0.333);
+                svg.transition().duration(250).style("opacity", 0.333);
                 can_load_new_data = false;
                 d3.json(base_url + d.id, loadData);
             }
@@ -116,6 +115,7 @@ var startForceLayout = function() {
         .style("stroke-width", 0)
         .style("fill-opacity", 1)
         .style("fill", "#fff")
+        .style("opacity", function(d) {return d.incomplete ? 1 : 0; });
         ;
 
     nodeEnter.append("title")
@@ -149,16 +149,17 @@ var startForceLayout = function() {
 
     node.moveToFront();
 
+    svg.transition()
+        .duration(1000)
+        .style("opacity", 1);
+
     node.transition()
         .duration(1000)
         .style("fill", function(d) { return color(d); })
-        .style("opacity", 1);
-
-    link.transition()
-        .duration(500)
-        .style("opacity", 1);
 
     svg.selectAll(".node .more")
+        .transition()
+        .duration(2000)
         .style("opacity", function(d) {return d.incomplete ? 1 : 0; });
 }
 

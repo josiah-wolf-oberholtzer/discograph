@@ -4,10 +4,14 @@ svg {
     margin: 0;
     height: 100%;
     width: 100%;
+    top: 0;
+    left: 0;
+    position: fixed;
     }
 
 svg {
     background-color: #fff;
+    z-index: -1;
     }
 
 .link {
@@ -17,7 +21,7 @@ svg {
 
 .node {
     cursor: move;
-    opacity: 0.125;
+    //opacity: 0.125;
     stroke: #fff;
     stroke-width: 1.5px;
     }
