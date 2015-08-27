@@ -31,7 +31,14 @@ var force = d3.layout.force()
     .links(links)
     .linkStrength(0.2)
     .friction(0.9)
-    .linkDistance(50)
+    .linkDistance(function(e, i) {
+        // Expand alias bramble bushes.
+        if (e.source.group == e.target.group) {
+            return 150;
+        } else {
+            return 50;
+        }
+    })
     .charge(-300)
     .gravity(0.1)
     .theta(0.8)
@@ -79,10 +86,10 @@ var startForceLayout = function() {
             initialX = d.x;
             initialY = d.y;
             if (can_load_new_data) {
+                node.transition().duration(250).style("opacity", 0.333);
+                link.transition().duration(250).style("opacity", 0.333);
                 can_load_new_data = false;
                 d3.json(base_url + d.id, loadData);
-            } else {
-                alert('Not yet!');
             }
         });
 
@@ -95,13 +102,6 @@ var startForceLayout = function() {
     
     nodeEnter.append("path")
         .attr("class", "more")
-        /*
-        .attr("transform", function(d) { 
-            var radius = 9 + (Math.sqrt(d.size) * 2);
-            var offset = Math.sqrt(Math.pow(radius, 2) * 2) / 2;
-            return "translate(" + -offset + "," + offset + ")";
-        })
-        */
         .attr("d", d3.svg.symbol().type("cross").size(64))
         .style("stroke-width", 0)
         .style("fill-opacity", 1)
@@ -114,7 +114,7 @@ var startForceLayout = function() {
     nodeEnter.append("text")
         .attr("dy", ".35em")
         .attr("dx", function(d) { 
-            var radius = 12 + (Math.sqrt(d.size) * 2);
+            var radius = 15 + (Math.sqrt(d.size) * 2);
             if (0 < d.size) {
                 radius = radius + 3;
             }
@@ -127,8 +127,13 @@ var startForceLayout = function() {
     node.moveToFront();
 
     node.transition()
-        .duration(2000)
-        .style("fill", function(d) { return color(d.distance); });
+        .duration(1000)
+        .style("fill", function(d) { return color(d.distance); })
+        .style("opacity", 1);
+
+    link.transition()
+        .duration(500)
+        .style("opacity", 1);
 
     svg.selectAll(".node .more")
         .style("opacity", function(d) {return d.incomplete ? 1 : 0; });

@@ -6,13 +6,18 @@ svg {
     width: 100%;
     }
 
+svg {
+    background-color: #fff;
+    }
+
 .link {
     stroke: #999;
-    stroke-opacity: 0.6;
+    stroke-opacity: 0.75;
     }
 
 .node {
     cursor: move;
+    opacity: 0.125;
     stroke: #fff;
     stroke-width: 1.5px;
     }
