@@ -13,7 +13,7 @@ class Test(unittest.TestCase):
         json_data = grapher.to_json()
         assert json_data['nodes'] == [
             {'distance': 3, 'group': None, 'id': 3176386, 'incomplete': True, 'name': 'Minneapolis Allstars, The', 'size': 5},
-            {'distance': 3, 'group': None, 'id': 2418056, 'incomplete': True, 'name': 'fDeluxe', 'size': 4},
+            {'distance': 3, 'group': 4, 'id': 2418056, 'incomplete': True, 'name': 'fDeluxe', 'size': 4},
             {'distance': 3, 'group': None, 'id': 2065353, 'incomplete': True, 'name': 'Flyte Tyme', 'size': 6},
             {'distance': 2, 'group': 3, 'id': 241356, 'incomplete': False, 'name': 'James Harris III', 'size': 0},
             {'distance': 2, 'group': 2, 'id': 53261, 'incomplete': False, 'name': 'St. Paul', 'size': 0},
@@ -21,10 +21,13 @@ class Test(unittest.TestCase):
             {'distance': 2, 'group': None, 'id': 55449, 'incomplete': False, 'name': 'Terry Lewis', 'size': 0},
             {'distance': 2, 'group': None, 'id': 453969, 'incomplete': False, 'name': 'Jerry Hubbard', 'size': 0},
             {'distance': 2, 'group': None, 'id': 23446, 'incomplete': False, 'name': "Alexander O'Neal", 'size': 0},
-            {'distance': 3, 'group': None, 'id': 60375, 'incomplete': False, 'name': 'Jimmy Jam & Terry Lewis', 'size': 2},
+            {'distance': 3, 'group': 5, 'id': 60375, 'incomplete': False, 'name': 'Jimmy Jam & Terry Lewis', 'size': 2},
             {'distance': 2, 'group': 3, 'id': 55448, 'incomplete': False, 'name': 'Jimmy Jam', 'size': 0},
             {'distance': 3, 'group': None, 'id': 1511897, 'incomplete': False, 'name': 'Mind & Matter', 'size': 1},
             {'distance': 3, 'group': None, 'id': 78746, 'incomplete': True, 'name': "Jesse Johnson's Revue", 'size': 7},
+            {'distance': 3, 'group': 5, 'id': 4215643, 'incomplete': False, 'name': 'Flyte Tyme (2)', 'size': 0},
+
+
             {'distance': 2, 'group': None, 'id': 100600, 'incomplete': False, 'name': 'Monte Moir', 'size': 0},
             {'distance': 2, 'group': None, 'id': 409502, 'incomplete': False, 'name': 'Mark Cardenas', 'size': 0},
             {'distance': 3, 'group': None, 'id': 4165408, 'incomplete': True, 'name': 'The Vanguard (3)', 'size': 6},
@@ -36,7 +39,7 @@ class Test(unittest.TestCase):
             {'distance': 1, 'group': 1, 'id': 2561672, 'incomplete': False, 'name': 'Original 7ven, The', 'size': 7},
             {'distance': 0, 'group': None, 'id': 152882, 'incomplete': False, 'name': 'Morris Day', 'size': 0},
             {'distance': 3, 'group': None, 'id': 2005240, 'incomplete': True, 'name': 'Truth, The (14)', 'size': 8},
-            {'distance': 3, 'group': None, 'id': 148601, 'incomplete': True, 'name': 'Family, The (2)', 'size': 5}
+            {'distance': 3, 'group': 4, 'id': 148601, 'incomplete': True, 'name': 'Family, The (2)', 'size': 5}
             ]
         assert json_data['links'] == [
             {'dotted': False, 'source': 32550, 'target': 23446},
@@ -58,6 +61,7 @@ class Test(unittest.TestCase):
             {'dotted': False, 'source': 121922, 'target': 55449},
             {'dotted': False, 'source': 2065353, 'target': 55449},
             {'dotted': False, 'source': 2561672, 'target': 55449},
+            {'dotted': True, 'source': 4215643, 'target': 60375},
             {'dotted': False, 'source': 32550, 'target': 100600},
             {'dotted': False, 'source': 2065353, 'target': 100600},
             {'dotted': False, 'source': 2561672, 'target': 100600},
@@ -67,6 +71,7 @@ class Test(unittest.TestCase):
             {'dotted': False, 'source': 2065353, 'target': 113965},
             {'dotted': False, 'source': 2418056, 'target': 113965},
             {'dotted': False, 'source': 2561672, 'target': 113965},
+            {'dotted': True, 'source': 2418056, 'target': 148601},
             {'dotted': False, 'source': 32550, 'target': 152882},
             {'dotted': False, 'source': 2561672, 'target': 152882},
             {'dotted': False, 'source': 32550, 'target': 241356},

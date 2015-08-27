@@ -119,6 +119,7 @@ class ArtistMembershipGrapher(object):
         cluster_count = 0
         clusters = {}
         edges = set()
+        artist_aliases = dict()
         artist_ids_visited = dict()
         artist_ids_to_visit = set(_.discogs_id for _ in self.artists)
         for distance in range(self.degree + 1):
@@ -135,12 +136,11 @@ class ArtistMembershipGrapher(object):
                 artist = models.Artist.objects.get(discogs_id=artist_id)
                 aliases = []
                 for alias in artist.aliases:
-                    if self.degree <= distance:
-                        continue
                     alias_query = models.Artist.objects(name=alias)
                     if not alias_query.count():
                         continue
                     aliases.append(alias_query.first())
+                artist_aliases[artist.discogs_id] = aliases
                 if len(aliases) and artist_id not in clusters:
                     cluster_count += 1
                     clusters[artist_id] = cluster_count
@@ -191,6 +191,9 @@ class ArtistMembershipGrapher(object):
                     is_missing_edges = True
             for member in artist.members:
                 if member.discogs_id not in artist_ids_visited:
+                    is_missing_edges = True
+            for alias in artist_aliases[artist.discogs_id]:
+                if alias.discogs_id not in artist_ids_visited:
                     is_missing_edges = True
             node = [
                 artist.discogs_id,
