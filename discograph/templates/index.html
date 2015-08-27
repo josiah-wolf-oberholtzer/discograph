@@ -28,14 +28,36 @@
             </div>
             <form class="navbar-form navbar-right" role="search">
                 <div class="form-group">
-                    <input type="text" class="form-control" 
+                    <input id="typeahead" type="text" class="form-control" 
                         placeholder="Search">
                 </div>
             </form>
         </div>
     </nav>
 
-    <script src="/static/discograph.js"></script>
+<script src="/static/discograph.js"></script>
+<script src="/static/typeahead.bundle.js"></script>
+
+<script>
+var artistSearch = new Bloodhound({
+    datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+    queryTokenizer: Bloodhound.tokenizers.whitespace, 
+    identify: function(datum) { return datum.discogs_id; },
+    remote: { 
+        url: '/api/search/%QUERY',
+        filter: function(response) {
+            console.log(response);
+            return response.items;
+        },
+        wildcard: '%QUERY' 
+    }
+});
+$('#typeahead').typeahead(null, {
+    name: 'results',
+    display: 'name',
+    source: artistSearch
+});
+</script>
 
 </body>
 </html>

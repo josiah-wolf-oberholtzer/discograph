@@ -11,6 +11,22 @@ from flask import (
 app = Flask(__name__)
 
 
+@app.route('/api/search/<name_fragment>', methods=['GET'])
+def route__api__search__name_fragment(name_fragment):
+    import discograph
+    discograph.connect()
+    query = discograph.models.Artist.objects
+    query = query(name__istartswith=name_fragment)
+    query = query.only('discogs_id', 'name')
+    query = query.limit(10)
+    data = query.as_pymongo()
+    data = tuple(data)
+    data = {'items': data}
+    print(name_fragment)
+    print(data)
+    return jsonify(data)
+
+
 @app.route('/api/cluster/<int:artist_id>', methods=['GET'])
 def route__api__cluster__artist_id(artist_id):
     import discograph
