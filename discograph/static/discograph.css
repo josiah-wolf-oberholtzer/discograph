@@ -22,10 +22,18 @@ svg {
     stroke-width: 1.5px;
     }
 
-.node text {
+.node text.inner {
     pointer-events: none;
+    font: 10px sans-serif;
     fill: #000;
     stroke: #000;
-    stroke-width: 0;
+    stroke-opacity: 0;
+    }
+
+.node text.outer {
+    pointer-events: none;
     font: 10px sans-serif;
+    stroke: #fff;
+    stroke-width: 2.5px;
+    stroke-opacity: 1;
     }

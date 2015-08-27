@@ -4,7 +4,11 @@ d3.selection.prototype.moveToFront = function() {
   });
 };
 
-var color = d3.scale.category10();
+var color = function(distance) {
+    var hue = ((distance / 8) * 360) % 360;
+    return d3.hsl(hue, 0.67, 0.5).toString();
+}
+
 var can_load_new_data = false;
 var base_url = "/api/cluster/"
 
@@ -29,14 +33,16 @@ var initialY = y / 2;
 var force = d3.layout.force()
     .nodes(nodes)
     .links(links)
-    .linkStrength(0.2)
+    .linkStrength(0.3)
     .friction(0.9)
     .linkDistance(function(e, i) {
         // Expand alias bramble bushes.
-        if (e.source.group == e.target.group) {
-            return 150;
+        if ((e.source.group === null) && (e.target.group === null)) {
+            return 40;
+        } else if (e.source.group == e.target.group) {
+            return 100;
         } else {
-            return 50;
+            return 20;
         }
     })
     .charge(-300)
@@ -112,6 +118,19 @@ var startForceLayout = function() {
         .text(function(d) { return d.name; });
 
     nodeEnter.append("text")
+        .attr("class", "outer")
+        .attr("dy", ".35em")
+        .attr("dx", function(d) { 
+            var radius = 15 + (Math.sqrt(d.size) * 2);
+            if (0 < d.size) {
+                radius = radius + 3;
+            }
+            return radius;
+        })
+        .text(function(d) { return d.name; });
+
+    nodeEnter.append("text")
+        .attr("class", "inner")
         .attr("dy", ".35em")
         .attr("dx", function(d) { 
             var radius = 15 + (Math.sqrt(d.size) * 2);
@@ -244,4 +263,4 @@ var loadData = function(error, json) {
     startForceLayout();
 }
 
-d3.json(base_url + 152882, loadData);
+d3.json(base_url + "random", loadData);
