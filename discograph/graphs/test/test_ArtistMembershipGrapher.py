@@ -14,6 +14,8 @@ class Test(unittest.TestCase):
         artist = discograph.models.Artist.objects.get(name='Morris Day')
         grapher = discograph.graphs.ArtistMembershipGrapher([artist], 3)
         json_data = grapher.to_json()
+        assert sorted(json_data.keys()) == ['center', 'links', 'nodes']
+        assert json_data['center'] == [152882]
         assert json_data['nodes'] == [
             {'distance': 3, 'group': None, 'id': 3176386, 'incomplete': True, 'name': 'Minneapolis Allstars, The', 'size': 5},
             {'distance': 3, 'group': 4, 'id': 2418056, 'incomplete': True, 'name': 'fDeluxe', 'size': 4},
@@ -94,6 +96,8 @@ class Test(unittest.TestCase):
         artist = discograph.models.Artist.objects.get(name='Morris Day')
         grapher = discograph.graphs.ArtistMembershipGrapher([artist], 3)
         json_data = grapher.to_json(max_nodes=10)
+        assert sorted(json_data.keys()) == ['center', 'links', 'nodes']
+        assert json_data['center'] == [152882]
         assert json_data['nodes'] == [
             {'distance': 2, 'group': None, 'id': 354129, 'incomplete': True, 'name': 'Jerome Benton', 'size': 0},
             {'distance': 2, 'group': None, 'id': 100600, 'incomplete': True, 'name': 'Monte Moir', 'size': 0},

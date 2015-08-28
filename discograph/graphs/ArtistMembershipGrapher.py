@@ -209,6 +209,7 @@ class ArtistMembershipGrapher(object):
     def to_json(self, max_nodes=None):
         nodes, edges = self.analyze(max_nodes=max_nodes)
         data = {
+            'center': [_.discogs_id for _ in self.artists],
             'nodes': [],
             'links': [],
             }
