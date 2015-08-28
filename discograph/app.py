@@ -14,26 +14,6 @@ app = Flask(__name__)
 cache = MemcachedCache(['127.0.0.1:11211'])
 
 
-@app.route('/api/search/<name_fragment>', methods=['GET'])
-@app.route('/api/search/<name_fragment>/', methods=['GET'])
-def route__api__search__name_fragment(name_fragment):
-    import discograph
-    key = '/api/search/{}'.format(name_fragment).replace(' ', '-')
-    data = cache.get(key)
-    if data is not None:
-        print('CACHE HIT:', key)
-        return jsonify(data)
-    print('CACHE MISS:', key)
-    discograph.connect()
-    query = discograph.models.Artist.objects(name__istartswith=name_fragment)
-    query = query.only('discogs_id', 'name').limit(10)
-    data = query.as_pymongo()
-    data = tuple(data)
-    data = {'items': data}
-    cache.set(key, data, timeout=60 * 60)
-    return jsonify(data)
-
-
 @app.route('/api/cluster/<int:artist_id>', methods=['GET'])
 @app.route('/api/cluster/<int:artist_id>/', methods=['GET'])
 def route__api__cluster__artist_id(artist_id):
@@ -74,7 +54,8 @@ def route():
     while artist is None:
         discogs_id = random.randrange(1, count)
         try:
-            artist = discograph.models.Artist.objects.get(discogs_id=discogs_id)
+            artist = discograph.models.Artist.objects.get(
+                discogs_id=discogs_id)
         except:
             traceback.print_exc()
             artist = None
