@@ -123,12 +123,20 @@ class ArtistMembershipGrapher(object):
         artist_ids_visited = dict()
         artist_ids_to_visit = set(_.discogs_id for _ in self.artists)
         for distance in range(self.degree + 1):
-            if max_nodes and max_nodes <= len(artist_ids_visited):
+            if (
+                max_nodes and
+                1 < distance and
+                max_nodes <= len(artist_ids_visited)
+                ):
                 break
             current_artist_ids_to_visit = list(artist_ids_to_visit)
             artist_ids_to_visit.clear()
             while current_artist_ids_to_visit:
-                if max_nodes and max_nodes <= len(artist_ids_visited):
+                if (
+                    max_nodes and
+                    1 < distance and
+                    max_nodes <= len(artist_ids_visited)
+                    ):
                     break
                 artist_id = current_artist_ids_to_visit.pop()
                 if artist_id in artist_ids_visited:
