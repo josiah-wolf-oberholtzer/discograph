@@ -41,3 +41,12 @@ svg {
     stroke-width: 2.5px;
     stroke-opacity: 1;
     }
+
+.node .halo {
+    pointer-events: none;
+    fill: #fff;
+    fill-opacity: 0;
+    stroke: #000;
+    stroke-opacity: 0;
+    stroke-width: 10;
+    }

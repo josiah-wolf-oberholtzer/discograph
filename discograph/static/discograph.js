@@ -4,7 +4,7 @@ d3.selection.prototype.moveToFront = function() {
   });
 };
 
-var color = function(d) {
+var heatmap = function(d) {
     var hue = ((d.distance / 12) * 360) % 360;
     var variation_a = ((d.id % 5) - 2) / 20;
     var variation_b = ((d.id % 9) - 4) / 80;
@@ -59,6 +59,8 @@ var force = d3.layout.force()
 var node = svg.selectAll(".node"),
     link = svg.selectAll(".link");
 
+var nodeCentered = null;
+
 var startForceLayout = function() {
 
     force.start();
@@ -90,20 +92,40 @@ var startForceLayout = function() {
     var nodeEnter = node
         .enter().append("g")
         .attr("class", "node")
-        .style("fill", function(d) { return color(d); })
+        .attr("id", function(d) { return "node" + d.id; })
+        .style("fill", function(d) { return heatmap(d); })
         .call(force.drag);
+
+    nodeEnter.on("mousedown", function(d) {
+        if (!can_load_new_data) { 
+            return;
+        }
+        nodeCentered = d.id;
+        node.filter("*:not(#node" + nodeCentered + ")")
+            .select(".halo")
+            .transition()
+            .duration(1000)
+            .style("stroke-opacity", 0.);
+        node.filter("#node" + nodeCentered)
+            .select(".halo")
+            .style("stroke-opacity", 0.25);
+    });
 
     nodeEnter.on("dblclick", function(d) {
         initialX = d.x;
         initialY = d.y;
         if (can_load_new_data) {
-            svg.transition().duration(250).style("opacity", 0.333);
             can_load_new_data = false;
+            svg.transition().duration(250).style("opacity", 0.333);
             d3.json(base_url + d.id, loadData);
             d3.select("body").attr("id", d.id);
             window.history.pushState(null, null, "/" + d.id + "/");
         }
     });
+
+    nodeEnter.append("circle")
+        .attr("class", "halo")
+        .attr("r", function(d) { return 50 + (Math.sqrt(d.size) * 2) });
 
     nodeEnter.select(function(d, i) {return 0 < d.size ? this : null; })
         .append("circle")
@@ -152,13 +174,19 @@ var startForceLayout = function() {
 
     node.moveToFront();
 
+    node.filter("#node" + nodeCentered)
+        .select(".halo")
+        .transition()
+        .duration(1000)
+        .style("stroke-opacity", 0.25);
+
     svg.transition()
         .duration(1000)
         .style("opacity", 1);
 
     node.transition()
         .duration(1000)
-        .style("fill", function(d) { return color(d); })
+        .style("fill", function(d) { return heatmap(d); })
 
     svg.selectAll(".node .more")
         .transition()
@@ -257,6 +285,8 @@ function updateData(json) {
     Array.prototype.push.apply(nodes, nodeMap.values());
     links.length = 0;
     Array.prototype.push.apply(links, linkMap.values());
+
+    nodeCentered = json.center[0];
 }
 
 var data = null;
