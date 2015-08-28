@@ -13,15 +13,20 @@ var heatmap = function(d) {
     return d3.hsl(hue, saturation, lightness).toString();
 }
 
-var can_load_new_data = false;
-var base_url = "/api/cluster/"
-
 var w = window,
     d = document,
     e = d.documentElement,
     g = d.getElementsByTagName('body')[0],
     x = w.innerWidth || e.clientWidth || g.clientWidth,
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+
+function updateWindow(){
+    x = w.innerWidth || e.clientWidth || g.clientWidth;
+    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+    svg.attr("width", x).attr("height", y);
+    force.size([x, y]).start();
+}
+window.onresize = updateWindow;
 
 var svg = d3.select("body").append("svg")
     .attr("width", x)
@@ -62,17 +67,14 @@ var node = svg.selectAll(".node"),
 var nodeCentered = null;
 
 var startForceLayout = function() {
-
     force.start();
-
-    link = link.data(force.links(), function(d) { 
+    link = link.data(force.links(), function(d) {
         var key = d.source.id + "-" + d.target.id;
         if (d.dotted) {
             key = key + '-dotted';
         }
         return key;
     });
-
     var linkEnter = link.enter().append("line")
         .attr("class", "link")
         .style("stroke-width", 1)
@@ -82,24 +84,16 @@ var startForceLayout = function() {
             } else {
                 return "";
             }});
-
     link.exit().remove();
-
-    node = node.data(force.nodes(), function(d) { 
-        return d.id;
-    });
-
+    node = node.data(force.nodes(), function(d) { return d.id; });
     var nodeEnter = node
         .enter().append("g")
         .attr("class", "node")
         .attr("id", function(d) { return "node" + d.id; })
         .style("fill", function(d) { return heatmap(d); })
         .call(force.drag);
-
     nodeEnter.on("mousedown", function(d) {
-        if (!can_load_new_data) { 
-            return;
-        }
+        if (graphDataIsUpdating) { return; }
         nodeCentered = d.id;
         node.filter("*:not(#node" + nodeCentered + ")")
             .select(".halo")
@@ -110,30 +104,17 @@ var startForceLayout = function() {
             .select(".halo")
             .style("stroke-opacity", 0.25);
     });
-
     nodeEnter.on("dblclick", function(d) {
-        initialX = d.x;
-        initialY = d.y;
-        if (can_load_new_data) {
-            can_load_new_data = false;
-            svg.transition().duration(250).style("opacity", 0.333);
-            d3.json(base_url + d.id, loadData);
-            d3.select("body").attr("id", d.id);
-            window.history.pushState(null, null, "/" + d.id + "/");
-        }
+        if (!graphDataIsUpdating) { navigateGraph(d.id); }
     });
-
     nodeEnter.append("circle")
         .attr("class", "halo")
         .attr("r", function(d) { return 50 + (Math.sqrt(d.size) * 2) });
-
     nodeEnter.select(function(d, i) {return 0 < d.size ? this : null; })
         .append("circle")
         .attr("r", function(d) { return 12 + (Math.sqrt(d.size) * 2) });
-
     nodeEnter.append("circle")
         .attr("r", function(d) { return 9 + (Math.sqrt(d.size) * 2) });
-    
     nodeEnter.append("path")
         .attr("class", "more")
         .attr("d", d3.svg.symbol().type("cross").size(64))
@@ -141,15 +122,12 @@ var startForceLayout = function() {
         .style("fill-opacity", 1)
         .style("fill", "#fff")
         .style("opacity", function(d) {return d.incomplete ? 1 : 0; });
-        ;
-
     nodeEnter.append("title")
         .text(function(d) { return d.name; });
-
     nodeEnter.append("text")
         .attr("class", "outer")
         .attr("dy", ".35em")
-        .attr("dx", function(d) { 
+        .attr("dx", function(d) {
             var radius = 15 + (Math.sqrt(d.size) * 2);
             if (0 < d.size) {
                 radius = radius + 3;
@@ -157,11 +135,10 @@ var startForceLayout = function() {
             return radius;
         })
         .text(function(d) { return d.name; });
-
     nodeEnter.append("text")
         .attr("class", "inner")
         .attr("dy", ".35em")
-        .attr("dx", function(d) { 
+        .attr("dx", function(d) {
             var radius = 15 + (Math.sqrt(d.size) * 2);
             if (0 < d.size) {
                 radius = radius + 3;
@@ -169,25 +146,24 @@ var startForceLayout = function() {
             return radius;
         })
         .text(function(d) { return d.name; });
-
     node.exit().remove();
-
     node.moveToFront();
-
+    node.filter("*:not(#node" + nodeCentered + ")")
+        .select(".halo")
+        .transition()
+        .duration(1000)
+        .style("stroke-opacity", 0.);
     node.filter("#node" + nodeCentered)
         .select(".halo")
         .transition()
         .duration(1000)
         .style("stroke-opacity", 0.25);
-
     svg.transition()
         .duration(1000)
         .style("opacity", 1);
-
     node.transition()
         .duration(1000)
         .style("fill", function(d) { return heatmap(d); })
-
     svg.selectAll(".node .more")
         .transition()
         .duration(2000)
@@ -199,18 +175,10 @@ function tick() {
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
-    node.attr("transform", function(d) { 
+    node.attr("transform", function(d) {
         return "translate(" + d.x + "," + d.y + ")";
     });
 }
-
-function updateWindow(){
-    x = w.innerWidth || e.clientWidth || g.clientWidth;
-    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-    svg.attr("width", x).attr("height", y);
-    force.size([x, y]).start();
-}
-window.onresize = updateWindow;
 
 function buildNodeMap(nodes) {
     var map = d3.map();
@@ -232,39 +200,39 @@ function buildLinkMap(links) {
     return map;
 }
 
-function updateData(json) {
+var fetchData = function(error, json) {
+    if (error) return console.warn(error);
+    setTimeout(function() {
+        graphDataIsUpdating = false;
+    }, 2000);
+    d3.select("body").attr("id", json.center);
+    updateForceLayout(json);
+    startForceLayout();
+}
+
+function updateForceLayout(json) {
     var newNodeMap = buildNodeMap(json.nodes);
     var newLinkMap = buildLinkMap(json.links);
     var nodeKeysToRemove = [];
     var linkKeysToRemove = [];
-    // Find keys for nodes to be removed.
     nodeMap.keys().forEach(function(key) {
         if (!newNodeMap.has(key)) {
             nodeKeysToRemove.push(key);
         };
     });
-    // Find keys for links to be removed;
     linkMap.keys().forEach(function(key) {
         if (!newLinkMap.has(key)) {
             linkKeysToRemove.push(key);
         };
     });
-    // Remove each old node matching each to-remove key.
-    nodeKeysToRemove.forEach(function(key) {
-        nodeMap.remove(key);
-    });
-    // Remove each old link matching each to-remove key.
-    linkKeysToRemove.forEach(function(key) {
-        linkMap.remove(key);
-    });
-    // Add in non-existent new nodes.
-    // Update old nodes with distance info, etc.
+    nodeKeysToRemove.forEach(function(key) { nodeMap.remove(key); });
+    linkKeysToRemove.forEach(function(key) { linkMap.remove(key); });
     newNodeMap.entries().forEach(function(entry) {
         var key = entry.key;
         var value = entry.value;
         if (nodeMap.has(key)) {
             var node = nodeMap.get(key);
-            node.distance = value.distance; 
+            node.distance = value.distance;
             node.incomplete = value.incomplete;
         } else {
             value.x = initialX + (Math.random() * 100) - 50;
@@ -272,7 +240,6 @@ function updateData(json) {
             nodeMap.set(key, value);
         }
     });
-    // Add in non-existent new links, setting their source/target as needed.
     newLinkMap.entries().forEach(function(entry) {
         if (!linkMap.has(entry.key)) {
             entry.value.source = nodeMap.get(entry.value.source);
@@ -280,25 +247,45 @@ function updateData(json) {
             linkMap.set(entry.key, entry.value);
         }
     });
-    // Replace array contents with map values.
     nodes.length = 0;
     Array.prototype.push.apply(nodes, nodeMap.values());
     links.length = 0;
     Array.prototype.push.apply(links, linkMap.values());
-
     nodeCentered = json.center[0];
+    graphData = json;
 }
 
-var data = null;
+var graphData = null;
+var graphDataAPIURL = "/api/cluster/"
+var graphDataIsUpdating = false;
 
-var loadData = function(error, json) {
-    if (error) return console.warn(error);
-    setTimeout(function() {
-        can_load_new_data = true;
-    }, 2000);
-    data = json;
-    updateData(json);
-    startForceLayout();
+var updateGraph = function(id) {
+    graphDataIsUpdating = true;
+    var foundNode = node.filter(function(d) { return d.id == d; });
+    if (foundNode.length == 1) {
+        foundNode.each(function(d) {
+            initialX = d.x;
+            initialY = d.y;
+        });
+    } else {
+        initialX = x / 2;
+        initialY = y / 2;
+    }
+    svg.transition().duration(250).style("opacity", 0.333);
+    d3.json(graphDataAPIURL + id, fetchData);
 }
 
-d3.json(base_url + d3.select("body").attr("id"), loadData);
+var navigateGraph = function(id) {
+    pushState(id);
+    updateGraph(id);
+}
+
+var pushState = function(id) { 
+    window.history.pushState({id: id}, null, "/" + id + "/"); 
+}
+
+navigateGraph(d3.select("body").attr("id"));
+
+window.addEventListener("popstate", function(event) {
+    updateGraph(event.state.id);
+});
