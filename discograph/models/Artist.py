@@ -24,23 +24,10 @@ class Artist(Model, mongoengine.Document):
 
     meta = {
         'indexes': [
+            '#name',
+            '$name',
             'discogs_id',
             'name',
-            {
-                'fields': (
-                    '$name',
-                    '$real_name',
-                    '$aliases',
-                    '$name_variations',
-                    ),
-                'default_language': 'english',
-                'weight': {
-                    'name': 10,
-                    'real_name': 1,
-                    'aliases': 1,
-                    'name_variations': 1,
-                    },
-                },
             ],
         }
 
