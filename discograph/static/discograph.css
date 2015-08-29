@@ -44,9 +44,7 @@ svg {
 
 .node .halo {
     pointer-events: none;
-    fill: #fff;
+    fill: #000;
     fill-opacity: 0;
-    stroke: #000;
     stroke-opacity: 0;
-    stroke-width: 10;
     }

@@ -70,7 +70,7 @@ var startForceLayout = function() {
     force.start();
     link = link.data(force.links(), function(d) {
         var key = d.source.id + "-" + d.target.id;
-        if (d.dotted) {
+        if (d.role == 'Alias') {
             key = key + '-dotted';
         }
         return key;
@@ -79,7 +79,7 @@ var startForceLayout = function() {
         .attr("class", "link")
         .style("stroke-width", 1)
         .style("stroke-dasharray", function(d) {
-            if (d.dotted) {
+            if (d.role == 'Alias') {
                 return "2, 4";
             } else {
                 return "";
@@ -93,23 +93,16 @@ var startForceLayout = function() {
         .style("fill", function(d) { return heatmap(d); })
         .call(force.drag);
     nodeEnter.on("mousedown", function(d) {
-        if (graphDataIsUpdating) { return; }
-        nodeCentered = d.id;
-        node.filter("*:not(#node" + nodeCentered + ")")
-            .select(".halo")
-            .transition()
-            .duration(1000)
-            .style("stroke-opacity", 0.);
-        node.filter("#node" + nodeCentered)
-            .select(".halo")
-            .style("stroke-opacity", 0.25);
+        if (!graphDataIsUpdating) { 
+            selectNode(d.id);
+        }
     });
     nodeEnter.on("dblclick", function(d) {
         if (!graphDataIsUpdating) { navigateGraph(d.id); }
     });
     nodeEnter.append("circle")
         .attr("class", "halo")
-        .attr("r", function(d) { return 50 + (Math.sqrt(d.size) * 2) });
+        .attr("r", function(d) { return 60 + (Math.sqrt(d.size) * 2) });
     nodeEnter.select(function(d, i) {return 0 < d.size ? this : null; })
         .append("circle")
         .attr("r", function(d) { return 12 + (Math.sqrt(d.size) * 2) });
@@ -148,16 +141,7 @@ var startForceLayout = function() {
         .text(function(d) { return d.name; });
     node.exit().remove();
     node.moveToFront();
-    node.filter("*:not(#node" + nodeCentered + ")")
-        .select(".halo")
-        .transition()
-        .duration(1000)
-        .style("stroke-opacity", 0.);
-    node.filter("#node" + nodeCentered)
-        .select(".halo")
-        .transition()
-        .duration(1000)
-        .style("stroke-opacity", 0.25);
+
     svg.transition()
         .duration(1000)
         .style("opacity", 1);
@@ -166,8 +150,20 @@ var startForceLayout = function() {
         .style("fill", function(d) { return heatmap(d); })
     svg.selectAll(".node .more")
         .transition()
-        .duration(2000)
+        .duration(1000)
         .style("opacity", function(d) {return d.incomplete ? 1 : 0; });
+
+    selectNode(nodeCentered);
+}
+
+function selectNode(id) {
+    nodeCentered = id;
+    node.filter("*:not(#node" + nodeCentered + ")")
+        .select(".halo")
+        .style("fill-opacity", 0.);
+    node.filter("#node" + nodeCentered)
+        .select(".halo")
+        .style("fill-opacity", 0.05);
 }
 
 function tick() {
@@ -192,7 +188,7 @@ function buildLinkMap(links) {
     var map = d3.map();
     links.forEach(function(link) {
         var key = link.source + "-" + link.target;
-        if (link.dotted) {
+        if (link.role == 'Alias') {
             key = key + '-dotted';
         }
         map.set(key, link);
@@ -250,8 +246,8 @@ function updateForceLayout(json) {
     Array.prototype.push.apply(nodes, nodeMap.values());
     links.length = 0;
     Array.prototype.push.apply(links, linkMap.values());
-    nodeCentered = json.center[0];
     graphData = json;
+    selectNode(json.center[0]);
 }
 
 var graphData = null;
