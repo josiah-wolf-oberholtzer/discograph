@@ -1,43 +1,69 @@
-d3.selection.prototype.moveToFront = function() {
-  return this.each(function(){
-  this.parentNode.appendChild(this);
-  });
-};
-
-var heatmap = function(d) {
-    var hue = ((d.distance / 12) * 360) % 360;
-    var variation_a = ((d.id % 5) - 2) / 20;
-    var variation_b = ((d.id % 9) - 4) / 80;
-    var saturation = 0.67 + variation_a;
-    var lightness = 0.5 + variation_b;
-    return d3.hsl(hue, saturation, lightness).toString();
-}
-
-var w = window,
-    d = document,
-    e = d.documentElement,
-    g = d.getElementsByTagName('body')[0],
-    x = w.innerWidth || e.clientWidth || g.clientWidth,
-    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-
-function updateWindow(){
-    x = w.innerWidth || e.clientWidth || g.clientWidth;
-    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-    svg.attr("width", x).attr("height", y);
-    force.size([x, y]).start();
-}
-window.onresize = updateWindow;
-
-var svg = d3.select("body").append("svg")
-    .attr("width", x)
-    .attr("height", y);
-
+var x = 0, y = 0;
 var nodes = [];
 var links = [];
 var nodeMap = d3.map();
 var linkMap = d3.map();
-var initialX = x / 2;
-var initialY = y / 2;
+var initialX = 0;
+var initialY = 0;
+var graphData = null;
+var graphDataAPIURL = "/api/artist/network/"
+var graphDataIsUpdating = false;
+var nodeCentered = null;
+
+!function(){
+    var dg = {};
+
+    dg.heatmap = function(d) {
+        var hue = ((d.distance / 12) * 360) % 360;
+        var variation_a = ((d.id % 5) - 2) / 20;
+        var variation_b = ((d.id % 9) - 4) / 80;
+        var saturation = 0.67 + variation_a;
+        var lightness = 0.5 + variation_b;
+        return d3.hsl(hue, saturation, lightness).toString();
+    }
+
+    dg.historyOnPopState = function(event) {
+        updateGraph(event.state.id);
+    }
+
+    dg.historyPushState = function(id) { 
+        var title = document.title;
+        var url = "/" + id + "/";
+        window.history.pushState({id: id}, title, url); 
+    }
+
+    dg.init = function() {
+        // Monkey-patch D3.
+        d3.selection.prototype.moveToFront = function() {
+            return this.each(function(){ this.parentNode.appendChild(this); });
+        };
+        // Setup history listener.
+        window.addEventListener("popstate", dg.historyOnPopState);
+        // Get window-size and setup resize listener.
+        var w = window,
+            d = document,
+            e = d.documentElement,
+            g = d.getElementsByTagName('body')[0];
+        x = w.innerWidth || e.clientWidth || g.clientWidth;
+        y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+        initialX = x / 2;
+        initialY = y / 2;
+        window.addEventListener("resize", function() {
+            x = w.innerWidth || e.clientWidth || g.clientWidth,
+            y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+            svg.attr("width", x).attr("height", y);
+            force.size([x, y]).start();
+        });
+        // Done initializing.
+        console.log('initialized!')
+    }
+    this.dg = dg;
+    dg.init();
+}();
+
+var svg = d3.select("body").append("svg")
+    .attr("width", x)
+    .attr("height", y);
 
 var force = d3.layout.force()
     .nodes(nodes)
@@ -64,8 +90,6 @@ var force = d3.layout.force()
 var node = svg.selectAll(".node"),
     link = svg.selectAll(".link");
 
-var nodeCentered = null;
-
 var startForceLayout = function() {
     force.start();
     link = link.data(force.links(), function(d) {
@@ -90,7 +114,7 @@ var startForceLayout = function() {
         .enter().append("g")
         .attr("class", "node")
         .attr("id", function(d) { return "node" + d.id; })
-        .style("fill", function(d) { return heatmap(d); })
+        .style("fill", function(d) { return dg.heatmap(d); })
         .call(force.drag);
     nodeEnter.on("mousedown", function(d) {
         if (!graphDataIsUpdating) { 
@@ -98,7 +122,9 @@ var startForceLayout = function() {
         }
     });
     nodeEnter.on("dblclick", function(d) {
-        if (!graphDataIsUpdating) { navigateGraph(d.id); }
+        if (!graphDataIsUpdating) { 
+            navigateGraph(d.id);
+        }
     });
     nodeEnter.append("circle")
         .attr("class", "halo")
@@ -147,7 +173,7 @@ var startForceLayout = function() {
         .style("opacity", 1);
     node.transition()
         .duration(1000)
-        .style("fill", function(d) { return heatmap(d); })
+        .style("fill", function(d) { return dg.heatmap(d); })
     svg.selectAll(".node .more")
         .transition()
         .duration(1000)
@@ -250,13 +276,9 @@ function updateForceLayout(json) {
     selectNode(json.center[0]);
 }
 
-var graphData = null;
-var graphDataAPIURL = "/api/artist/network/"
-var graphDataIsUpdating = false;
-
 var updateGraph = function(id) {
     graphDataIsUpdating = true;
-    var foundNode = node.filter(function(d) { return d.id == d; });
+    var foundNode = node.filter(function(d) { return d.id == id; });
     if (foundNode.length == 1) {
         foundNode.each(function(d) {
             initialX = d.x;
@@ -269,25 +291,17 @@ var updateGraph = function(id) {
     svg.transition().duration(250).style("opacity", 0.333);
     $(document).attr("body").id = id;
     if (nodes.length) {
-        var artistName = nodes.filter(function(d) { return d.id == id; })[0].name
+        var artistName = nodes.filter(function(d) { 
+            return d.id == id; }
+        )[0].name
         document.title = "Discograph: " + artistName;
     }
     d3.json(graphDataAPIURL + id, fetchData);
 }
 
 var navigateGraph = function(id) {
-    pushState(id);
+    dg.historyPushState(id);
     updateGraph(id);
 }
-
-var pushState = function(id) { 
-    var title = document.title;
-    var url = "/" + id + "/";
-    window.history.pushState({id: id}, title, url); 
-}
-
-window.addEventListener("popstate", function(event) {
-    updateGraph(event.state.id);
-});
 
 navigateGraph(d3.select("body").attr("id"));
