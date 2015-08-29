@@ -11,17 +11,19 @@ class ArtistMembershipGrapher(object):
 
     ### INITIALIZER ###
 
-    def __init__(self, artists, degree=3):
+    def __init__(self, artists, degree=3, cache=None, max_nodes=None):
         assert len(artists)
         assert all(isinstance(_, models.Artist) for _ in artists)
         assert 0 < int(degree)
         self.artists = tuple(artists)
         self.degree = int(degree)
+        self.cache = cache
+        self.max_nodes = max_nodes
 
     ### SPECIAL METHODS ###
 
     def __graph__(self):
-        nodes, edges = self.analyze()
+        nodes, edges = self.get_network()
         artist_id_to_node_mapping = {}
         cluster_id_to_cluster_mapping = {}
         graphviz_graph = documentationtools.GraphvizGraph(
@@ -110,7 +112,16 @@ class ArtistMembershipGrapher(object):
 
     ### PUBLIC METHODS ###
 
-    def analyze(self, max_nodes=None):
+    def can_continue_searching(self, distance, artist_ids_visited):
+        if (
+            self.max_nodes and
+            1 < distance and
+            self.max_nodes <= len(artist_ids_visited)
+            ):
+            return False
+        return True
+
+    def get_network(self):
         template = (
             'DEGREE {}: {} artists, '
             '{} edges, '
@@ -123,20 +134,12 @@ class ArtistMembershipGrapher(object):
         artist_ids_visited = dict()
         artist_ids_to_visit = set(_.discogs_id for _ in self.artists)
         for distance in range(self.degree + 1):
-            if (
-                max_nodes and
-                1 < distance and
-                max_nodes <= len(artist_ids_visited)
-                ):
+            if not self.can_continue_searching(distance, artist_ids_visited):
                 break
             current_artist_ids_to_visit = list(artist_ids_to_visit)
             artist_ids_to_visit.clear()
             while current_artist_ids_to_visit:
-                if (
-                    max_nodes and
-                    1 < distance and
-                    max_nodes <= len(artist_ids_visited)
-                    ):
+                if not self.can_continue_searching(distance, artist_ids_visited):
                     break
                 artist_id = current_artist_ids_to_visit.pop()
                 if artist_id in artist_ids_visited:
@@ -214,8 +217,8 @@ class ArtistMembershipGrapher(object):
             nodes.append(node)
         return nodes, sorted(edges)
 
-    def to_json(self, max_nodes=None):
-        nodes, edges = self.analyze(max_nodes=max_nodes)
+    def to_json(self):
+        nodes, edges = self.get_network()
         data = {
             'center': [_.discogs_id for _ in self.artists],
             'nodes': [],

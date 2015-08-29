@@ -94,8 +94,9 @@ class Test(unittest.TestCase):
 
     def test_2(self):
         artist = discograph.models.Artist.objects.get(name='Morris Day')
-        grapher = discograph.graphs.ArtistMembershipGrapher([artist], 3)
-        json_data = grapher.to_json(max_nodes=10)
+        grapher = discograph.graphs.ArtistMembershipGrapher(
+            [artist], degree=3, max_nodes=10)
+        json_data = grapher.to_json()
         assert sorted(json_data.keys()) == ['center', 'links', 'nodes']
         assert json_data['center'] == [152882]
         assert json_data['nodes'] == [
