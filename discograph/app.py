@@ -51,23 +51,27 @@ def route__artist_id(artist_id):
     return render_template('index.html', artist=artist)
 
 
-@app.route('/api/cluster/<int:artist_id>', methods=['GET'])
-@app.route('/api/cluster/<int:artist_id>/', methods=['GET'])
+@app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
+@app.route('/api/artist/network/<int:artist_id>/', methods=['GET'])
 def route__api__cluster__artist_id(artist_id):
-    key = '/api/cluster/{}'.format(artist_id)
+    key = 'cache:/api/artist/network/{}'.format(artist_id)
     data = cache.get(key)
     if data is not None:
-        print('CACHE HIT:', key)
+        #print('CACHE HIT:', key)
         return jsonify(data)
-    print('CACHE MISS:', key)
+    #print('CACHE MISS:', key)
     try:
         artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
     except:
         abort(404)
     artist_graph = discograph.graphs.ArtistMembershipGrapher(
-        [artist], 12)
-    data = artist_graph.to_json(max_nodes=100)
-    cache.set(key, data, timeout=60 * 60)
+        artists=[artist],
+        cache=cache,
+        degree=12,
+        max_nodes=100,
+        )
+    data = artist_graph.get_network()
+    cache.set(key, data)
     return jsonify(data)
 
 

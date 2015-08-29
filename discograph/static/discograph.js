@@ -255,7 +255,7 @@ function updateForceLayout(json) {
 }
 
 var graphData = null;
-var graphDataAPIURL = "/api/cluster/"
+var graphDataAPIURL = "/api/artist/network/"
 var graphDataIsUpdating = false;
 
 var updateGraph = function(id) {
