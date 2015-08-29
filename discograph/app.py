@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+import discograph
+import mongoengine
 import traceback
 from flask import (
     Flask,
@@ -13,15 +15,14 @@ from werkzeug.contrib.cache import MemcachedCache
 app = Flask(__name__)
 cache = MemcachedCache(['127.0.0.1:11211'])
 cache.clear()
+mongoengine.connect('discograph')
 
 
 @app.route('/')
 @app.route('/index')
 @app.route('/index/')
 def route():
-    import discograph
     import random
-    discograph.connect()
     count = discograph.models.Artist.objects.count()
     artist = None
     while artist is None:
@@ -43,8 +44,6 @@ def route():
 @app.route('/<int:artist_id>', methods=['GET'])
 @app.route('/<int:artist_id>/', methods=['GET'])
 def route__artist_id(artist_id):
-    import discograph
-    discograph.connect()
     try:
         artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
     except:
@@ -55,14 +54,12 @@ def route__artist_id(artist_id):
 @app.route('/api/cluster/<int:artist_id>', methods=['GET'])
 @app.route('/api/cluster/<int:artist_id>/', methods=['GET'])
 def route__api__cluster__artist_id(artist_id):
-    import discograph
     key = '/api/cluster/{}'.format(artist_id)
     data = cache.get(key)
     if data is not None:
         print('CACHE HIT:', key)
         return jsonify(data)
     print('CACHE MISS:', key)
-    discograph.connect()
     try:
         artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
     except:
