@@ -112,6 +112,60 @@ class ArtistMembershipGrapher(object):
 
     ### PUBLIC METHODS ###
 
+    @staticmethod
+    def get_neighborhood(artist, cache=None):
+        key = 'cache:/api/artist/neighborhood/{}'.format(artist.discogs_id)
+        if cache is not None:
+            neighborhood = cache.get(key)
+            if neighborhood is not None:
+                #print('CACHE HIT: {}'.format(key))
+                return neighborhood
+            #print('CACHE MISS: {}'.format(key))
+        as_dict = lambda x: {
+            'id': x.discogs_id,
+            'name': x.name,
+            }
+        aliases = []
+        nodes = []
+        edges = []
+        for alias in artist.aliases:
+            alias_query = models.Artist.objects(name=alias)
+            if not alias_query.count():
+                continue
+            alias = alias_query.first()
+            edge = sorted([artist.discogs_id, alias.discogs_id])
+            edge.append('Alias')
+            aliases.append(alias.discogs_id)
+            edges.append(tuple(edge))
+            nodes.append(as_dict(alias))
+        for group in artist.groups:
+            edge = (
+                artist.discogs_id,
+                group.discogs_id,
+                'Member Of',
+                )
+            edges.append(edge)
+            nodes.append(as_dict(group))
+        for member in artist.members:
+            edge = (
+                member.discogs_id,
+                artist.discogs_id,
+                'Member Of',
+                )
+            edges.append(edge)
+            nodes.append(as_dict(member))
+        neighborhood = {
+            'id': artist.discogs_id,
+            'name': artist.name,
+            'size': len(artist.members),
+            'aliases': tuple(aliases),
+            'nodes': tuple(sorted(nodes, key=lambda x: x['id'])),
+            'edges': tuple(sorted(edges)),
+            }
+        if cache is not None:
+            cache.set(key, neighborhood)
+        return neighborhood
+
     def can_continue_searching(self, distance, artist_ids_visited):
         if (
             self.max_nodes and
@@ -121,16 +175,7 @@ class ArtistMembershipGrapher(object):
             return False
         return True
 
-    def get_network(self):
-        template = (
-            'DEGREE {}: {} artists, '
-            '{} edges, '
-            '{} clusters'
-            )
-        cluster_count = 0
-        clusters = {}
-        edges = set()
-        artist_aliases = dict()
+    def collect_artists(self):
         artist_ids_visited = dict()
         artist_ids_to_visit = set(_.discogs_id for _ in self.artists)
         for distance in range(self.degree + 1):
@@ -145,117 +190,52 @@ class ArtistMembershipGrapher(object):
                 if artist_id in artist_ids_visited:
                     continue
                 artist = models.Artist.objects.get(discogs_id=artist_id)
-                aliases = []
-                for alias in artist.aliases:
-                    alias_query = models.Artist.objects(name=alias)
-                    if not alias_query.count():
-                        continue
-                    aliases.append(alias_query.first())
-                artist_aliases[artist.discogs_id] = aliases
-                if len(aliases) and artist_id not in clusters:
-                    cluster_count += 1
-                    clusters[artist_id] = cluster_count
-                for alias in aliases:
-                    if alias.discogs_id not in artist_ids_visited:
-                        current_artist_ids_to_visit.append(alias.discogs_id)
-                        edge = sorted([artist.discogs_id, alias.discogs_id])
-                        edge.append('Alias')
-                        edge = tuple(edge)
-                        edges.add(edge)
-                    clusters[alias.discogs_id] = cluster_count
-                for group in artist.groups:
-                    if distance < self.degree:
-                        artist_ids_to_visit.add(group.discogs_id)
-                        edge = (
-                            artist.discogs_id,
-                            group.discogs_id,
-                            'Member Of',
-                            )
-                        edges.add(edge)
-                for member in artist.members:
-                    if distance < self.degree:
-                        artist_ids_to_visit.add(member.discogs_id)
-                        edge = (
-                            member.discogs_id,
-                            artist.discogs_id,
-                            'Member Of',
-                            )
-                        edges.add(edge)
-                value = (distance, artist)
-                artist_ids_visited[artist_id] = value
-            message = template.format(
-                distance,
-                len(artist_ids_visited),
-                len(edges),
-                cluster_count,
-                )
-            print(message)
-        edges = [_ for _ in edges
-            if _[0] in artist_ids_visited and
-            _[1] in artist_ids_visited
-            ]
-        nodes = []
-        for artist_id, (distance, artist) in artist_ids_visited.items():
-            is_missing_edges = False
-            for group in artist.groups:
-                if group.discogs_id not in artist_ids_visited:
-                    is_missing_edges = True
-            for member in artist.members:
-                if member.discogs_id not in artist_ids_visited:
-                    is_missing_edges = True
-            for alias in artist_aliases[artist.discogs_id]:
-                if alias.discogs_id not in artist_ids_visited:
-                    is_missing_edges = True
-            node = [
-                artist.discogs_id,
-                artist.name,
-                clusters.get(artist_id, None),
-                distance,
-                len(artist.members),
-                is_missing_edges,
-                ]
-            nodes.append(node)
-        return nodes, sorted(edges)
+                neighborhood = self.get_neighborhood(artist, cache=self.cache)
+                neighborhood['distance'] = distance
+                artist_ids_visited[neighborhood['id']] = neighborhood
+                for node in neighborhood['nodes']:
+                    artist_ids_to_visit.add(node['id'])
+        return artist_ids_visited
 
-    def to_json(self):
-        nodes, edges = self.get_network()
-        data = {
-            'center': [_.discogs_id for _ in self.artists],
-            'nodes': [],
-            'links': [],
-            }
-        for node in nodes:
-            (
-                artist_id,
-                artist_name,
-                cluster_id,
-                distance,
-                size,
-                is_missing_edges,
-                ) = node
+    def get_network(self):
+        artists = self.collect_artists()
+        edge_tuples = set()
+        nodes = []
+        cluster_count = 0
+        cluster_map = {}
+        for artist_id, artist_dict in sorted(artists.items()):
+            incomplete = False
+            for edge in artist_dict['edges']:
+                if edge[0] in artists and edge[1] in artists:
+                    edge_tuples.add(edge)
+                else:
+                    incomplete = True
+            cluster = None
+            if artist_dict['aliases']:
+                if artist_dict['id'] not in cluster_map:
+                    cluster_count += 1
+                    cluster_map[artist_dict['id']] = cluster_count
+                    for alias_id in artist_dict['aliases']:
+                        cluster_map[alias_id] = cluster_count
+                cluster = cluster_map[artist_dict['id']]
             node = {
-                'id': artist_id,
-                'name': artist_name,
-                'group': cluster_id,
-                'distance': distance,
-                'size': size,
-                'incomplete': is_missing_edges,
+                'distance': artist_dict['distance'],
+                'group': cluster,
+                'id': artist_dict['id'],
+                'incomplete': incomplete,
+                'name': artist_dict['name'],
+                'size': artist_dict['size'],
                 }
-            data['nodes'].append(node)
-        for edge in edges:
-            (
-                head_id,
-                tail_id,
-                role,
-                ) = edge
-            if role == 'Alias':
-                dotted = True
-            else:
-                dotted = False
-            link = {
-                'dotted': dotted,
-                'source': tail_id,
-                'target': head_id,
-                }
-            data['links'].append(link)
-        return data
+            nodes.append(node)
+        edges = []
+        for source, target, role in edge_tuples:
+            edge = {'source': source, 'target': target, 'role': role}
+            edges.append(edge)
+        edges = tuple(sorted(edges, key=lambda x: (x['source'], x['target'])))
+        nodes = tuple(sorted(nodes, key=lambda x: x['id']))
+        network = {
+            'center': [_.discogs_id for _ in self.artists],
+            'nodes': nodes,
+            'links': edges,
+            }
+        return network
