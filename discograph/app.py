@@ -43,7 +43,13 @@ def route():
 @app.route('/<int:artist_id>', methods=['GET'])
 @app.route('/<int:artist_id>/', methods=['GET'])
 def route__artist_id(artist_id):
-    return render_template('index.html', artist_id=artist_id)
+    import discograph
+    discograph.connect()
+    try:
+        artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
+    except:
+        abort(404)
+    return render_template('index.html', artist=artist)
 
 
 @app.route('/api/cluster/<int:artist_id>', methods=['GET'])

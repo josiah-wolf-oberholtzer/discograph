@@ -202,12 +202,11 @@ function buildLinkMap(links) {
 
 var fetchData = function(error, json) {
     if (error) return console.warn(error);
+    updateForceLayout(json);
+    startForceLayout();
     setTimeout(function() {
         graphDataIsUpdating = false;
     }, 2000);
-    d3.select("body").attr("id", json.center);
-    updateForceLayout(json);
-    startForceLayout();
 }
 
 function updateForceLayout(json) {
@@ -272,6 +271,11 @@ var updateGraph = function(id) {
         initialY = y / 2;
     }
     svg.transition().duration(250).style("opacity", 0.333);
+    $(document).attr("body").id = id;
+    if (nodes.length) {
+        var artistName = nodes.filter(function(d) { return d.id == id; })[0].name
+        document.title = "Discograph: " + artistName;
+    }
     d3.json(graphDataAPIURL + id, fetchData);
 }
 
@@ -281,11 +285,13 @@ var navigateGraph = function(id) {
 }
 
 var pushState = function(id) { 
-    window.history.pushState({id: id}, null, "/" + id + "/"); 
+    var title = document.title;
+    var url = "/" + id + "/";
+    window.history.pushState({id: id}, title, url); 
 }
-
-navigateGraph(d3.select("body").attr("id"));
 
 window.addEventListener("popstate", function(event) {
     updateGraph(event.state.id);
 });
+
+navigateGraph(d3.select("body").attr("id"));
