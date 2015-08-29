@@ -114,7 +114,7 @@ var startForceLayout = function() {
         .style("stroke-width", 0)
         .style("fill-opacity", 1)
         .style("fill", "#fff")
-        .style("opacity", function(d) {return d.incomplete ? 1 : 0; });
+        .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
     nodeEnter.append("title")
         .text(function(d) { return d.name; });
     nodeEnter.append("text")
@@ -151,7 +151,7 @@ var startForceLayout = function() {
     svg.selectAll(".node .more")
         .transition()
         .duration(1000)
-        .style("opacity", function(d) {return d.incomplete ? 1 : 0; });
+        .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
 
     selectNode(nodeCentered);
 }
@@ -228,7 +228,7 @@ function updateForceLayout(json) {
         if (nodeMap.has(key)) {
             var node = nodeMap.get(key);
             node.distance = value.distance;
-            node.incomplete = value.incomplete;
+            node.missing = value.missing;
         } else {
             value.x = initialX + (Math.random() * 100) - 50;
             value.y = initialY + (Math.random() * 100) - 50;

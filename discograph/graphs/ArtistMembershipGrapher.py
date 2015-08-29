@@ -204,12 +204,12 @@ class ArtistMembershipGrapher(object):
         cluster_count = 0
         cluster_map = {}
         for artist_id, artist_dict in sorted(artists.items()):
-            incomplete = False
+            missing = 0
             for edge in artist_dict['edges']:
                 if edge[0] in artists and edge[1] in artists:
                     edge_tuples.add(edge)
                 else:
-                    incomplete = True
+                    missing += 1
             cluster = None
             if artist_dict['aliases']:
                 if artist_dict['id'] not in cluster_map:
@@ -222,7 +222,7 @@ class ArtistMembershipGrapher(object):
                 'distance': artist_dict['distance'],
                 'group': cluster,
                 'id': artist_dict['id'],
-                'incomplete': incomplete,
+                'missing': missing,
                 'name': artist_dict['name'],
                 'size': artist_dict['size'],
                 }
