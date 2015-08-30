@@ -155,46 +155,50 @@ class Bootstrap(object):
         with gzip.GzipFile(Bootstrap.artists_xml_path, 'r') as input_pointer:
             iterator = Bootstrap.iterparse(input_pointer, 'artist')
             iterator = Bootstrap.clean_elements(iterator)
-            for element in iterator:
+            for i, element in enumerate(iterator):
                 discogs_id = int(element.find('id').text)
                 file_name = 'artist-{}.xml'.format(discogs_id)
                 file_path = os.path.join(artists_directory, file_name)
                 xml_string = Bootstrap.prettify(element)
                 with open(file_path, 'w') as output_pointer:
                     output_pointer.write(xml_string)
+                if discogs_id % 1000 == 0:
                     print(file_path)
         with gzip.GzipFile(Bootstrap.labels_xml_path, 'r') as input_pointer:
             iterator = Bootstrap.iterparse(input_pointer, 'label')
             iterator = Bootstrap.clean_elements(iterator)
-            for element in iterator:
+            for i, element in enumerate(iterator):
                 discogs_id = int(element.find('id').text)
                 file_name = 'label-{}.xml'.format(discogs_id)
                 file_path = os.path.join(labels_directory, file_name)
                 xml_string = Bootstrap.prettify(element)
                 with open(file_path, 'w') as output_pointer:
                     output_pointer.write(xml_string)
+                if discogs_id % 1000 == 0:
                     print(file_path)
         with gzip.GzipFile(Bootstrap.masters_xml_path, 'r') as input_pointer:
             iterator = Bootstrap.iterparse(input_pointer, 'master')
             iterator = Bootstrap.clean_elements(iterator)
-            for element in iterator:
+            for i, element in enumerate(iterator):
                 discogs_id = int(element.attrib.get('id'))
                 file_name = 'master-{}.xml'.format(discogs_id)
                 file_path = os.path.join(masters_directory, file_name)
                 xml_string = Bootstrap.prettify(element)
                 with open(file_path, 'w') as output_pointer:
                     output_pointer.write(xml_string)
+                if discogs_id % 1000 == 0:
                     print(file_path)
         with gzip.GzipFile(Bootstrap.releases_xml_path, 'r') as input_pointer:
             iterator = Bootstrap.iterparse(input_pointer, 'release')
             iterator = Bootstrap.clean_elements(iterator)
-            for element in iterator:
+            for i, element in enumerate(iterator):
                 discogs_id = int(element.attrib.get('id'))
                 file_name = 'release-{}.xml'.format(discogs_id)
                 file_path = os.path.join(releases_directory, file_name)
                 xml_string = Bootstrap.prettify(element)
                 with open(file_path, 'w') as output_pointer:
                     output_pointer.write(xml_string)
+                if discogs_id % 1000 == 0:
                     print(file_path)
 
     @staticmethod
