@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import discograph
 import mongoengine
+import random
 import traceback
 from flask import (
     Flask,
@@ -22,21 +23,12 @@ mongoengine.connect('discograph')
 @app.route('/index')
 @app.route('/index/')
 def route():
-    import random
     count = discograph.models.Artist.objects.count()
-    artist = None
-    while artist is None:
-        discogs_id = random.randrange(1, count)
-        try:
-            artist = discograph.models.Artist.objects.get(
-                discogs_id=discogs_id)
-        except:
-            traceback.print_exc()
-            artist = None
-        if artist is None:
-            continue
-        if not artist.members and not artist.groups:
-            artist = None
+    index = random.randrange(count)
+    artist = discograph.models.Artist.objects[index]
+    while not artist.members and not artist.groups:
+        index = random.randrange(count)
+        artist = discograph.models.Artist.objects[index]
     artist_id = artist.discogs_id
     return redirect('/{}'.format(artist_id), code=302)
 
