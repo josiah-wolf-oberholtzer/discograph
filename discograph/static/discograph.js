@@ -18,6 +18,7 @@ var links = [];
     dg.graph = {
         APIURL: "/api/artist/network/",
         centerNodeID: null,
+        selectedNodeID: null,
         dimensions: [0, 0],
         isUpdating: false,
         json: null,
@@ -61,17 +62,26 @@ var links = [];
 
     /* GRAPH METHODS */
 
+    dg.fetchData = function(error, json) {
+        if (error) return console.warn(error);
+        updateForceLayout(json);
+        startForceLayout();
+        setTimeout(function() {
+            dg.graph.isUpdating = false;
+        }, 2000);
+    }
+
     dg.navigateGraph = function(id) {
         dg.history.pushState(id);
         dg.updateGraph(id);
     }
 
     dg.selectNode = function(id) {
-        dg.graph.centerNodeID = id;
-        node.filter("*:not(#node" + dg.graph.centerNodeID + ")")
+        dg.graph.selectedNodeID = id;
+        node.filter("*:not(#node" + dg.graph.selectedNodeID + ")")
             .select(".halo")
             .style("fill-opacity", 0.);
-        node.filter("#node" + dg.graph.centerNodeID)
+        node.filter("#node" + dg.graph.selectedNodeID)
             .select(".halo")
             .style("fill-opacity", 0.05);
     }
@@ -107,7 +117,7 @@ var links = [];
             )[0].name
             document.title = "Discograph: " + artistName;
         }
-        d3.json(dg.graph.APIURL + id, fetchData);
+        d3.json(dg.graph.APIURL + id, dg.fetchData);
     }
 
     /* INITIALIZATION */
@@ -265,15 +275,6 @@ var startForceLayout = function() {
     dg.selectNode(dg.graph.centerNodeID);
 }
 
-var fetchData = function(error, json) {
-    if (error) return console.warn(error);
-    updateForceLayout(json);
-    startForceLayout();
-    setTimeout(function() {
-        dg.graph.isUpdating = false;
-    }, 2000);
-}
-
 function updateForceLayout(json) {
     var newNodeMap = dg.buildNodeMap(json.nodes);
     var newLinkMap = dg.buildLinkMap(json.links);
@@ -320,7 +321,7 @@ function updateForceLayout(json) {
     links.length = 0;
     Array.prototype.push.apply(links, dg.graph.linkMap.values());
     dg.graph.json = json;
-    dg.selectNode(json.center[0]);
+    dg.graph.centerNodeID = json.center[0];
 }
 
 dg.navigateGraph(d3.select("body").attr("id"));
