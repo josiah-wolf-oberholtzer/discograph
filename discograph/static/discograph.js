@@ -97,7 +97,11 @@
         dg.graph.nodeSelection
             .filter(".node" + dg.graph.selectedNodeID)
             .select(".halo")
-            .style("fill-opacity", 0.05);
+            .style("fill-opacity", 0.05)
+            .moveToFront();
+        dg.graph.textSelection
+            .filter(".node" + dg.graph.selectedNodeID)
+            .moveToFront();
     }
 
     function getOuterRadius(d) {
@@ -180,7 +184,6 @@
     }
 
     function onNodeUpdate(nodeSelection) {
-        //nodeSelection.moveToFront();
         nodeSelection.transition()
             .duration(1000)
             .style("fill", function(d) { return dg.color.heatmap(d); })
@@ -192,7 +195,7 @@
 
     function onTextEnter(textEnter) {
         textEnter = textEnter.append("g")
-            .attr("class", "node");
+            .attr("class", function(d) { return "node node" + getNodeKey(d); })
         textEnter.append("text")
             .attr("class", "outer")
             .attr("dy", ".35em")
@@ -361,21 +364,13 @@
             .attr("width", dg.graph.dimensions[0])
             .attr("height", dg.graph.dimensions[1]);
         dg.graph.haloLayer = dg.graph.svgSelection.append("g")
-            .attr("id", "haloLayer")
-            .attr("width", dg.graph.dimensions[0])
-            .attr("height", dg.graph.dimensions[1]);
+            .attr("id", "haloLayer");
         dg.graph.linkLayer = dg.graph.svgSelection.append("g")
-            .attr("id", "linkLayer")
-            .attr("width", dg.graph.dimensions[0])
-            .attr("height", dg.graph.dimensions[1]);
+            .attr("id", "linkLayer");
         dg.graph.nodeLayer = dg.graph.svgSelection.append("g")
-            .attr("id", "nodeLayer")
-            .attr("width", dg.graph.dimensions[0])
-            .attr("height", dg.graph.dimensions[1]);
+            .attr("id", "nodeLayer");
         dg.graph.textLayer = dg.graph.svgSelection.append("g")
-            .attr("id", "textLayer")
-            .attr("width", dg.graph.dimensions[0])
-            .attr("height", dg.graph.dimensions[1]);
+            .attr("id", "textLayer");
 
         dg.graph.haloSelection = dg.graph.haloLayer.selectAll(".node");
         dg.graph.linkSelection = dg.graph.linkLayer.selectAll(".link");
