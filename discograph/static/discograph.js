@@ -173,16 +173,6 @@
             .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
         nodeEnter.append("title")
             .text(function(d) { return d.name; });
-        nodeEnter.append("text")
-            .attr("class", "outer")
-            .attr("dy", ".35em")
-            .attr("dx", function(d) { return getOuterRadius(d) + 3; })
-            .text(function(d) { return d.name; });
-        nodeEnter.append("text")
-            .attr("class", "inner")
-            .attr("dy", ".35em")
-            .attr("dx", function(d) { return getOuterRadius(d) + 3; })
-            .text(function(d) { return d.name; });
     }
 
     function onNodeExit(nodeExit) {
@@ -200,22 +190,47 @@
             .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
     }
 
+    function onTextEnter(textEnter) {
+        textEnter = textEnter.append("g")
+            .attr("class", "node");
+        textEnter.append("text")
+            .attr("class", "outer")
+            .attr("dy", ".35em")
+            .attr("dx", function(d) { return getOuterRadius(d) + 3; })
+            .text(function(d) { return d.name; });
+        textEnter.append("text")
+            .attr("class", "inner")
+            .attr("dy", ".35em")
+            .attr("dx", function(d) { return getOuterRadius(d) + 3; })
+            .text(function(d) { return d.name; });
+    }
+
+    function onTextExit(textExit) {
+        textExit.remove();
+    }
+
     dg.startForceLayout = function() {
         dg.graph.forceLayout.start();
         dg.graph.linkSelection = dg.graph.linkSelection
             .data(dg.graph.forceLayout.links(), getLinkKey);
         dg.graph.nodeSelection = dg.graph.nodeSelection
             .data(dg.graph.forceLayout.nodes(), getNodeKey);
+        dg.graph.textSelection = dg.graph.textSelection
+            .data(dg.graph.forceLayout.nodes(), getNodeKey);
         onLinkEnter(dg.graph.linkSelection.enter());
         onLinkExit(dg.graph.linkSelection.exit());
         onNodeEnter(dg.graph.nodeSelection.enter());
         onNodeExit(dg.graph.nodeSelection.exit());
         onNodeUpdate(dg.graph.nodeSelection);
+        onTextEnter(dg.graph.textSelection.enter());
+        onTextExit(dg.graph.textSelection.exit());
         dg.graph.svgSelection.transition()
             .duration(1000)
             .style("opacity", 1);
         dg.selectNode(dg.graph.centerNodeID);
     }
+
+    function translate(d) { return "translate(" + d.x + "," + d.y + ")"; };
 
     dg.tick = function() {
         dg.graph.linkSelection
@@ -223,10 +238,8 @@
             .attr("y1", function(d) { return d.source.y; })
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; });
-        dg.graph.nodeSelection
-            .attr("transform", function(d) {
-                return "translate(" + d.x + "," + d.y + ")";
-            });
+        dg.graph.nodeSelection.attr("transform", translate);
+        dg.graph.textSelection.attr("transform", translate);
     }
 
     dg.updateForceLayout = function() {
