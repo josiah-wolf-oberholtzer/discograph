@@ -1,17 +1,20 @@
 var x = 0, y = 0;
 var nodes = [];
 var links = [];
-var nodeMap = d3.map();
-var linkMap = d3.map();
 var initialX = 0;
 var initialY = 0;
-var graphData = null;
-var graphDataAPIURL = "/api/artist/network/"
-var graphDataIsUpdating = false;
-var nodeCentered = null;
 
 !function(){
     var dg = {};
+
+    dg.graph = {
+        APIURL: "/api/artist/network/",
+        centerNodeID: null,
+        isUpdating: false,
+        json: null,
+        linkMap: d3.map(),
+        nodeMap: d3.map(),
+    };
 
     dg.heatmap = function(d) {
         var hue = ((d.distance / 12) * 360) % 360;
@@ -55,7 +58,7 @@ var nodeCentered = null;
             force.size([x, y]).start();
         });
         // Done initializing.
-        console.log('initialized!')
+        console.log('Discograph initialized.')
     }
     this.dg = dg;
     dg.init();
@@ -117,12 +120,12 @@ var startForceLayout = function() {
         .style("fill", function(d) { return dg.heatmap(d); })
         .call(force.drag);
     nodeEnter.on("mousedown", function(d) {
-        if (!graphDataIsUpdating) { 
+        if (!dg.graph.isUpdating) { 
             selectNode(d.id);
         }
     });
     nodeEnter.on("dblclick", function(d) {
-        if (!graphDataIsUpdating) { 
+        if (!dg.graph.isUpdating) { 
             navigateGraph(d.id);
         }
     });
@@ -179,15 +182,15 @@ var startForceLayout = function() {
         .duration(1000)
         .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
 
-    selectNode(nodeCentered);
+    selectNode(dg.graph.centerNodeID);
 }
 
 function selectNode(id) {
-    nodeCentered = id;
-    node.filter("*:not(#node" + nodeCentered + ")")
+    dg.graph.centerNodeID = id;
+    node.filter("*:not(#node" + dg.graph.centerNodeID + ")")
         .select(".halo")
         .style("fill-opacity", 0.);
-    node.filter("#node" + nodeCentered)
+    node.filter("#node" + dg.graph.centerNodeID)
         .select(".halo")
         .style("fill-opacity", 0.05);
 }
@@ -227,7 +230,7 @@ var fetchData = function(error, json) {
     updateForceLayout(json);
     startForceLayout();
     setTimeout(function() {
-        graphDataIsUpdating = false;
+        dg.graph.isUpdating = false;
     }, 2000);
 }
 
@@ -236,48 +239,52 @@ function updateForceLayout(json) {
     var newLinkMap = buildLinkMap(json.links);
     var nodeKeysToRemove = [];
     var linkKeysToRemove = [];
-    nodeMap.keys().forEach(function(key) {
+    dg.graph.nodeMap.keys().forEach(function(key) {
         if (!newNodeMap.has(key)) {
             nodeKeysToRemove.push(key);
         };
     });
-    linkMap.keys().forEach(function(key) {
+    dg.graph.linkMap.keys().forEach(function(key) {
         if (!newLinkMap.has(key)) {
             linkKeysToRemove.push(key);
         };
     });
-    nodeKeysToRemove.forEach(function(key) { nodeMap.remove(key); });
-    linkKeysToRemove.forEach(function(key) { linkMap.remove(key); });
+    nodeKeysToRemove.forEach(function(key) { 
+        dg.graph.nodeMap.remove(key);
+    });
+    linkKeysToRemove.forEach(function(key) { 
+        dg.graph.linkMap.remove(key);
+    });
     newNodeMap.entries().forEach(function(entry) {
         var key = entry.key;
         var value = entry.value;
-        if (nodeMap.has(key)) {
-            var node = nodeMap.get(key);
+        if (dg.graph.nodeMap.has(key)) {
+            var node = dg.graph.nodeMap.get(key);
             node.distance = value.distance;
             node.missing = value.missing;
         } else {
             value.x = initialX + (Math.random() * 100) - 50;
             value.y = initialY + (Math.random() * 100) - 50;
-            nodeMap.set(key, value);
+            dg.graph.nodeMap.set(key, value);
         }
     });
     newLinkMap.entries().forEach(function(entry) {
-        if (!linkMap.has(entry.key)) {
-            entry.value.source = nodeMap.get(entry.value.source);
-            entry.value.target = nodeMap.get(entry.value.target);
-            linkMap.set(entry.key, entry.value);
+        if (!dg.graph.linkMap.has(entry.key)) {
+            entry.value.source = dg.graph.nodeMap.get(entry.value.source);
+            entry.value.target = dg.graph.nodeMap.get(entry.value.target);
+            dg.graph.linkMap.set(entry.key, entry.value);
         }
     });
     nodes.length = 0;
-    Array.prototype.push.apply(nodes, nodeMap.values());
+    Array.prototype.push.apply(nodes, dg.graph.nodeMap.values());
     links.length = 0;
-    Array.prototype.push.apply(links, linkMap.values());
-    graphData = json;
+    Array.prototype.push.apply(links, dg.graph.linkMap.values());
+    dg.graph.json = json;
     selectNode(json.center[0]);
 }
 
 var updateGraph = function(id) {
-    graphDataIsUpdating = true;
+    dg.graph.isUpdating = true;
     var foundNode = node.filter(function(d) { return d.id == id; });
     if (foundNode.length == 1) {
         foundNode.each(function(d) {
@@ -296,7 +303,7 @@ var updateGraph = function(id) {
         )[0].name
         document.title = "Discograph: " + artistName;
     }
-    d3.json(graphDataAPIURL + id, fetchData);
+    d3.json(dg.graph.APIURL + id, fetchData);
 }
 
 var navigateGraph = function(id) {
