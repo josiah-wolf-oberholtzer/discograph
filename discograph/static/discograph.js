@@ -90,15 +90,14 @@
 
     dg.selectNode = function(id) {
         dg.graph.selectedNodeID = id;
-        dg.graph.nodeSelection
+        dg.graph.haloSelection
             .filter("*:not(.node" + dg.graph.selectedNodeID + ")")
             .select(".halo")
             .style("fill-opacity", 0.);
-        dg.graph.nodeSelection
+        dg.graph.haloSelection
             .filter(".node" + dg.graph.selectedNodeID)
             .select(".halo")
-            .style("fill-opacity", 0.05)
-            .moveToFront();
+            .style("fill-opacity", 0.1);
         dg.graph.textSelection
             .filter(".node" + dg.graph.selectedNodeID)
             .moveToFront();
@@ -125,6 +124,18 @@
 
     function getNodeKey(d) {
         return d.id;
+    }
+
+    function onHaloEnter(haloEnter) {
+        haloEnter = haloEnter.append("g")
+            .attr("class", function(d) { return "node node" + getNodeKey(d); })
+        haloEnter.append("circle")
+            .attr("class", "halo")
+            .attr("r", function(d) { return getOuterRadius(d) + 40; });
+    }
+
+    function onHaloExit(haloExit) {
+        haloExit.remove();
     }
 
     function onLinkEnter(linkEnter) {
@@ -158,9 +169,6 @@
                 dg.navigateGraph(d.id);
             }
         });
-        nodeEnter.append("circle")
-            .attr("class", "halo")
-            .attr("r", function(d) { return getOuterRadius(d) + 40; });
         nodeEnter.select(function(d, i) {return 0 < d.size ? this : null; })
             .append("circle")
             .attr("class", "outer")
@@ -214,12 +222,16 @@
 
     dg.startForceLayout = function() {
         dg.graph.forceLayout.start();
+        dg.graph.haloSelection = dg.graph.haloSelection
+            .data(dg.graph.forceLayout.nodes(), getNodeKey);
         dg.graph.linkSelection = dg.graph.linkSelection
             .data(dg.graph.forceLayout.links(), getLinkKey);
         dg.graph.nodeSelection = dg.graph.nodeSelection
             .data(dg.graph.forceLayout.nodes(), getNodeKey);
         dg.graph.textSelection = dg.graph.textSelection
             .data(dg.graph.forceLayout.nodes(), getNodeKey);
+        onHaloEnter(dg.graph.haloSelection.enter());
+        onHaloExit(dg.graph.haloSelection.exit());
         onLinkEnter(dg.graph.linkSelection.enter());
         onLinkExit(dg.graph.linkSelection.exit());
         onNodeEnter(dg.graph.nodeSelection.enter());
@@ -241,6 +253,7 @@
             .attr("y1", function(d) { return d.source.y; })
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; });
+        dg.graph.haloSelection.attr("transform", translate);
         dg.graph.nodeSelection.attr("transform", translate);
         dg.graph.textSelection.attr("transform", translate);
     }
