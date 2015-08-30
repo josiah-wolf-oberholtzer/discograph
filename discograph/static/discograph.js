@@ -19,15 +19,18 @@
         isUpdating: false,
         json: null,
         linkMap: d3.map(),
-        linkSelection: null,
         links: [],
         newNodeCoords: [0, 0],
         nodeMap: d3.map(),
-        nodeSelection: null,
         nodes: [],
         selectedNodeID: null,
+        // selections
         svgSelection: null,
-        //
+        haloSelection: null,
+        nodeSelection: null,
+        linkSelection: null,
+        textSelection: null,
+        // layers
         haloLayer: null,
         textLayer: null,
         nodeLayer: null,
@@ -187,7 +190,7 @@
     }
 
     function onNodeUpdate(nodeSelection) {
-        nodeSelection.moveToFront();
+        //nodeSelection.moveToFront();
         nodeSelection.transition()
             .duration(1000)
             .style("fill", function(d) { return dg.color.heatmap(d); })
@@ -344,9 +347,27 @@
         dg.graph.svgSelection = d3.select("body").append("svg")
             .attr("width", dg.graph.dimensions[0])
             .attr("height", dg.graph.dimensions[1]);
+        dg.graph.haloLayer = dg.graph.svgSelection.append("g")
+            .attr("id", "haloLayer")
+            .attr("width", dg.graph.dimensions[0])
+            .attr("height", dg.graph.dimensions[1]);
+        dg.graph.linkLayer = dg.graph.svgSelection.append("g")
+            .attr("id", "linkLayer")
+            .attr("width", dg.graph.dimensions[0])
+            .attr("height", dg.graph.dimensions[1]);
+        dg.graph.nodeLayer = dg.graph.svgSelection.append("g")
+            .attr("id", "nodeLayer")
+            .attr("width", dg.graph.dimensions[0])
+            .attr("height", dg.graph.dimensions[1]);
+        dg.graph.textLayer = dg.graph.svgSelection.append("g")
+            .attr("id", "textLayer")
+            .attr("width", dg.graph.dimensions[0])
+            .attr("height", dg.graph.dimensions[1]);
 
-        dg.graph.nodeSelection = dg.graph.svgSelection.selectAll(".node");
-        dg.graph.linkSelection = dg.graph.svgSelection.selectAll(".link");
+        dg.graph.haloSelection = dg.graph.haloLayer.selectAll(".node");
+        dg.graph.linkSelection = dg.graph.linkLayer.selectAll(".link");
+        dg.graph.nodeSelection = dg.graph.nodeLayer.selectAll(".node");
+        dg.graph.textSelection = dg.graph.textLayer.selectAll(".node");
 
         dg.graph.forceLayout = d3.layout.force()
             .nodes(dg.graph.nodes)
