@@ -4,17 +4,6 @@ var links = [];
 !function(){
     var dg = {};
 
-    dg.graph = {
-        APIURL: "/api/artist/network/",
-        centerNodeID: null,
-        dimensions: [0, 0],
-        isUpdating: false,
-        json: null,
-        linkMap: d3.map(),
-        newNodeCoords: [0, 0],
-        nodeMap: d3.map(),
-    };
-
     dg.color = {
         heatmap: function(d) {
             var hue = ((d.distance / 12) * 360) % 360;
@@ -26,9 +15,20 @@ var links = [];
         },
     }
 
+    dg.graph = {
+        APIURL: "/api/artist/network/",
+        centerNodeID: null,
+        dimensions: [0, 0],
+        isUpdating: false,
+        json: null,
+        linkMap: d3.map(),
+        newNodeCoords: [0, 0],
+        nodeMap: d3.map(),
+    };
+
     dg.history = {
         onPopState: function(event) {
-            updateGraph(event.state.id);
+            dg.updateGraph(event.state.id);
         },
         pushState: function(id) { 
             var title = document.title;
@@ -36,6 +36,81 @@ var links = [];
             window.history.pushState({id: id}, title, url); 
         },
     }
+
+    /* UTILITY METHODS */
+
+    dg.buildNodeMap = function(nodes) {
+        var map = d3.map();
+        nodes.forEach(function(node) {
+            map.set(node.id, node);
+        });
+        return map;
+    }
+
+    dg.buildLinkMap = function(links) {
+        var map = d3.map();
+        links.forEach(function(link) {
+            var key = link.source + "-" + link.target;
+            if (link.role == 'Alias') {
+                key = key + '-dotted';
+            }
+            map.set(key, link);
+        });
+        return map;
+    }
+
+    /* GRAPH METHODS */
+
+    dg.navigateGraph = function(id) {
+        dg.history.pushState(id);
+        dg.updateGraph(id);
+    }
+
+    dg.selectNode = function(id) {
+        dg.graph.centerNodeID = id;
+        node.filter("*:not(#node" + dg.graph.centerNodeID + ")")
+            .select(".halo")
+            .style("fill-opacity", 0.);
+        node.filter("#node" + dg.graph.centerNodeID)
+            .select(".halo")
+            .style("fill-opacity", 0.05);
+    }
+
+    dg.tick = function() {
+        link.attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+        node.attr("transform", function(d) {
+            return "translate(" + d.x + "," + d.y + ")";
+        });
+    }
+
+    dg.updateGraph = function(id) {
+        dg.graph.isUpdating = true;
+        var foundNode = node.filter(function(d) { return d.id == id; });
+        if (foundNode.length == 1) {
+            foundNode.each(function(d) {
+                dg.graph.newNodeCoords = [d.x, d.y];
+            });
+        } else {
+            dg.graph.newNodeCoords = [
+                dg.graph.dimensions[0] / 2,
+                dg.graph.dimensions[1] / 2,
+            ];
+        }
+        svg.transition().duration(250).style("opacity", 0.333);
+        $(document).attr("body").id = id;
+        if (nodes.length) {
+            var artistName = nodes.filter(function(d) { 
+                return d.id == id; }
+            )[0].name
+            document.title = "Discograph: " + artistName;
+        }
+        d3.json(dg.graph.APIURL + id, fetchData);
+    }
+
+    /* INITIALIZATION */
 
     dg.init = function() {
         d3.selection.prototype.moveToFront = function() {
@@ -93,7 +168,7 @@ var force = d3.layout.force()
     .theta(0.1)
     .alpha(0.1)
     .size(dg.graph.dimensions)
-    .on("tick", tick);
+    .on("tick", dg.tick);
 
 var node = svg.selectAll(".node"),
     link = svg.selectAll(".link");
@@ -126,12 +201,12 @@ var startForceLayout = function() {
         .call(force.drag);
     nodeEnter.on("mousedown", function(d) {
         if (!dg.graph.isUpdating) { 
-            selectNode(d.id);
+            dg.selectNode(d.id);
         }
     });
     nodeEnter.on("dblclick", function(d) {
         if (!dg.graph.isUpdating) { 
-            navigateGraph(d.id);
+            dg.navigateGraph(d.id);
         }
     });
     nodeEnter.append("circle")
@@ -187,47 +262,7 @@ var startForceLayout = function() {
         .duration(1000)
         .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
 
-    selectNode(dg.graph.centerNodeID);
-}
-
-function selectNode(id) {
-    dg.graph.centerNodeID = id;
-    node.filter("*:not(#node" + dg.graph.centerNodeID + ")")
-        .select(".halo")
-        .style("fill-opacity", 0.);
-    node.filter("#node" + dg.graph.centerNodeID)
-        .select(".halo")
-        .style("fill-opacity", 0.05);
-}
-
-function tick() {
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-    node.attr("transform", function(d) {
-        return "translate(" + d.x + "," + d.y + ")";
-    });
-}
-
-function buildNodeMap(nodes) {
-    var map = d3.map();
-    nodes.forEach(function(node) {
-        map.set(node.id, node);
-    });
-    return map;
-}
-
-function buildLinkMap(links) {
-    var map = d3.map();
-    links.forEach(function(link) {
-        var key = link.source + "-" + link.target;
-        if (link.role == 'Alias') {
-            key = key + '-dotted';
-        }
-        map.set(key, link);
-    });
-    return map;
+    dg.selectNode(dg.graph.centerNodeID);
 }
 
 var fetchData = function(error, json) {
@@ -240,8 +275,8 @@ var fetchData = function(error, json) {
 }
 
 function updateForceLayout(json) {
-    var newNodeMap = buildNodeMap(json.nodes);
-    var newLinkMap = buildLinkMap(json.links);
+    var newNodeMap = dg.buildNodeMap(json.nodes);
+    var newLinkMap = dg.buildLinkMap(json.links);
     var nodeKeysToRemove = [];
     var linkKeysToRemove = [];
     dg.graph.nodeMap.keys().forEach(function(key) {
@@ -285,36 +320,7 @@ function updateForceLayout(json) {
     links.length = 0;
     Array.prototype.push.apply(links, dg.graph.linkMap.values());
     dg.graph.json = json;
-    selectNode(json.center[0]);
+    dg.selectNode(json.center[0]);
 }
 
-var updateGraph = function(id) {
-    dg.graph.isUpdating = true;
-    var foundNode = node.filter(function(d) { return d.id == id; });
-    if (foundNode.length == 1) {
-        foundNode.each(function(d) {
-            dg.graph.newNodeCoords = [d.x, d.y];
-        });
-    } else {
-        dg.graph.newNodeCoords = [
-            dg.graph.dimensions[0] / 2,
-            dg.graph.dimensions[1] / 2,
-        ];
-    }
-    svg.transition().duration(250).style("opacity", 0.333);
-    $(document).attr("body").id = id;
-    if (nodes.length) {
-        var artistName = nodes.filter(function(d) { 
-            return d.id == id; }
-        )[0].name
-        document.title = "Discograph: " + artistName;
-    }
-    d3.json(dg.graph.APIURL + id, fetchData);
-}
-
-var navigateGraph = function(id) {
-    dg.history.pushState(id);
-    updateGraph(id);
-}
-
-navigateGraph(d3.select("body").attr("id"));
+dg.navigateGraph(d3.select("body").attr("id"));
