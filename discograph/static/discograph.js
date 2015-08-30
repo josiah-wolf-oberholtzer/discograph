@@ -1,8 +1,5 @@
-var x = 0, y = 0;
 var nodes = [];
 var links = [];
-var initialX = 0;
-var initialY = 0;
 
 !function(){
     var dg = {};
@@ -10,9 +7,11 @@ var initialY = 0;
     dg.graph = {
         APIURL: "/api/artist/network/",
         centerNodeID: null,
+        dimensions: [0, 0],
         isUpdating: false,
         json: null,
         linkMap: d3.map(),
+        newNodeCoords: [0, 0],
         nodeMap: d3.map(),
     };
 
@@ -25,39 +24,43 @@ var initialY = 0;
         return d3.hsl(hue, saturation, lightness).toString();
     }
 
-    dg.historyOnPopState = function(event) {
-        updateGraph(event.state.id);
-    }
-
-    dg.historyPushState = function(id) { 
-        var title = document.title;
-        var url = "/" + id + "/";
-        window.history.pushState({id: id}, title, url); 
+    dg.history = {
+        onPopState: function(event) {
+            updateGraph(event.state.id);
+        },
+        pushState: function(id) { 
+            var title = document.title;
+            var url = "/" + id + "/";
+            window.history.pushState({id: id}, title, url); 
+        },
     }
 
     dg.init = function() {
-        // Monkey-patch D3.
         d3.selection.prototype.moveToFront = function() {
             return this.each(function(){ this.parentNode.appendChild(this); });
         };
-        // Setup history listener.
-        window.addEventListener("popstate", dg.historyOnPopState);
-        // Get window-size and setup resize listener.
+        window.addEventListener("popstate", dg.history.onPopState);
         var w = window,
             d = document,
             e = d.documentElement,
             g = d.getElementsByTagName('body')[0];
-        x = w.innerWidth || e.clientWidth || g.clientWidth;
-        y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-        initialX = x / 2;
-        initialY = y / 2;
+        dg.graph.dimensions = [
+            w.innerWidth || e.clientWidth || g.clientWidth,
+            w.innerHeight|| e.clientHeight|| g.clientHeight,
+        ];
+        dg.graph.newNodeCoords = [
+            dg.graph.dimensions[0] / 2,
+            dg.graph.dimensions[1] / 2,
+        ];
         window.addEventListener("resize", function() {
-            x = w.innerWidth || e.clientWidth || g.clientWidth,
-            y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-            svg.attr("width", x).attr("height", y);
-            force.size([x, y]).start();
+            dg.graph.dimensions = [
+                w.innerWidth || e.clientWidth || g.clientWidth,
+                w.innerHeight|| e.clientHeight|| g.clientHeight,
+            ];
+            svg.attr("width", dg.graph.dimensions[0])
+                .attr("height", dg.graph.dimensions[1]);
+            force.size(dg.graph.dimensions).start();
         });
-        // Done initializing.
         console.log('Discograph initialized.')
     }
     this.dg = dg;
@@ -65,8 +68,8 @@ var initialY = 0;
 }();
 
 var svg = d3.select("body").append("svg")
-    .attr("width", x)
-    .attr("height", y);
+    .attr("width", dg.graph.dimensions[0])
+    .attr("height", dg.graph.dimensions[1]);
 
 var force = d3.layout.force()
     .nodes(nodes)
@@ -87,7 +90,7 @@ var force = d3.layout.force()
     .gravity(0.15)
     .theta(0.1)
     .alpha(0.1)
-    .size([x, y])
+    .size(dg.graph.dimensions)
     .on("tick", tick);
 
 var node = svg.selectAll(".node"),
@@ -263,8 +266,8 @@ function updateForceLayout(json) {
             node.distance = value.distance;
             node.missing = value.missing;
         } else {
-            value.x = initialX + (Math.random() * 100) - 50;
-            value.y = initialY + (Math.random() * 100) - 50;
+            value.x = dg.graph.newNodeCoords[0] + (Math.random() * 100) - 50;
+            value.y = dg.graph.newNodeCoords[1] + (Math.random() * 100) - 50;
             dg.graph.nodeMap.set(key, value);
         }
     });
@@ -288,12 +291,13 @@ var updateGraph = function(id) {
     var foundNode = node.filter(function(d) { return d.id == id; });
     if (foundNode.length == 1) {
         foundNode.each(function(d) {
-            initialX = d.x;
-            initialY = d.y;
+            dg.graph.newNodeCoords = [d.x, d.y];
         });
     } else {
-        initialX = x / 2;
-        initialY = y / 2;
+        dg.graph.newNodeCoords = [
+            dg.graph.dimensions[0] / 2,
+            dg.graph.dimensions[1] / 2,
+        ];
     }
     svg.transition().duration(250).style("opacity", 0.333);
     $(document).attr("body").id = id;
@@ -307,7 +311,7 @@ var updateGraph = function(id) {
 }
 
 var navigateGraph = function(id) {
-    dg.historyPushState(id);
+    dg.history.pushState(id);
     updateGraph(id);
 }
 
