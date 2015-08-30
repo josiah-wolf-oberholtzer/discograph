@@ -27,6 +27,11 @@
         nodes: [],
         selectedNodeID: null,
         svgSelection: null,
+        //
+        haloLayer: null,
+        textLayer: null,
+        nodeLayer: null,
+        linkLayer: null,
     };
 
     dg.history = {
@@ -83,11 +88,11 @@
     dg.selectNode = function(id) {
         dg.graph.selectedNodeID = id;
         dg.graph.nodeSelection
-            .filter("*:not(#node" + dg.graph.selectedNodeID + ")")
+            .filter("*:not(.node" + dg.graph.selectedNodeID + ")")
             .select(".halo")
             .style("fill-opacity", 0.);
         dg.graph.nodeSelection
-            .filter("#node" + dg.graph.selectedNodeID)
+            .filter(".node" + dg.graph.selectedNodeID)
             .select(".halo")
             .style("fill-opacity", 0.05);
     }
@@ -117,7 +122,7 @@
 
     function onLinkEnter(linkEnter) {
         linkEnter = linkEnter.append("line")
-            .attr("class", "link")
+            .attr("class", function(d) { return "link link" + getLinkKey(d); })
             .style("stroke-width", 1)
             .style("stroke-dasharray", function(d) {
                 if (d.role == 'Alias') {
@@ -133,8 +138,7 @@
 
     function onNodeEnter(nodeEnter) {
         nodeEnter = nodeEnter.append("g")
-            .attr("class", "node")
-            .attr("id", function(d) { return "node" + d.id; })
+            .attr("class", function(d) { return "node node" + getNodeKey(d); })
             .style("fill", function(d) { return dg.color.heatmap(d); })
             .call(dg.graph.forceLayout.drag);
         nodeEnter.on("mousedown", function(d) {
@@ -340,6 +344,7 @@
         dg.graph.svgSelection = d3.select("body").append("svg")
             .attr("width", dg.graph.dimensions[0])
             .attr("height", dg.graph.dimensions[1]);
+
         dg.graph.nodeSelection = dg.graph.svgSelection.selectAll(".node");
         dg.graph.linkSelection = dg.graph.svgSelection.selectAll(".link");
 
