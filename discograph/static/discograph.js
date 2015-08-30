@@ -15,13 +15,15 @@ var links = [];
         nodeMap: d3.map(),
     };
 
-    dg.heatmap = function(d) {
-        var hue = ((d.distance / 12) * 360) % 360;
-        var variation_a = ((d.id % 5) - 2) / 20;
-        var variation_b = ((d.id % 9) - 4) / 80;
-        var saturation = 0.67 + variation_a;
-        var lightness = 0.5 + variation_b;
-        return d3.hsl(hue, saturation, lightness).toString();
+    dg.color = {
+        heatmap: function(d) {
+            var hue = ((d.distance / 12) * 360) % 360;
+            var variation_a = ((d.id % 5) - 2) / 20;
+            var variation_b = ((d.id % 9) - 4) / 80;
+            var saturation = 0.67 + variation_a;
+            var lightness = 0.5 + variation_b;
+            return d3.hsl(hue, saturation, lightness).toString();
+        },
     }
 
     dg.history = {
@@ -120,7 +122,7 @@ var startForceLayout = function() {
         .enter().append("g")
         .attr("class", "node")
         .attr("id", function(d) { return "node" + d.id; })
-        .style("fill", function(d) { return dg.heatmap(d); })
+        .style("fill", function(d) { return dg.color.heatmap(d); })
         .call(force.drag);
     nodeEnter.on("mousedown", function(d) {
         if (!dg.graph.isUpdating) { 
@@ -179,7 +181,7 @@ var startForceLayout = function() {
         .style("opacity", 1);
     node.transition()
         .duration(1000)
-        .style("fill", function(d) { return dg.heatmap(d); })
+        .style("fill", function(d) { return dg.color.heatmap(d); })
     svg.selectAll(".node .more")
         .transition()
         .duration(1000)
