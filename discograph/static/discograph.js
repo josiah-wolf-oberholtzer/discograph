@@ -75,6 +75,12 @@
 
     dg.handleNewGraphData = function(error, json) {
         if (error) return console.warn(error);
+        var id = json.center[0];
+        var name = json.nodes.filter(function(d) { 
+            return d.id == id;
+        })[0].name;
+        $(document).attr("body").id = id;
+        document.title = "Discograph: " + name;
         dg.graph.json = json;
         dg.updateForceLayout();
         dg.startForceLayout();
@@ -345,13 +351,6 @@
             .transition()
             .duration(250)
             .style("opacity", 0.333);
-        $(document).attr("body").id = id;
-        if (dg.graph.nodes.length) {
-            var artistName = dg.graph.nodes.filter(function(d) {
-                return d.id == id; }
-            )[0].name
-            document.title = "Discograph: " + artistName;
-        }
         d3.json(dg.graph.APIURL + id, dg.handleNewGraphData);
     }
 
