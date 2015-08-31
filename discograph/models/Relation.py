@@ -1,21 +1,30 @@
 import itertools
 import mongoengine
+from abjad.tools import datastructuretools
 from abjad.tools import systemtools
 from discograph.models.Model import Model
 
 
 class Relation(Model, mongoengine.Document):
 
+    ### CLASS VARIABLES ###
+
+    class EntityType(datastructuretools.Enumeration):
+        ARTIST = 1
+        LABEL = 2
+
     ### MONGOENGINE FIELDS ###
 
-    category = mongoengine.IntField()
     entity_one_id = mongoengine.IntField()
     entity_one_name = mongoengine.StringField()
+    entity_one_type = mongoengine.IntField()
     entity_two_id = mongoengine.IntField()
     entity_two_name = mongoengine.StringField()
-    release = mongoengine.ReferenceField('Release')
+    entity_two_type = mongoengine.IntField()
     role_name = mongoengine.StringField()
+    category = mongoengine.IntField()
     subcategory = mongoengine.IntField()
+    release_id = mongoengine.IntField()
     year = mongoengine.IntField()
 
     ### PRIVATE METHODS ###
@@ -45,7 +54,8 @@ class Relation(Model, mongoengine.Document):
             keyword_argument_names.remove('id')
         keyword_argument_callables = dict(
             category=models.ArtistRole.Category,
-            release=lambda x: x.title,
+            entity_one_type=self.EntityType,
+            entity_two_type=self.EntityType,
             subcategory=models.ArtistRole.Subcategory,
             )
         for keyword_argument_name in keyword_argument_names[:]:
@@ -61,17 +71,21 @@ class Relation(Model, mongoengine.Document):
     ### PUBLIC METHODS ###
 
     def save_if_unique(self):
-        query = self.objects(
+        query = type(self).objects(
             entity_one_id=self.entity_one_id,
+            entity_one_type=self.entity_one_type,
             entity_two_id=self.entity_two_id,
+            entity_two_type=self.entity_two_type,
             role_name=self.role_name,
             category=self.category,
             subcategory=self.subcategory,
-            release=self.release,
+            release_id=self.release_id,
             year=self.year,
             )
         if not query.count():
-            print(self.entity_one.name, self.role_name, self.entity_two.name)
+            print('    {!r} : {} : {!r}'.format(
+                self.entity_one_name, self.role_name, self.entity_two_name)
+                )
             self.save()
 
     @classmethod
@@ -79,17 +93,17 @@ class Relation(Model, mongoengine.Document):
         from discograph import models
         cls.drop_collection()
         for artist in models.Artist.objects:
+            print(artist.discogs_id, artist.name)
             for relation in cls.from_artist(artist):
                 relation.save_if_unique()
-            print(artist.discogs_id, artist.name)
         for label in models.Label.objects:
+            print(label.discogs_id, label.name)
             for relation in cls.from_label(label):
                 relation.save_if_unique()
-            print(label.discogs_id, label.name)
         for release in models.Release.objects:
+            print(release.discogs_id, release.title)
             for relation in cls.from_release(release):
                 relation.save_if_unique()
-            print(release.discogs_id, release.title)
 
     @classmethod
     def from_artist(cls, artist):
@@ -110,8 +124,10 @@ class Relation(Model, mongoengine.Document):
             relation = cls(
                 entity_one_id=artist_one.discogs_id,
                 entity_one_name=artist_one.name,
+                entity_one_type=cls.EntityType.ARTIST,
                 entity_two_id=artist_two.discogs_id,
                 entity_two_name=artist_two.name,
+                entity_two_type=cls.EntityType.ARTIST,
                 role_name=role_name,
                 category=category,
                 subcategory=subcategory,
@@ -124,8 +140,10 @@ class Relation(Model, mongoengine.Document):
             relation = cls(
                 entity_one_id=member.discogs_id,
                 entity_one_name=member.name,
+                entity_one_type=cls.EntityType.ARTIST,
                 entity_two_id=artist.discogs_id,
                 entity_two_name=artist.name,
+                entity_two_type=cls.EntityType.ARTIST,
                 role_name=role_name,
                 category=category,
                 subcategory=subcategory,
@@ -149,8 +167,10 @@ class Relation(Model, mongoengine.Document):
             relation = cls(
                 entity_one_id=sublabel.discogs_id,
                 entity_one_name=sublabel.name,
+                entity_one_type=cls.EntityType.LABEL,
                 entity_two_id=label.discogs_id,
                 entity_two_name=label.name,
+                entity_two_type=cls.EntityType.LABEL,
                 role_name=role_name,
                 category=category,
                 subcategory=subcategory,
@@ -171,12 +191,14 @@ class Relation(Model, mongoengine.Document):
             relation = cls(
                 entity_one_id=artist.discogs_id,
                 entity_one_name=artist.name,
+                entity_one_type=cls.EntityType.ARTIST,
                 entity_two_id=label.discogs_id,
                 entity_two_name=label.name,
+                entity_two_type=cls.EntityType.LABEL,
                 role_name=role_name,
                 category=category,
                 subcategory=subcategory,
-                release=release,
+                release_id=release.discogs_id,
                 year=year,
                 )
             relations.append(relation)
@@ -198,17 +220,3 @@ class Relation(Model, mongoengine.Document):
             x.entity_two_id,
             ))
         return relations
-
-    ### PUBLIC PROPERTIES ###
-
-    @property
-    def entity_one_type(self):
-        if self.role_name == 'Sublabel Of':
-            return 'Label'
-        return 'Artist'
-
-    @property
-    def entity_two_type(self):
-        if self.role_name in ('Sublabel Of', 'Released On'):
-            return 'Label'
-        return 'Artist'

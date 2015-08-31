@@ -29,15 +29,19 @@ class Test(unittest.TestCase):
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
                 entity_one_name='Seasons Classics',
+                entity_one_type=discograph.models.Relation.EntityType.LABEL,
                 entity_two_id=3,
                 entity_two_name='Seasons Recordings',
+                entity_two_type=discograph.models.Relation.EntityType.LABEL,
                 role_name='Sublabel Of',
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
                 entity_one_name='Seasons Limited',
+                entity_one_type=discograph.models.Relation.EntityType.LABEL,
                 entity_two_id=3,
                 entity_two_name='Seasons Recordings',
+                entity_two_type=discograph.models.Relation.EntityType.LABEL,
                 role_name='Sublabel Of',
                 )
             ''')

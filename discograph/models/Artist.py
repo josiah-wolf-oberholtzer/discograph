@@ -29,6 +29,7 @@ class Artist(Model, mongoengine.Document):
             'discogs_id',
             'name',
             ],
+        'ordering': ['+discogs_id'],
         }
 
     ### PRIVATE PROPERTIES ###

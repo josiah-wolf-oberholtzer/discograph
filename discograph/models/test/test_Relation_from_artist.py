@@ -31,56 +31,70 @@ class Test(unittest.TestCase):
                 category=discograph.models.ArtistRole.Category.RELATION,
                 entity_one_id=2,
                 entity_one_name='Mr. James Barth & A.D.',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
                 entity_two_id=100000000,
                 entity_two_name='ADCL',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
                 entity_one_id=2,
                 entity_one_name='Mr. James Barth & A.D.',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
                 entity_two_id=100000001,
                 entity_two_name='Alexi Delano & Cari Lekebusch',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
                 entity_one_id=2,
                 entity_one_name='Mr. James Barth & A.D.',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
                 entity_two_id=100000002,
                 entity_two_name='Crushed Insect & The Sick Puppy',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
                 entity_one_id=2,
                 entity_one_name='Mr. James Barth & A.D.',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
                 entity_two_id=100000003,
                 entity_two_name='Puente Latino',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
                 entity_one_id=2,
                 entity_one_name='Mr. James Barth & A.D.',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
                 entity_two_id=100000004,
                 entity_two_name='Yakari & Delano',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
                 entity_one_id=26,
                 entity_one_name='Alexi Delano',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
                 entity_two_id=2,
                 entity_two_name='Mr. James Barth & A.D.',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 role_name='Member Of',
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
                 entity_one_id=27,
                 entity_one_name='Cari Lekebusch',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
                 entity_two_id=2,
                 entity_two_name='Mr. James Barth & A.D.',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 role_name='Member Of',
                 )
             ''')

@@ -27,8 +27,10 @@ class Test(unittest.TestCase):
                 category=discograph.models.ArtistRole.Category.RELATION,
                 entity_one_id=1,
                 entity_one_name='Persuader, The',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
                 entity_two_name='Svek',
-                release='Stockholm',
+                entity_two_type=discograph.models.Relation.EntityType.LABEL,
+                release_id=1,
                 role_name='Released On',
                 year=1999,
                 )

@@ -50,6 +50,7 @@ class Release(Model, mongoengine.Document):
             'title',
             '$title',
             ],
+        'ordering': ['+discogs_id'],
         }
 
     ### PUBLIC METHODS ###
