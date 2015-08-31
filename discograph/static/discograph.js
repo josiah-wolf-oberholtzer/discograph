@@ -14,6 +14,8 @@
 
     dg.graph = {
         APIURL: "/api/artist/network/",
+        cache: d3.map(),
+        cacheHistory: [],
         centerNodeID: null,
         dimensions: [0, 0],
         isUpdating: false,
@@ -76,6 +78,13 @@
     dg.handleNewGraphData = function(error, json) {
         if (error) return console.warn(error);
         var id = json.center[0];
+        if (!dg.graph.cache.has(id)) {
+            dg.graph.cache.set(id, JSON.parse(JSON.stringify(json)));
+            dg.graph.cacheHistory.push(id);
+            if (50 <= dg.graph.cache.size()) {
+                dg.graph.cache.remove(dg.graph.cacheHistory.shift()); 
+            }
+        }
         var name = json.nodes.filter(function(d) { 
             return d.id == id;
         })[0].name;
@@ -351,7 +360,12 @@
             .transition()
             .duration(250)
             .style("opacity", 0.333);
-        d3.json(dg.graph.APIURL + id, dg.handleNewGraphData);
+        if (dg.graph.cache.has(id)) {
+            var json = JSON.parse(JSON.stringify(dg.graph.cache.get(id)));
+            dg.handleNewGraphData(null, json);
+        } else {
+            d3.json(dg.graph.APIURL + id, dg.handleNewGraphData);
+        }
     }
 
     /* INITIALIZATION */
