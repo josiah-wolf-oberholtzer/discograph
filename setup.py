@@ -9,7 +9,6 @@ if __name__ == '__main__':
         author_email='josiah.oberholtzer@gmail.com',
         install_requires=[
             'abjad',
-            'extras-mongoengine',
             'flask',
             'mongoengine',
             'pytest',
