@@ -98,6 +98,20 @@
             .filter(".node" + dg.graph.selectedNodeID)
             .select(".halo")
             .style("fill-opacity", 0.1);
+        dg.graph.nodeSelection
+            .filter("*:not(.node" + dg.graph.selectedNodeID + ")")
+            .style("stroke", "#fff");
+        dg.graph.nodeSelection
+            .filter("*:not(.node" + dg.graph.selectedNodeID + ")")
+            .select(".more")
+            .style("fill", "#fff");
+        dg.graph.nodeSelection
+            .filter(".node" + dg.graph.selectedNodeID)
+            .style("stroke", "#000");
+        dg.graph.nodeSelection
+            .filter(".node" + dg.graph.selectedNodeID)
+            .select(".more")
+            .style("fill", "#000");
         dg.graph.textSelection
             .filter(".node" + dg.graph.selectedNodeID)
             .moveToFront();
