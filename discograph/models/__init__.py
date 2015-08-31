@@ -8,4 +8,5 @@ from discograph.models.Label import Label
 from discograph.models.LabelCredit import LabelCredit
 from discograph.models.Master import Master
 from discograph.models.Release import Release
+from discograph.models.Relation import Relation
 from discograph.models.Track import Track

@@ -66,20 +66,6 @@ class Artist(Model, mongoengine.Document):
                     artist_document.name,
                     ))
 
-    def extract_relations(self):
-        from discograph import models
-        relations = []
-        if not self.members:
-            return relations
-        for member in self.members:
-            relation = models.ArtistArtistRelation(
-                artist_one=member,
-                artist_two=self,
-                role='Member',
-                )
-            relations.append(relation)
-        return relations
-
     @classmethod
     def from_id_and_name(cls, discogs_id, name):
         index = [('discogs_id', 1)]
