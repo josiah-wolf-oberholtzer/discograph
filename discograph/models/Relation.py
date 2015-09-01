@@ -24,6 +24,7 @@ class Relation(Model, mongoengine.Document):
     role_name = mongoengine.StringField()
     category = mongoengine.IntField()
     subcategory = mongoengine.IntField(null=True)
+    is_trivial = mongoengine.BooleanField()
     release_id = mongoengine.IntField(null=True)
     year = mongoengine.IntField(null=True)
 
@@ -124,15 +125,6 @@ class Relation(Model, mongoengine.Document):
                 relation.save_if_unique()
 
     @classmethod
-    def instantiate_relations(cls, relations):
-        relations = set(tuple(_.items()) for _ in relations)
-        relations = [cls(**dict(_)) for _ in relations]
-        relations.sort(
-            key=lambda x: (x.role_name, x.entity_one_id, x.entity_two_id),
-            )
-        return relations
-
-    @classmethod
     def from_artist(cls, artist):
         from discograph import models
         relations = []
@@ -177,7 +169,12 @@ class Relation(Model, mongoengine.Document):
                 subcategory=subcategory,
                 )
             relations.append(relation)
-        return cls.instantiate_relations(relations)
+        relations = set(tuple(_.items()) for _ in relations)
+        relations = [cls(**dict(_)) for _ in relations]
+        relations.sort(
+            key=lambda x: (x.role_name, x.entity_one_id, x.entity_two_id),
+            )
+        return relations
 
     @classmethod
     def from_label(cls, label):
@@ -204,7 +201,12 @@ class Relation(Model, mongoengine.Document):
                 subcategory=subcategory,
                 )
             relations.append(relation)
-        return cls.instantiate_relations(relations)
+        relations = set(tuple(_.items()) for _ in relations)
+        relations = [cls(**dict(_)) for _ in relations]
+        relations.sort(
+            key=lambda x: (x.role_name, x.entity_one_id, x.entity_two_id),
+            )
+        return relations
 
     @classmethod
     def from_artists_and_labels(cls, artists, labels, release, year=None):
@@ -246,4 +248,13 @@ class Relation(Model, mongoengine.Document):
             year = release.release_date.year
         relations.extend(cls.from_artists_and_labels(
             artists, labels, release, year))
-        return cls.instantiate_relations(relations)
+        relations = set(tuple(_.items()) for _ in relations)
+        relations = [cls(**dict(_)) for _ in relations]
+        relations.sort(
+            key=lambda x: (x.role_name, x.entity_one_id, x.entity_two_id),
+            )
+        # TODO: test for triviality:
+        #   entity 1 is entity 2
+        #   entity 1 is member of entity 2
+        #   entity 1 is alias of entity 2
+        return relations
