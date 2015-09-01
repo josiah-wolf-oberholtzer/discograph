@@ -96,12 +96,13 @@ class Relation(Model, mongoengine.Document):
             entity_two_id=self.entity_two_id,
             entity_two_type=self.entity_two_type,
             role_name=self.role_name,
-            category=self.category,
-            subcategory=self.subcategory,
             release_id=self.release_id,
-            year=self.year,
             )
-        if not query.count():
+        if query.count():
+            print('    SKIPPING {!r} : {} : {!r}'.format(
+                self.entity_one_name, self.role_name, self.entity_two_name)
+                )
+        else:
             print('    {!r} : {} : {!r}'.format(
                 self.entity_one_name, self.role_name, self.entity_two_name)
                 )
@@ -127,10 +128,7 @@ class Relation(Model, mongoengine.Document):
     @classmethod
     def from_artist(cls, artist):
         from discograph import models
-        relations = []
-        role_name = 'Alias'
-        assert role_name in models.ArtistRole._available_credit_roles
-        category, subcategory = cls._get_categories(role_name)
+        triples = set()
         for alias in artist.aliases:
             query = models.Artist.objects(name=alias)
             query = query.hint([('name', 'hashed')])
@@ -141,39 +139,12 @@ class Relation(Model, mongoengine.Document):
                 [artist, alias],
                 key=lambda x: x.discogs_id,
                 )
-            relation = dict(
-                entity_one_id=artist_one.discogs_id,
-                entity_one_name=artist_one.name,
-                entity_one_type=cls.EntityType.ARTIST,
-                entity_two_id=artist_two.discogs_id,
-                entity_two_name=artist_two.name,
-                entity_two_type=cls.EntityType.ARTIST,
-                role_name=role_name,
-                category=category,
-                subcategory=subcategory,
-                )
-            relations.append(relation)
-        role_name = 'Member Of'
-        assert role_name in models.ArtistRole._available_credit_roles
-        category, subcategory = cls._get_categories(role_name)
+            triples.add((artist_one, 'Alias', artist_two))
         for member in artist.members:
-            relation = dict(
-                entity_one_id=member.discogs_id,
-                entity_one_name=member.name,
-                entity_one_type=cls.EntityType.ARTIST,
-                entity_two_id=artist.discogs_id,
-                entity_two_name=artist.name,
-                entity_two_type=cls.EntityType.ARTIST,
-                role_name=role_name,
-                category=category,
-                subcategory=subcategory,
-                )
-            relations.append(relation)
-        relations = set(tuple(_.items()) for _ in relations)
-        relations = [cls(**dict(_)) for _ in relations]
-        relations.sort(
-            key=lambda x: (x.role_name, x.entity_one_id, x.entity_two_id),
-            )
+            triples.add((member, 'Member Of', artist))
+        key_function = lambda x: (x[0].discogs_id, x[1], x[2].discogs_id)
+        triples = sorted(triples, key=key_function)
+        relations = cls.from_triples(triples)
         return relations
 
     @classmethod
@@ -184,8 +155,8 @@ class Relation(Model, mongoengine.Document):
         for sublabel in label.sublabels:
             if not sublabel.discogs_id:
                 continue
-            triples.add((sublabel, label, 'Sublabel Of'))
-        key_function = lambda x: (x[0].discogs_id, x[1].discogs_id, x[2])
+            triples.add((sublabel, 'Sublabel Of', label))
+        key_function = lambda x: (x[0].discogs_id, x[1], x[2].discogs_id)
         triples = sorted(triples, key=key_function)
         relations = cls.from_triples(triples)
         return relations
@@ -199,7 +170,7 @@ class Relation(Model, mongoengine.Document):
             release_id = release.discogs_id
             if release.release_date is not None:
                 year = release.release_date.year
-        for entity_one, entity_two, role_name in triples:
+        for entity_one, role_name, entity_two in triples:
             entity_one_type = cls.EntityType.ARTIST
             if isinstance(entity_one, models.Label):
                 entity_one_type = cls.EntityType.LABEL
@@ -208,7 +179,10 @@ class Relation(Model, mongoengine.Document):
                 entity_two_type = cls.EntityType.LABEL
             category, subcategory = cls._get_categories(role_name)
             is_trivial = None
-            if entity_one_type == entity_two_type == cls.EntityType.ARTIST:
+            if (
+                entity_one_type == entity_two_type == cls.EntityType.ARTIST and
+                role_name not in ('Member Of', 'Alias')
+                ):
                 if entity_one.discogs_id == entity_two.discogs_id:
                     is_trivial = True
                 if entity_one in entity_two.members:
@@ -248,13 +222,31 @@ class Relation(Model, mongoengine.Document):
             for track in release.tracklist:
                 artists.update(credit.artist for credit in track.artists)
 
+        for format_ in release.formats:
+            for description in format_.descriptions:
+                if description == 'Compilation':
+                    is_compilation = True
+                    break
+
         labels = set(_.label for _ in release.labels)
         triples = set()
 
+        # Handle Artist-Label release relations.
         iterator = itertools.product(artists, labels)
         for artist, label in iterator:
-            triples.add((artist, label, 'Released On'))
+            triples.add((artist, 'Released On', label))
 
+        # TODO: Filter out "Hosted By", "Presenter", "DJ Mix", "Compiled By"
+        aggregate_roles = {}
+        aggregate_role_names = (
+            'Compiled By',
+            'Curated By',
+            'DJ Mix',
+            'Hosted By',
+            'Presenter',
+            )
+
+        # Handle release-global extra artists.
         if is_compilation:
             iterator = itertools.product(labels, release.extra_artists)
         else:
@@ -265,10 +257,19 @@ class Relation(Model, mongoengine.Document):
                 role_name = role.name
                 if role_name not in models.ArtistRole._available_credit_roles:
                     continue
-                triples.add((extra_artist, entity_two, role_name))
+                elif role_name in aggregate_role_names:
+                    if role_name not in aggregate_roles:
+                        aggregate_roles[role_name] = set()
+                    aggregate_roles[role_name].add(extra_artist)
+                    continue
+                triples.add((entity_two, role_name, extra_artist))
 
+        # Handle extra artists on individual tracks.
+        all_track_artists = set()
         for track in release.tracklist:
-            track_artists = track.artists or artists or labels
+            all_track_artists.update(_.artist for _ in track.artists)
+            track_artists = set(_.artist for _ in track.artists)
+            track_artists = track_artists or artists or labels
             iterator = itertools.product(track_artists, track.extra_artists)
             for entity_two, credit in iterator:
                 extra_artist = credit.artist
@@ -276,14 +277,20 @@ class Relation(Model, mongoengine.Document):
                     role_name = role.name
                     if role_name not in models.ArtistRole._available_credit_roles:
                         continue
-                    triples.add((extra_artist, entity_two, role_name))
+                    triples.add((entity_two, role_name, extra_artist))
+
+        # Handle aggregate artists (DJ, Compiler, Curator, Presenter, etc.)
+        for role_name, aggregate_artists in aggregate_roles.items():
+            iterator = itertools.product(all_track_artists, aggregate_artists)
+            for track_artist, aggregate_artist in iterator:
+                triples.add((track_artist, role_name, aggregate_artist))
 
         key_function = lambda x: (
             getattr(x[0], 'discogs_id', 0) or 0,
-            getattr(x[1], 'discogs_id', 0) or 0,
-            x[2],
+            getattr(x[2], 'discogs_id', 0) or 0,
+            x[1],
             x[0].name,
-            x[1].name,
+            x[2].name,
             )
         triples = sorted(triples, key=key_function)
         relations = cls.from_triples(triples, release=release)

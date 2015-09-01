@@ -41,11 +41,11 @@ class Test(unittest.TestCase):
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.WRITING_AND_ARRANGEMENT,
-                entity_one_id=239,
-                entity_one_name='Jesper Dahlbäck',
+                entity_one_id=1,
+                entity_one_name='Persuader, The',
                 entity_one_type=discograph.models.Relation.EntityType.ARTIST,
-                entity_two_id=1,
-                entity_two_name='Persuader, The',
+                entity_two_id=239,
+                entity_two_name='Jesper Dahlbäck',
                 entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 release_id=1,
                 role_name='Music By',
@@ -368,11 +368,11 @@ class Test(unittest.TestCase):
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.INSTRUMENTS,
-                entity_one_id=25,
-                entity_one_name='Tetsu Inoue',
+                entity_one_id=22,
+                entity_one_name='Datacide',
                 entity_one_type=discograph.models.Relation.EntityType.ARTIST,
-                entity_two_id=22,
-                entity_two_name='Datacide',
+                entity_two_id=25,
+                entity_two_name='Tetsu Inoue',
                 entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 release_id=5,
                 role_name='Performer',
@@ -381,11 +381,11 @@ class Test(unittest.TestCase):
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.VOCAL,
-                entity_one_id=415403,
-                entity_one_name='Ingrid Baier',
+                entity_one_id=22,
+                entity_one_name='Datacide',
                 entity_one_type=discograph.models.Relation.EntityType.ARTIST,
-                entity_two_id=22,
-                entity_two_name='Datacide',
+                entity_two_id=415403,
+                entity_two_name='Ingrid Baier',
                 entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 release_id=5,
                 role_name='Voice',
@@ -393,11 +393,11 @@ class Test(unittest.TestCase):
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.INSTRUMENTS,
-                entity_one_id=519207,
-                entity_one_name='Uwe Schmidt',
+                entity_one_id=22,
+                entity_one_name='Datacide',
                 entity_one_type=discograph.models.Relation.EntityType.ARTIST,
-                entity_two_id=22,
-                entity_two_name='Datacide',
+                entity_two_id=519207,
+                entity_two_name='Uwe Schmidt',
                 entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 release_id=5,
                 role_name='Performer',
@@ -406,11 +406,11 @@ class Test(unittest.TestCase):
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.VISUAL,
-                entity_one_id=539207,
-                entity_one_name='Linger Decoree',
+                entity_one_id=22,
+                entity_one_name='Datacide',
                 entity_one_type=discograph.models.Relation.EntityType.ARTIST,
-                entity_two_id=22,
-                entity_two_name='Datacide',
+                entity_two_id=539207,
+                entity_two_name='Linger Decoree',
                 entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 release_id=5,
                 role_name='Cover',
@@ -418,15 +418,439 @@ class Test(unittest.TestCase):
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.VISUAL,
-                entity_one_id=539207,
-                entity_one_name='Linger Decoree',
+                entity_one_id=22,
+                entity_one_name='Datacide',
                 entity_one_type=discograph.models.Relation.EntityType.ARTIST,
-                entity_two_id=22,
-                entity_two_name='Datacide',
+                entity_two_id=539207,
+                entity_two_name='Linger Decoree',
                 entity_two_type=discograph.models.Relation.EntityType.ARTIST,
                 release_id=5,
                 role_name='Design',
                 year=1995,
                 )
             ''')
+        assert actual == expected
+
+    def test_04(self):
+        source = stringtools.normalize(r"""
+            <?xml version="1.0" ?>
+            <release id="36" status="Accepted">
+                <artists>
+                    <artist>
+                        <id>64</id>
+                        <name>Christopher Lawrence</name>
+                        <anv/>
+                        <join/>
+                        <role/>
+                        <tracks/>
+                    </artist>
+                </artists>
+                <title>Trilogy, Part One: Empire</title>
+                <labels>
+                    <label catno="MM 80123-2" name="Moonshine Music"/>
+                </labels>
+                <extraartists>
+                    <artist>
+                        <id>64</id>
+                        <name>Christopher Lawrence</name>
+                        <anv/>
+                        <join/>
+                        <role>DJ Mix</role>
+                        <tracks/>
+                    </artist>
+                </extraartists>
+                <formats>
+                    <format name="CD" qty="1" text="">
+                        <descriptions>
+                            <description>Compilation</description>
+                            <description>Mixed</description>
+                        </descriptions>
+                    </format>
+                </formats>
+                <genres>
+                    <genre>Electronic</genre>
+                </genres>
+                <styles>
+                    <style>Trance</style>
+                </styles>
+                <country>US</country>
+                <released>2000-00-00</released>
+                <notes>This compilation ℗ © 2000 Moonshine Music
+            Made in the USA.
+            </notes>
+                <data_quality>Correct</data_quality>
+                <tracklist>
+                    <track>
+                        <position>1</position>
+                        <title>Persuasion (Animated Mix)</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>65</id>
+                                <name>Animated Rhythm</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                    </track>
+                    <track>
+                        <position>2</position>
+                        <title>Eterna</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>66</id>
+                                <name>Christian West</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                    </track>
+                    <track>
+                        <position>3</position>
+                        <title>Implode</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>67</id>
+                                <name>Cassidy</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                    </track>
+                    <track>
+                        <position>4</position>
+                        <title>Slowburn</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>222489</id>
+                                <name>Icon (9)</name>
+                                <anv/>
+                                <join>Featuring</join>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                            <artist>
+                                <id>36400</id>
+                                <name>DJ Oberon</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                        <extraartists>
+                            <artist>
+                                <id>36400</id>
+                                <name>DJ Oberon</name>
+                                <anv/>
+                                <join/>
+                                <role>Featuring</role>
+                                <tracks/>
+                            </artist>
+                        </extraartists>
+                    </track>
+                    <track>
+                        <position>5</position>
+                        <title>Colossus</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>69</id>
+                                <name>Sound System, The</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                    </track>
+                    <track>
+                        <position>6</position>
+                        <title>Rhythm Of Life (Trance Mix)</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>70</id>
+                                <name>Secret, The</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                    </track>
+                    <track>
+                        <position>7</position>
+                        <title>Hard Work</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>71</id>
+                                <name>Baby Doc</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                    </track>
+                    <track>
+                        <position>8</position>
+                        <title>Renegade</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>64</id>
+                                <name>Christopher Lawrence</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                    </track>
+                    <track>
+                        <position>9</position>
+                        <title>Twin Town</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>4210</id>
+                                <name>Ian Wilkie</name>
+                                <anv/>
+                                <join>Vs.</join>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                            <artist>
+                                <id>1014</id>
+                                <name>Timo Maas</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                    </track>
+                    <track>
+                        <position>10</position>
+                        <title>Bubble &amp; Squeak</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>71</id>
+                                <name>Baby Doc</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                    </track>
+                    <track>
+                        <position>11</position>
+                        <title>Rush Hour</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>64</id>
+                                <name>Christopher Lawrence</name>
+                                <anv/>
+                                <join/>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                    </track>
+                </tracklist>
+                <identifiers>
+                    <identifier type="Barcode" value="785688012322"/>
+                </identifiers>
+                <companies/>
+            </release>
+            """)
+        release_element = ElementTree.fromstring(source)
+        release_document = models.Release.from_element(release_element)
+        relations = models.Relation.from_release(release_document)
+        actual = '\n'.join(format(_) for _ in relations)
+        expected = stringtools.normalize(r"""
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.RELATION,
+                entity_one_id=64,
+                entity_one_name='Christopher Lawrence',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_name='Moonshine Music',
+                entity_two_type=discograph.models.Relation.EntityType.LABEL,
+                release_id=36,
+                role_name='Released On',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=64,
+                entity_one_name='Christopher Lawrence',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                is_trivial=True,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=65,
+                entity_one_name='Animated Rhythm',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=66,
+                entity_one_name='Christian West',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=67,
+                entity_one_name='Cassidy',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=69,
+                entity_one_name='Sound System, The',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=70,
+                entity_one_name='Secret, The',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=71,
+                entity_one_name='Baby Doc',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=1014,
+                entity_one_name='Timo Maas',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=4210,
+                entity_one_name='Ian Wilkie',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=36400,
+                entity_one_name='DJ Oberon',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.FEATURING_AND_PRESENTING,
+                entity_one_id=36400,
+                entity_one_name='DJ Oberon',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=36400,
+                entity_two_name='DJ Oberon',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                is_trivial=True,
+                release_id=36,
+                role_name='Featuring',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.DJ_MIX,
+                entity_one_id=222489,
+                entity_one_name='Icon (9)',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=64,
+                entity_two_name='Christopher Lawrence',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='DJ Mix',
+                year=2000,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.FEATURING_AND_PRESENTING,
+                entity_one_id=222489,
+                entity_one_name='Icon (9)',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=36400,
+                entity_two_name='DJ Oberon',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=36,
+                role_name='Featuring',
+                year=2000,
+                )
+            """)
         assert actual == expected

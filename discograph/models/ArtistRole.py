@@ -73,7 +73,7 @@ class ArtistRole(Model, mongoengine.EmbeddedDocument):
         "Words By": (Category.WRITING_AND_ARRANGEMENT,),
         "Written-By": (Category.WRITING_AND_ARRANGEMENT,),
 
-        "Featuring": (Category.FEATURING_AND_PRESENTING),
+        "Featuring": (Category.FEATURING_AND_PRESENTING,),
         "Hosted By": (Category.FEATURING_AND_PRESENTING,),
         "Presenter": (Category.FEATURING_AND_PRESENTING,),
 
