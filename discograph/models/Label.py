@@ -23,7 +23,6 @@ class Label(Model, mongoengine.Document):
             'name',
             '$name',
             ],
-        'ordering': ['+discogs_id'],
         }
 
     ### PRIVATE PROPERTIES ###

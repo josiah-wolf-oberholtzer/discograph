@@ -23,9 +23,27 @@ class Relation(Model, mongoengine.Document):
     entity_two_type = mongoengine.IntField()
     role_name = mongoengine.StringField()
     category = mongoengine.IntField()
-    subcategory = mongoengine.IntField()
-    release_id = mongoengine.IntField()
-    year = mongoengine.IntField()
+    subcategory = mongoengine.IntField(null=True)
+    release_id = mongoengine.IntField(null=True)
+    year = mongoengine.IntField(null=True)
+
+    ### MONOGENGINE META ###
+
+    meta = {
+        'indexes': [
+            '#entity_one_name',
+            '#entity_two_name',
+            '#role_name',
+            'category',
+            'entity_one_id',
+            'entity_one_type',
+            'entity_two_id',
+            'entity_two_type',
+            'release_id',
+            'subcategory',
+            'year',
+            ]
+        }
 
     ### PRIVATE METHODS ###
 
@@ -114,6 +132,7 @@ class Relation(Model, mongoengine.Document):
         category, subcategory = cls._get_categories(role_name)
         for alias in artist.aliases:
             query = models.Artist.objects(name=alias)
+            query = query.hint([('name', 'hashed')])
             if not query.count():
                 continue
             alias = query.first()
