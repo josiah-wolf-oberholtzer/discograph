@@ -114,10 +114,10 @@ class Relation(Model, mongoengine.Document):
         #    print(artist.discogs_id, artist.name)
         #    for relation in cls.from_artist(artist):
         #        relation.save_if_unique()
-        for label in models.Label.objects:
-            print(label.discogs_id, label.name)
-            for relation in cls.from_label(label):
-                relation.save_if_unique()
+        #for label in models.Label.objects:
+        #    print(label.discogs_id, label.name)
+        #    for relation in cls.from_label(label):
+        #        relation.save_if_unique()
         for release in models.Release.objects:
             print(release.discogs_id, release.title)
             for relation in cls.from_release(release):
@@ -230,8 +230,16 @@ class Relation(Model, mongoengine.Document):
     @classmethod
     def from_release(cls, release):
         relations = []
-        artists = set(_.artist for _ in release.artists)
-        labels = set(_.label for _ in release.labels)
+        artists = set(credit.artist for credit in release.artists)
+        if len(artists) == 1 and list(artists)[0].name == 'Various':
+            artists.clear()
+            for track in release.tracklist:
+                artists.update(credit.artist for credit in track.artists)
+        artists = sorted(artists, key=lambda x: x.discogs_id)
+        labels = sorted(
+            set(_.label for _ in release.labels),
+            key=lambda x: x.discogs_id,
+            )
         year = None
         if release.release_date is not None:
             year = release.release_date.year
