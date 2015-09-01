@@ -10,6 +10,8 @@ class ArtistCredit(Model, mongoengine.EmbeddedDocument):
 
     anv = mongoengine.StringField()
     artist = mongoengine.ReferenceField('Artist')
+    name = mongoengine.StringField()
+    discogs_id = mongoengine.IntField()
     join = mongoengine.StringField()
     roles = mongoengine.EmbeddedDocumentListField('ArtistRole')
     tracks = mongoengine.StringField()
@@ -22,8 +24,6 @@ class ArtistCredit(Model, mongoengine.EmbeddedDocument):
         data = cls.tags_to_fields(element)
         name = data['name']
         discogs_id = data['discogs_id']
-        del(data['name'])
-        del(data['discogs_id'])
         data['artist'] = models.Artist.from_id_and_name(discogs_id, name)
         document = cls(**data)
         return document
