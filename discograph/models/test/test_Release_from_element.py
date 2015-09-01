@@ -1359,3 +1359,278 @@ class Test(unittest.TestCase):
                 )
             """)
         assert actual == expected
+
+    @unittest.skip("Subtracks not yet implemented.")
+    def test_05(self):
+        source = stringtools.normalize(r"""
+            <?xml version="1.0" ?>
+            <release id="4876850" status="Accepted">
+                <artists>
+                    <artist>
+                        <id>194</id>
+                        <name>Various</name>
+                        <anv/>
+                        <join/>
+                        <role/>
+                        <tracks/>
+                    </artist>
+                </artists>
+                <title>Contempuls 2008_09_10</title>
+                <labels>
+                    <label catno="none" name="His Voice"/>
+                </labels>
+                <extraartists/>
+                <formats>
+                    <format name="CD" qty="1" text="">
+                        <descriptions>
+                            <description>Compilation</description>
+                            <description>Promo</description>
+                        </descriptions>
+                    </format>
+                </formats>
+                <genres>
+                    <genre>Classical</genre>
+                </genres>
+                <styles>
+                    <style>Contemporary</style>
+                </styles>
+                <country>Czech Republic</country>
+                <released>2011</released>
+                <data_quality>Needs Vote</data_quality>
+                <tracklist>
+                    <track>
+                        <position>1</position>
+                        <title>Sahaf</title>
+                        <duration>6:56</duration>
+                        <artists>
+                            <artist>
+                                <id>866840</id>
+                                <name>Chaya Czernowin</name>
+                                <anv/>
+                                <join>,</join>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                        <extraartists>
+                            <artist>
+                                <id>3446612</id>
+                                <name>Ensemble Nikel</name>
+                                <anv/>
+                                <join/>
+                                <role>Performer</role>
+                                <tracks/>
+                            </artist>
+                        </extraartists>
+                    </track>
+                    <track>
+                        <position>2</position>
+                        <title>Solipse</title>
+                        <duration>12:22</duration>
+                        <artists>
+                            <artist>
+                                <id>14563</id>
+                                <name>Rolf Gehlhaar</name>
+                                <anv/>
+                                <join>,</join>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                        <extraartists>
+                            <artist>
+                                <id>214409</id>
+                                <name>Rohan De Saram</name>
+                                <anv/>
+                                <join/>
+                                <role>Performer</role>
+                                <tracks/>
+                            </artist>
+                        </extraartists>
+                    </track>
+                    <track>
+                        <position>3</position>
+                        <title>Magnitudo 9.0</title>
+                        <duration>8:56</duration>
+                        <artists>
+                            <artist>
+                                <id>3063233</id>
+                                <name>Miroslav Srnka</name>
+                                <anv/>
+                                <join>,</join>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                        <extraartists>
+                            <artist>
+                                <id>488584</id>
+                                <name>Klangforum Wien</name>
+                                <anv/>
+                                <join/>
+                                <role>Performer</role>
+                                <tracks/>
+                            </artist>
+                        </extraartists>
+                    </track>
+                    <track>
+                        <position/>
+                        <title>String Quartet No. I</title>
+                        <duration/>
+                        <artists>
+                            <artist>
+                                <id>1032912</id>
+                                <name>Peter Graham</name>
+                                <anv/>
+                                <join>,</join>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                        <extraartists>
+                            <artist>
+                                <id>645741</id>
+                                <name>Arditti Quartet</name>
+                                <anv>Arditti String Quartet</anv>
+                                <join/>
+                                <role>Ensemble</role>
+                                <tracks/>
+                            </artist>
+                        </extraartists>
+                        <sub_tracks>
+                            <track>
+                                <position>4</position>
+                                <title>I. Velmi Koncentrovaně, Tiše A Jemně</title>
+                                <duration>3:34</duration>
+                            </track>
+                            <track>
+                                <position>5</position>
+                                <title>II. Jako V Horečce</title>
+                                <duration>2:15</duration>
+                            </track>
+                            <track>
+                                <position>6</position>
+                                <title>III. Chladně A Nezúčastněně</title>
+                                <duration>3:33</duration>
+                            </track>
+                            <track>
+                                <position>7</position>
+                                <title>IV. Bez Zábran</title>
+                                <duration>7:28</duration>
+                            </track>
+                        </sub_tracks>
+                    </track>
+                    <track>
+                        <position>8</position>
+                        <title>Saxophone Quartet</title>
+                        <duration>10:12</duration>
+                        <artists>
+                            <artist>
+                                <id>1661795</id>
+                                <name>Luboš Mrkvička</name>
+                                <anv/>
+                                <join>,</join>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                        <extraartists>
+                            <artist>
+                                <id>714983</id>
+                                <name>Xasax</name>
+                                <anv>Xasax Saxophone Quartet</anv>
+                                <join/>
+                                <role>Performer</role>
+                                <tracks/>
+                            </artist>
+                        </extraartists>
+                    </track>
+                    <track>
+                        <position>9</position>
+                        <title>Just Before</title>
+                        <duration>11:51</duration>
+                        <artists>
+                            <artist>
+                                <id>657909</id>
+                                <name>Michel van der Aa</name>
+                                <anv/>
+                                <join>,</join>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                        <extraartists>
+                            <artist>
+                                <id>3446610</id>
+                                <name>Emanuele Torquati</name>
+                                <anv/>
+                                <join/>
+                                <role>Performer</role>
+                                <tracks/>
+                            </artist>
+                        </extraartists>
+                    </track>
+                    <track>
+                        <position>10</position>
+                        <title>...Your Heart Stops... You Continue Writing</title>
+                        <duration>12:37</duration>
+                        <artists>
+                            <artist>
+                                <id>1366191</id>
+                                <name>Michal Nejtek</name>
+                                <anv/>
+                                <join>,</join>
+                                <role/>
+                                <tracks/>
+                            </artist>
+                        </artists>
+                        <extraartists>
+                            <artist>
+                                <id>2182382</id>
+                                <name>Michel Swierczewski</name>
+                                <anv/>
+                                <join/>
+                                <role>Conductor [Dir.]</role>
+                                <tracks/>
+                            </artist>
+                            <artist>
+                                <id>3446611</id>
+                                <name>Prague Modern</name>
+                                <anv/>
+                                <join/>
+                                <role>Performer</role>
+                                <tracks/>
+                            </artist>
+                        </extraartists>
+                    </track>
+                </tracklist>
+                <identifiers>
+                    <identifier type="Matrix / Runout" value="Contempuls Sampler"/>
+                    <identifier type="Rights Society" value="osa"/>
+                </identifiers>
+                <companies>
+                    <company>
+                        <id>481713</id>
+                        <name>Hudební Informační Středisko, o. p. s.</name>
+                        <catno/>
+                        <entity_type>13</entity_type>
+                        <entity_type_name>Phonographic Copyright (p)</entity_type_name>
+                        <resource_url>http://api.discogs.com/labels/481713</resource_url>
+                    </company>
+                    <company>
+                        <id>481713</id>
+                        <name>Hudební Informační Středisko, o. p. s.</name>
+                        <catno/>
+                        <entity_type>14</entity_type>
+                        <entity_type_name>Copyright (c)</entity_type_name>
+                        <resource_url>http://api.discogs.com/labels/481713</resource_url>
+                    </company>
+                </companies>
+            </release>
+            """)
+        release_element = ElementTree.fromstring(source)
+        release_document = models.Release.from_element(release_element)
+        actual = format(release_document)
+        expected = stringtools.normalize(u"""
+            """)
+        assert actual == expected

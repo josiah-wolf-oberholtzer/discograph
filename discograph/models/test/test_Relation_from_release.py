@@ -39,6 +39,18 @@ class Test(unittest.TestCase):
                 role_name='Released On',
                 year=1999,
                 )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.WRITING_AND_ARRANGEMENT,
+                entity_one_id=239,
+                entity_one_name='Jesper Dahlbäck',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=1,
+                entity_two_name='Persuader, The',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=1,
+                role_name='Music By',
+                year=1999,
+                )
             ''')
         assert actual == expected
 
@@ -339,6 +351,81 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.models.Relation.EntityType.LABEL,
                 release_id=5,
                 role_name='Released On',
+                year=1995,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.PRODUCTION,
+                entity_one_id=22,
+                entity_one_name='Datacide',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=22,
+                entity_two_name='Datacide',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                is_trivial=True,
+                release_id=5,
+                role_name='Producer',
+                year=1995,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.INSTRUMENTS,
+                entity_one_id=25,
+                entity_one_name='Tetsu Inoue',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=22,
+                entity_two_name='Datacide',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=5,
+                role_name='Performer',
+                subcategory=discograph.models.ArtistRole.Subcategory.OTHER_MUSICAL,
+                year=1995,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.VOCAL,
+                entity_one_id=415403,
+                entity_one_name='Ingrid Baier',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=22,
+                entity_two_name='Datacide',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=5,
+                role_name='Voice',
+                year=1995,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.INSTRUMENTS,
+                entity_one_id=519207,
+                entity_one_name='Uwe Schmidt',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=22,
+                entity_two_name='Datacide',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=5,
+                role_name='Performer',
+                subcategory=discograph.models.ArtistRole.Subcategory.OTHER_MUSICAL,
+                year=1995,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.VISUAL,
+                entity_one_id=539207,
+                entity_one_name='Linger Decoree',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=22,
+                entity_two_name='Datacide',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=5,
+                role_name='Cover',
+                year=1995,
+                )
+            discograph.models.Relation(
+                category=discograph.models.ArtistRole.Category.VISUAL,
+                entity_one_id=539207,
+                entity_one_name='Linger Decoree',
+                entity_one_type=discograph.models.Relation.EntityType.ARTIST,
+                entity_two_id=22,
+                entity_two_name='Datacide',
+                entity_two_type=discograph.models.Relation.EntityType.ARTIST,
+                release_id=5,
+                role_name='Design',
                 year=1995,
                 )
             ''')
