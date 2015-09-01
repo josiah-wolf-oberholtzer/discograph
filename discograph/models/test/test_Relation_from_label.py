@@ -22,6 +22,7 @@ class Test(unittest.TestCase):
         label_element = next(iterator)
         label_element = next(iterator)
         label_element = next(iterator)
+        print(bootstrap.Bootstrap.prettify(label_element))
         label_document = models.Label.from_element(label_element)
         relations = models.Relation.from_label(label_document)
         actual = '\n'.join(format(_) for _ in relations)

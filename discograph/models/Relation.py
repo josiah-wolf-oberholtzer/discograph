@@ -124,6 +124,15 @@ class Relation(Model, mongoengine.Document):
                 relation.save_if_unique()
 
     @classmethod
+    def instantiate_relations(cls, relations):
+        relations = set(tuple(_.items()) for _ in relations)
+        relations = [cls(**dict(_)) for _ in relations]
+        relations.sort(
+            key=lambda x: (x.role_name, x.entity_one_id, x.entity_two_id),
+            )
+        return relations
+
+    @classmethod
     def from_artist(cls, artist):
         from discograph import models
         relations = []
@@ -140,7 +149,7 @@ class Relation(Model, mongoengine.Document):
                 [artist, alias],
                 key=lambda x: x.discogs_id,
                 )
-            relation = cls(
+            relation = dict(
                 entity_one_id=artist_one.discogs_id,
                 entity_one_name=artist_one.name,
                 entity_one_type=cls.EntityType.ARTIST,
@@ -156,7 +165,7 @@ class Relation(Model, mongoengine.Document):
         assert role_name in models.ArtistRole._available_credit_roles
         category, subcategory = cls._get_categories(role_name)
         for member in artist.members:
-            relation = cls(
+            relation = dict(
                 entity_one_id=member.discogs_id,
                 entity_one_name=member.name,
                 entity_one_type=cls.EntityType.ARTIST,
@@ -168,18 +177,14 @@ class Relation(Model, mongoengine.Document):
                 subcategory=subcategory,
                 )
             relations.append(relation)
-        relations.sort(key=lambda x: (
-            x.role_name,
-            x.entity_one_id,
-            x.entity_two_id,
-            ))
-        return relations
+        return cls.instantiate_relations(relations)
 
     @classmethod
     def from_label(cls, label):
         from discograph import models
         relations = []
         if not label.discogs_id:
+            print('BOOM')
             return relations
         role_name = 'Sublabel Of'
         assert role_name in models.ArtistRole._available_credit_roles
@@ -187,7 +192,7 @@ class Relation(Model, mongoengine.Document):
         for sublabel in label.sublabels:
             if not sublabel.discogs_id:
                 continue
-            relation = cls(
+            relation = dict(
                 entity_one_id=sublabel.discogs_id,
                 entity_one_name=sublabel.name,
                 entity_one_type=cls.EntityType.LABEL,
@@ -199,11 +204,7 @@ class Relation(Model, mongoengine.Document):
                 subcategory=subcategory,
                 )
             relations.append(relation)
-        relations.sort(key=lambda x: (
-            x.entity_one_id,
-            x.entity_two_id,
-            ))
-        return relations
+        return cls.instantiate_relations(relations)
 
     @classmethod
     def from_artists_and_labels(cls, artists, labels, release, year=None):
@@ -211,7 +212,7 @@ class Relation(Model, mongoengine.Document):
         for artist, label in itertools.product(artists, labels):
             role_name = 'Released On'
             category, subcategory = cls._get_categories(role_name)
-            relation = cls(
+            relation = dict(
                 entity_one_id=artist.discogs_id,
                 entity_one_name=artist.name,
                 entity_one_type=cls.EntityType.ARTIST,
@@ -245,9 +246,4 @@ class Relation(Model, mongoengine.Document):
             year = release.release_date.year
         relations.extend(cls.from_artists_and_labels(
             artists, labels, release, year))
-        relations.sort(key=lambda x: (
-            x.role_name,
-            x.entity_one_id,
-            x.entity_two_id,
-            ))
-        return relations
+        return cls.instantiate_relations(relations)
