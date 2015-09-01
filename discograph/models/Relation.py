@@ -109,11 +109,11 @@ class Relation(Model, mongoengine.Document):
     @classmethod
     def bootstrap(cls):
         from discograph import models
-        cls.drop_collection()
-        for artist in models.Artist.objects:
-            print(artist.discogs_id, artist.name)
-            for relation in cls.from_artist(artist):
-                relation.save_if_unique()
+        #cls.drop_collection()
+        #for artist in models.Artist.objects:
+        #    print(artist.discogs_id, artist.name)
+        #    for relation in cls.from_artist(artist):
+        #        relation.save_if_unique()
         for label in models.Label.objects:
             print(label.discogs_id, label.name)
             for relation in cls.from_label(label):
@@ -179,10 +179,14 @@ class Relation(Model, mongoengine.Document):
     def from_label(cls, label):
         from discograph import models
         relations = []
+        if not label.discogs_id:
+            return relations
         role_name = 'Sublabel Of'
         assert role_name in models.ArtistRole._available_credit_roles
         category, subcategory = cls._get_categories(role_name)
         for sublabel in label.sublabels:
+            if not sublabel.discogs_id:
+                continue
             relation = cls(
                 entity_one_id=sublabel.discogs_id,
                 entity_one_name=sublabel.name,
