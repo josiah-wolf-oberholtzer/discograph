@@ -209,52 +209,59 @@ class Relation(Model, mongoengine.Document):
         return relations
 
     @classmethod
-    def from_artists_and_labels(cls, artists, labels, release, year=None):
+    def from_triples(cls, triples, release=None):
+        from discograph import models
         relations = []
-        for artist, label in itertools.product(artists, labels):
-            role_name = 'Released On'
+        year = None
+        if release is not None and release.release_date is not None:
+            year = release.release_date.year
+        for entity_one, entity_two, role_name in triples:
+            entity_one_type = cls.EntityType.ARTIST
+            if isinstance(entity_one, models.Label):
+                entity_one_type = cls.EntityType.LABEL
+            entity_two_type = cls.EntityType.ARTIST
+            if isinstance(entity_two, models.Label):
+                entity_two_type = cls.EntityType.LABEL
             category, subcategory = cls._get_categories(role_name)
-            relation = dict(
-                entity_one_id=artist.discogs_id,
-                entity_one_name=artist.name,
-                entity_one_type=cls.EntityType.ARTIST,
-                entity_two_id=label.discogs_id,
-                entity_two_name=label.name,
-                entity_two_type=cls.EntityType.LABEL,
-                role_name=role_name,
+            is_trivial = None
+            if entity_one_type == entity_two_type == cls.EntityType.ARTIST:
+                if entity_one.discogs_id == entity_two.discogs_id:
+                    is_trivial = True
+                elif entity_one in entity_two.members:
+                    is_trivial = True
+                elif entity_one.name in entity_two.aliases:
+                    is_trivial = True
+                elif entity_two.name in entity_one.aliases:
+                    is_trivial = True
+            relation = cls(
                 category=category,
-                subcategory=subcategory,
+                entity_one_id=entity_one.discogs_id,
+                entity_one_name=entity_one.name,
+                entity_one_type=entity_one_type,
+                entity_two_id=entity_two.discogs_id,
+                entity_two_name=entity_two.name,
+                entity_two_type=entity_two_type,
                 release_id=release.discogs_id,
+                role_name=role_name,
+                subcategory=subcategory,
                 year=year,
+                is_trivial=is_trivial,
                 )
             relations.append(relation)
         return relations
 
     @classmethod
     def from_release(cls, release):
-        relations = []
         artists = set(credit.artist for credit in release.artists)
         if len(artists) == 1 and list(artists)[0].name == 'Various':
             artists.clear()
             for track in release.tracklist:
                 artists.update(credit.artist for credit in track.artists)
-        artists = sorted(artists, key=lambda x: x.discogs_id)
-        labels = sorted(
-            set(_.label for _ in release.labels),
-            key=lambda x: x.discogs_id,
-            )
-        year = None
-        if release.release_date is not None:
-            year = release.release_date.year
-        relations.extend(cls.from_artists_and_labels(
-            artists, labels, release, year))
-        relations = set(tuple(_.items()) for _ in relations)
-        relations = [cls(**dict(_)) for _ in relations]
-        relations.sort(
-            key=lambda x: (x.role_name, x.entity_one_id, x.entity_two_id),
-            )
-        # TODO: test for triviality:
-        #   entity 1 is entity 2
-        #   entity 1 is member of entity 2
-        #   entity 1 is alias of entity 2
+        labels = set(_.label for _ in release.labels)
+        triples = set()
+        for artist, label in itertools.product(artists, labels):
+            triples.add((artist, label, 'Released On'))
+        key_function = lambda x: (x[0].discogs_id, x[1].discogs_id, x[2])
+        triples = sorted(triples, key=key_function)
+        relations = cls.from_triples(triples, release=release)
         return relations
