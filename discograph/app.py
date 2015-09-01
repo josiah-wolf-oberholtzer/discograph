@@ -30,11 +30,11 @@ def route():
         index = random.randrange(count)
         artist = discograph.models.Artist.objects[index]
     artist_id = artist.discogs_id
-    return redirect('/{}'.format(artist_id), code=302)
+    return redirect('/artist/{}'.format(artist_id), code=302)
 
 
-@app.route('/<int:artist_id>', methods=['GET'])
-@app.route('/<int:artist_id>/', methods=['GET'])
+@app.route('/artist/<int:artist_id>', methods=['GET'])
+@app.route('/artist/<int:artist_id>/', methods=['GET'])
 def route__artist_id(artist_id):
     try:
         artist = discograph.models.Artist.objects.get(discogs_id=artist_id)

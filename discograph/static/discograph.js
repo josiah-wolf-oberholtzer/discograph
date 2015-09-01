@@ -46,7 +46,7 @@
         },
         pushState: function(id) {
             var title = document.title;
-            var url = "/" + id + "/";
+            var url = "/artist/" + id + "/";
             window.history.pushState({id: id}, title, url);
         },
     }
