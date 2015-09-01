@@ -178,43 +178,27 @@ class Relation(Model, mongoengine.Document):
 
     @classmethod
     def from_label(cls, label):
-        from discograph import models
-        relations = []
         if not label.discogs_id:
-            print('BOOM')
-            return relations
-        role_name = 'Sublabel Of'
-        assert role_name in models.ArtistRole._available_credit_roles
-        category, subcategory = cls._get_categories(role_name)
+            return []
+        triples = set()
         for sublabel in label.sublabels:
             if not sublabel.discogs_id:
                 continue
-            relation = dict(
-                entity_one_id=sublabel.discogs_id,
-                entity_one_name=sublabel.name,
-                entity_one_type=cls.EntityType.LABEL,
-                entity_two_id=label.discogs_id,
-                entity_two_name=label.name,
-                entity_two_type=cls.EntityType.LABEL,
-                role_name=role_name,
-                category=category,
-                subcategory=subcategory,
-                )
-            relations.append(relation)
-        relations = set(tuple(_.items()) for _ in relations)
-        relations = [cls(**dict(_)) for _ in relations]
-        relations.sort(
-            key=lambda x: (x.role_name, x.entity_one_id, x.entity_two_id),
-            )
+            triples.add((sublabel, label, 'Sublabel Of'))
+        key_function = lambda x: (x[0].discogs_id, x[1].discogs_id, x[2])
+        triples = sorted(triples, key=key_function)
+        relations = cls.from_triples(triples)
         return relations
 
     @classmethod
     def from_triples(cls, triples, release=None):
         from discograph import models
         relations = []
-        year = None
-        if release is not None and release.release_date is not None:
-            year = release.release_date.year
+        release_id, year = None, None
+        if release is not None:
+            release_id = release.discogs_id
+            if release.release_date is not None:
+                year = release.release_date.year
         for entity_one, entity_two, role_name in triples:
             entity_one_type = cls.EntityType.ARTIST
             if isinstance(entity_one, models.Label):
@@ -241,7 +225,7 @@ class Relation(Model, mongoengine.Document):
                 entity_two_id=entity_two.discogs_id,
                 entity_two_name=entity_two.name,
                 entity_two_type=entity_two_type,
-                release_id=release.discogs_id,
+                release_id=release_id,
                 role_name=role_name,
                 subcategory=subcategory,
                 year=year,

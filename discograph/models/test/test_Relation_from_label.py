@@ -2,8 +2,11 @@
 import mongoengine
 import unittest
 from abjad.tools import stringtools
-from discograph import bootstrap
 from discograph import models
+try:
+    from xml.etree import cElementTree as ElementTree
+except ImportError:
+    from xml.etree import ElementTree
 
 
 class Test(unittest.TestCase):
@@ -18,18 +21,52 @@ class Test(unittest.TestCase):
         self.database.close()
 
     def test_01(self):
-        iterator = bootstrap.Bootstrap.get_iterator('label')
-        label_element = next(iterator)
-        label_element = next(iterator)
-        label_element = next(iterator)
-        print(bootstrap.Bootstrap.prettify(label_element))
+
+        source = stringtools.normalize('''
+            <label>
+                <id>3</id>
+                <name>Seasons Recordings</name>
+                <sublabels>
+                    <label>Seasons Classics</label>
+                    <label>Seasons Limited</label>
+                </sublabels>
+            </label>
+            ''')
+        label_element = ElementTree.fromstring(source)
         label_document = models.Label.from_element(label_element)
+
+        source = stringtools.normalize('''
+            <label>
+                <id>297127</id>
+                <name>Seasons Classics</name>
+                <parentLabel>Seasons Recordings</parentLabel>
+            </label>
+            ''')
+        sublabel_element = ElementTree.fromstring(source)
+        models.Label.from_element(sublabel_element)
+
+        source = stringtools.normalize('''
+            <label>
+                <id>66542</id>
+                <name>Seasons Limited</name>
+                <parentLabel>Seasons Recordings</parentLabel>
+            </label>
+            ''')
+        sublabel_element = ElementTree.fromstring(source)
+        models.Label.from_element(sublabel_element)
+
+        label_document.reload()
+        sublabels = label_document.sublabels
+        assert len(sublabels) == 2
+        assert sorted(_.discogs_id for _ in sublabels) == [66542, 297127]
+
         relations = models.Relation.from_label(label_document)
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
-                entity_one_name='Seasons Classics',
+                entity_one_id=66542,
+                entity_one_name='Seasons Limited',
                 entity_one_type=discograph.models.Relation.EntityType.LABEL,
                 entity_two_id=3,
                 entity_two_name='Seasons Recordings',
@@ -38,7 +75,8 @@ class Test(unittest.TestCase):
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
-                entity_one_name='Seasons Limited',
+                entity_one_id=297127,
+                entity_one_name='Seasons Classics',
                 entity_one_type=discograph.models.Relation.EntityType.LABEL,
                 entity_two_id=3,
                 entity_two_name='Seasons Recordings',

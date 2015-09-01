@@ -42,6 +42,8 @@ class Test(unittest.TestCase):
                     has_been_scraped=False,
                     name='Persuader, The',
                     ),
+                discogs_id=1,
+                name='Persuader, The',
                 )
             ''')
 
@@ -67,6 +69,8 @@ class Test(unittest.TestCase):
                     has_been_scraped=False,
                     name='Jesper Dahlbäck',
                     ),
+                discogs_id=239,
+                name='Jesper Dahlbäck',
                 roles=[
                     discograph.models.ArtistRole(
                         detail='All Tracks By',
