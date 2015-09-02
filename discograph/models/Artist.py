@@ -29,7 +29,6 @@ class Artist(Model, mongoengine.Document):
             'discogs_id',
             'name',
             ],
-        #'ordering': ['+discogs_id'],
         }
 
     ### PRIVATE PROPERTIES ###
@@ -73,7 +72,6 @@ class Artist(Model, mongoengine.Document):
         query_set = cls.objects(discogs_id=discogs_id)\
             .hint(index)\
             .only('discogs_id', 'has_been_scraped', 'name')
-            #.no_dereference()
         if query_set.count():
             return query_set[0]
         document = cls(discogs_id=discogs_id, name=name)
@@ -128,3 +126,92 @@ class Artist(Model, mongoengine.Document):
             print('    members:        ', member_documents)
             raise exception
         return artist_document
+
+    def get_relations(
+        self,
+        include_aliases=False,
+        exclude_trivial=False,
+        ):
+        from discograph import models
+        ids = [self.discogs_id]
+        if include_aliases:
+            for alias in self.aliases:
+                query = models.Artist.objects(name=alias)
+                query = query.hint([('name', 'hashed')])
+                if not query.count():
+                    continue
+                alias = query.first()
+                ids.append(alias.discogs_id)
+        composite = (
+            mongoengine.Q(
+                entity_one_id__in=ids,
+                entity_one_type=models.Relation.EntityType.ARTIST,
+                ) |
+            mongoengine.Q(
+                entity_two_id__in=ids,
+                entity_two_type=models.Relation.EntityType.ARTIST,
+                )
+            )
+        query = models.Relation.objects(composite)
+        if exclude_trivial:
+            query = query(is_trivial__ne=True)
+        return query
+
+    def get_relation_counts(
+        self,
+        include_aliases=False,
+        exclude_trivial=False,
+        ):
+        query = self.get_relations(
+            include_aliases=include_aliases,
+            exclude_trivial=exclude_trivial,
+            )
+        query = query.item_frequencies('year')
+        results = sorted(
+            (year, count)
+            for year, count in query.items()
+            if year
+            )
+        return results
+
+    def get_relation_agggregate(
+        self,
+        include_aliases=False,
+        exclude_trivial=False,
+        ):
+        from discograph import models
+        ids = [self.discogs_id]
+        if include_aliases:
+            for alias in self.aliases:
+                query = models.Artist.objects(name=alias)
+                query = query.hint([('name', 'hashed')])
+                if not query.count():
+                    continue
+                alias = query.first()
+                ids.append(alias.discogs_id)
+        query = models.Relation.objects.aggregate(
+            {'$match': {
+                'entity_one_id': {'$in': ids},
+                'entity_one_type': 1,
+                'year': {'$exists': 1},
+                }},
+            {'$group': {
+                '_id': {
+                    'year': '$year',
+                    'role_name': '$role_name',
+                    },
+                'total': {'$sum': 1}
+                }},
+            {'$group': {
+                '_id': '$_id.year',
+                'totals': {
+                    '$push': {
+                        'role_name': '$_id.role_name',
+                        'total': '$total',
+                        },
+                    },
+                }},
+            {'$project': {'_id': 0, 'year': '$_id', 'totals': '$totals'}},
+            {'$sort': {'year': 1}}
+            )
+        return query
