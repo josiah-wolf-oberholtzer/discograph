@@ -16,8 +16,8 @@ class Artist(Model, mongoengine.Document):
     name_variations = mongoengine.ListField(mongoengine.StringField())
     aliases = mongoengine.ListField(mongoengine.StringField())
     members = mongoengine.ListField(mongoengine.ReferenceField('Artist'))
-    # "groups" is inverse of "members", and therefore derived.
-    groups = mongoengine.ListField(mongoengine.ReferenceField('Artist'))
+    members = mongoengine.EmbeddedDocumentListField('ArtistReference')
+    groups = mongoengine.EmbeddedDocumentListField('ArtistReference')
     has_been_scraped = mongoengine.BooleanField(default=False)
 
     ### MONGOENGINE META ###

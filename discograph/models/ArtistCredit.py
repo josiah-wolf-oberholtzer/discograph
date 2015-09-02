@@ -9,7 +9,6 @@ class ArtistCredit(Model, mongoengine.EmbeddedDocument):
     ### MONGOENGINE FIELDS ###
 
     anv = mongoengine.StringField()
-    artist = mongoengine.ReferenceField('Artist')
     name = mongoengine.StringField()
     discogs_id = mongoengine.IntField()
     join = mongoengine.StringField()
@@ -20,13 +19,16 @@ class ArtistCredit(Model, mongoengine.EmbeddedDocument):
 
     @classmethod
     def from_element(cls, element):
-        from discograph import models
         data = cls.tags_to_fields(element)
-        name = data['name']
-        discogs_id = data['discogs_id']
-        data['artist'] = models.Artist.from_id_and_name(discogs_id, name)
         document = cls(**data)
         return document
+
+    ### PUBLIC PROPERTIES ###
+
+    @property
+    def artist(self):
+        from discograph import models
+        return models.Artist.objects.get(discogs_id=self.discogs_id)
 
 
 ArtistCredit._tags_to_fields_mapping = {
