@@ -11,7 +11,7 @@ class Master(Model, mongoengine.Document):
     data_quality = mongoengine.StringField()
     discogs_id = mongoengine.IntField(unique=True, null=True, sparse=True)
     genres = mongoengine.ListField(mongoengine.StringField())
-    main_release = mongoengine.ReferenceField('Release')
+    main_release_id = mongoengine.IntField()
     release_date = mongoengine.DateTimeField()
     styles = mongoengine.ListField(mongoengine.StringField())
     title = mongoengine.StringField()

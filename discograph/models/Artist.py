@@ -3,6 +3,8 @@ import gzip
 import mongoengine
 import traceback
 from abjad.tools import systemtools
+from discograph.bootstrap import Bootstrap
+from discograph.models.ArtistReference import ArtistReference
 from discograph.models.Model import Model
 
 
@@ -10,15 +12,14 @@ class Artist(Model, mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 
-    discogs_id = mongoengine.IntField(required=True, unique=True)
+    discogs_id = mongoengine.IntField(primary_key=True)
     name = mongoengine.StringField(required=True, unique=True)
-    real_name = mongoengine.StringField(null=True)
+    real_name = mongoengine.StringField()
     name_variations = mongoengine.ListField(mongoengine.StringField())
-    aliases = mongoengine.ListField(mongoengine.StringField())
-    members = mongoengine.ListField(mongoengine.ReferenceField('Artist'))
+    aliases = mongoengine.EmbeddedDocumentListField('ArtistReference')
     members = mongoengine.EmbeddedDocumentListField('ArtistReference')
     groups = mongoengine.EmbeddedDocumentListField('ArtistReference')
-    has_been_scraped = mongoengine.BooleanField(default=False)
+    #has_been_scraped = mongoengine.BooleanField(default=False)
 
     ### MONGOENGINE META ###
 
@@ -38,8 +39,6 @@ class Artist(Model, mongoengine.Document):
         keyword_argument_names = sorted(self._fields)
         if 'id' in keyword_argument_names:
             keyword_argument_names.remove('id')
-        if 'groups' in keyword_argument_names:
-            keyword_argument_names.remove('groups')
         for keyword_argument_name in keyword_argument_names[:]:
             value = getattr(self, keyword_argument_name)
             if isinstance(value, list) and not value:
@@ -53,79 +52,45 @@ class Artist(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discograph.bootstrap import Bootstrap
         cls.drop_collection()
+        # Pass one.
         artists_xml_path = Bootstrap.artists_xml_path
         with gzip.GzipFile(artists_xml_path, 'r') as file_pointer:
-            artists_iterator = Bootstrap.iterparse(file_pointer, 'artist')
-            artists_iterator = Bootstrap.clean_elements(artists_iterator)
-            for artist_element in artists_iterator:
-                artist_document = cls.from_element(artist_element)
-                print(u'ARTIST {}: {}'.format(
-                    artist_document.discogs_id,
-                    artist_document.name,
-                    ))
+            iterator = Bootstrap.iterparse(file_pointer, 'artist')
+            iterator = Bootstrap.clean_elements(iterator)
+            for i, element in enumerate(iterator):
+                try:
+                    with systemtools.Timer(verbose=False) as timer:
+                        document = cls.from_element(element)
+                        document.save()
+                    message = u'{} (Pass 1) {} [{}]: {}'.format(
+                        cls.__name__.upper(),
+                        document.discogs_id,
+                        timer.elapsed_time,
+                        document.name,
+                        )
+                    print(message)
+                except mongoengine.errors.ValidationError:
+                    traceback.print_exc()
 
-    @classmethod
-    def from_id_and_name(cls, discogs_id, name):
-        index = [('discogs_id', 1)]
-        query_set = cls.objects(discogs_id=discogs_id)\
-            .hint(index)\
-            .only('discogs_id', 'has_been_scraped', 'name')
-        if query_set.count():
-            return query_set[0]
-        document = cls(discogs_id=discogs_id, name=name)
-        document.save()
-        return document
+        # Pass two.
+        for document in cls.objects:
+            changed = document.resolve_references()
+            if changed:
+                document.save()
+                message = u'{} (Pass 2) {} [{}]: {}'.format(
+                    cls.__name__.upper(),
+                    document.discogs_id,
+                    timer.elapsed_time,
+                    document.name,
+                    )
+                print(message)
 
     @classmethod
     def from_element(cls, element):
-        discogs_id = int(element.find('id').text)
-        name = element.find('name')
-        if name is not None:
-            name = name.text
-        name = name or ''
-        artist_document = cls.from_id_and_name(discogs_id, name)
-        if artist_document.has_been_scraped:
-            return artist_document
-        real_name = element.find('name')
-        if real_name is not None:
-            real_name = real_name.text
-        real_name = real_name or ''
-        name_variations = element.find('namevariations')
-        if name_variations is None or not len(name_variations):
-            name_variations = []
-        name_variations = [_.text for _ in name_variations if _.text]
-        aliases = element.find('aliases')
-        if aliases is None or not len(aliases):
-            aliases = []
-        aliases = [_.text for _ in aliases if _.text]
-        members = element.find('members')
-        member_documents = []
-        if members is not None and len(members):
-            for i in range(0, len(members), 2):
-                member_id = int(members[i].text)
-                member_name = members[i + 1].text
-                member_document = cls.from_id_and_name(member_id, member_name)
-                member_document.groups.append(artist_document)
-                member_document.save()
-                member_documents.append(member_document)
-        artist_document.real_name = real_name
-        artist_document.name_variations = name_variations
-        artist_document.aliases = aliases
-        artist_document.has_been_scraped = True
-        artist_document.members = member_documents
-        try:
-            artist_document.save()
-        except mongoengine.errors.ValidationError as exception:
-            traceback.print_exc()
-            print('ERROR:', discogs_id, name)
-            print('    real name:      ', real_name)
-            print('    name variations:', name_variations)
-            print('    aliases:        ', aliases)
-            print('    members:        ', member_documents)
-            raise exception
-        return artist_document
+        data = cls.tags_to_fields(element)
+        document = cls(**data)
+        return document
 
     def get_relations(
         self,
@@ -215,3 +180,34 @@ class Artist(Model, mongoengine.Document):
             {'$sort': {'year': 1}}
             )
         return query
+
+    def resolve_references(self):
+        changed = False
+        for artist_reference in self.aliases:
+            query = type(self).objects(name=artist_reference.name)
+            query = query.only('discogs_id', 'name')
+            found = list(query)
+            if not len(found):
+                continue
+            artist_reference.discogs_id = found[0].discogs_id
+            changed = True
+        for artist_reference in self.groups:
+            query = type(self).objects(name=artist_reference.name)
+            query = query.only('discogs_id', 'name')
+            found = list(query)
+            if not len(found):
+                continue
+            artist_reference.discogs_id = found[0].discogs_id
+            changed = True
+        return changed
+
+
+Artist._tags_to_fields_mapping = {
+    'id': ('discogs_id', Bootstrap.element_to_integer),
+    'name': ('name', Bootstrap.element_to_string),
+    'realname': ('real_name', Bootstrap.element_to_string),
+    'namevariations': ('name_variations', Bootstrap.element_to_strings),
+    'aliases': ('aliases', ArtistReference.from_names),
+    'groups': ('groups', ArtistReference.from_names),
+    'members': ('members', ArtistReference.from_members),
+    }

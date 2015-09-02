@@ -1,7 +1,10 @@
 from __future__ import print_function
 import gzip
 import mongoengine
+import traceback
 from abjad.tools import systemtools
+from discograph.bootstrap import Bootstrap
+from discograph.models.LabelReference import LabelReference
 from discograph.models.Model import Model
 
 
@@ -9,11 +12,10 @@ class Label(Model, mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 
-    discogs_id = mongoengine.IntField(unique=True, null=True, sparse=True)
+    discogs_id = mongoengine.IntField(primary_key=True)
     name = mongoengine.StringField(required=True, unique=True)
-    parent_label = mongoengine.ReferenceField('Label')
-    sublabels = mongoengine.ListField(mongoengine.ReferenceField('Label'))
-    has_been_scraped = mongoengine.BooleanField(default=False)
+    parent_label = mongoengine.EmbeddedDocumentField(LabelReference)
+    sublabels = mongoengine.EmbeddedDocumentListField('LabelReference')
 
     ### MONGOENGINE META ###
 
@@ -32,8 +34,6 @@ class Label(Model, mongoengine.Document):
         keyword_argument_names = sorted(self._fields)
         if 'id' in keyword_argument_names:
             keyword_argument_names.remove('id')
-        if 'parent_label' in keyword_argument_names:
-            keyword_argument_names.remove('parent_label')
         for keyword_argument_name in keyword_argument_names[:]:
             value = getattr(self, keyword_argument_name)
             if isinstance(value, list) and not value:
@@ -47,68 +47,68 @@ class Label(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discograph.bootstrap import Bootstrap
         cls.drop_collection()
+        # Pass one.
         labels_xml_path = Bootstrap.labels_xml_path
         with gzip.GzipFile(labels_xml_path, 'r') as file_pointer:
-            labels_iterator = Bootstrap.iterparse(file_pointer, 'label')
-            labels_iterator = Bootstrap.clean_elements(labels_iterator)
-            for label_element in labels_iterator:
-                label_document = cls.from_element(label_element)
-                print(u'LABEL {}: {}'.format(
-                    label_document.discogs_id,
-                    label_document.name,
-                    ))
-
-    def extract_relations(self):
-        from discograph import models
-        relations = []
-        if not self.sublabels:
-            return relations
-        for sublabel in self.sublabels:
-            relation = models.LabelLabelRelation(
-                label=sublabel,
-                parent_label=self,
-                )
-            relations.append(relation)
-        return relations
-
-    @classmethod
-    def from_name(cls, name):
-        index = [('name', 1)]
-        query_set = cls.objects(name=name)\
-            .hint(index)\
-            .only('has_been_scraped', 'name')
-        count = query_set.count()
-        if count:
-            assert count == 1
-            return query_set[0]
-        document = cls(name=name)
-        document.save()
-        return document
+            iterator = Bootstrap.iterparse(file_pointer, 'label')
+            iterator = Bootstrap.clean_elements(iterator)
+            for i, element in enumerate(iterator):
+                try:
+                    with systemtools.Timer(verbose=False) as timer:
+                        document = cls.from_element(element)
+                        document.save()
+                        message = u'{} (Pass 1) {} [{}]: {}'.format(
+                            cls.__name__.upper(),
+                            document.discogs_id,
+                            timer.elapsed_time,
+                            document.name,
+                            )
+                        print(message)
+                except mongoengine.errors.ValidationError:
+                    traceback.print_exc()
+        # Pass two.
+        for document in cls.objects:
+            changed = document.resolve_references()
+            if changed:
+                document.save()
+                message = u'{} (Pass 2) {} [{}]: {}'.format(
+                    cls.__name__.upper(),
+                    document.discogs_id,
+                    timer.elapsed_time,
+                    document.name,
+                    )
+                print(message)
 
     @classmethod
     def from_element(cls, element):
-        name = element.find('name').text
-        label_document = cls.from_name(name=name)
-        if label_document.has_been_scraped:
-            return label_document
-        discogs_id = int(element.find('id').text)
-        sublabels = element.find('sublabels')
-        if sublabels is not None and len(sublabels):
-            sublabels = [_.text for _ in sublabels if _.text]
-            if sublabels:
-                sublabels = [cls.from_name(_) for _ in sublabels]
-        else:
-            sublabels = []
-        parent_label = element.find('parentLabel')
-        if parent_label is not None:
-            parent_label = parent_label.text
-            if parent_label:
-                parent_label = cls.from_name(parent_label)
-        label_document.discogs_id = discogs_id
-        label_document.sublabels = sublabels
-        label_document.parent_label = parent_label
-        label_document.has_been_scraped = True
-        label_document.save()
-        return label_document
+        data = cls.tags_to_fields(element)
+        document = cls(**data)
+        return document
+
+    def resolve_references(self):
+        changed = False
+        for label_reference in self.sublabels:
+            query = type(self).objects(name=label_reference.name)
+            query = query.only('discogs_id', 'name')
+            found = list(query)
+            if not len(found):
+                continue
+            label_reference.discogs_id = found[0].discogs_id
+            changed = True
+        if self.parent_label:
+            query = type(self).objects(name=self.parent_label.name)
+            query = query.only('discogs_id', 'name')
+            found = list(query)
+            if len(found):
+                self.parent_label.discogs_id = found[0].discogs_id
+                changed = True
+        return changed
+
+
+Label._tags_to_fields_mapping = {
+    'id': ('discogs_id', Bootstrap.element_to_integer),
+    'name': ('name', Bootstrap.element_to_string),
+    'sublabels': ('sublabels', LabelReference.from_sublabels),
+    'parentLabel': ('parent_label', LabelReference.from_parent_label),
+    }

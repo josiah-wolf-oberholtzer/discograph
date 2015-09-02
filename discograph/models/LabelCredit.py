@@ -7,18 +7,14 @@ class LabelCredit(Model, mongoengine.EmbeddedDocument):
     ### MONGOENGINE FIELDS ###
 
     catalog_number = mongoengine.StringField()
-    label = mongoengine.ReferenceField('Label')
+    discogs_id = mongoengine.IntField()
+    name = mongoengine.StringField()
 
     ### PUBLIC METHODS ###
 
     @classmethod
     def from_element(cls, element):
-        from discograph import models
         catalog_number = element.attrib.get('catno', None) or None
-        label_name = element.attrib.get('name')
-        label = models.Label.from_name(label_name)
-        document = cls(
-            catalog_number=catalog_number,
-            label=label,
-            )
+        name = element.attrib.get('name')
+        document = cls(catalog_number=catalog_number, name=name)
         return document

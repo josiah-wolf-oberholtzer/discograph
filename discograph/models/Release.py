@@ -28,7 +28,7 @@ class Release(Model, mongoengine.Document):
     artists = mongoengine.EmbeddedDocumentListField('ArtistCredit')
     companies = mongoengine.EmbeddedDocumentListField('CompanyCredit')
     country = mongoengine.StringField()
-    data_quality = mongoengine.StringField()
+    #data_quality = mongoengine.StringField()
     discogs_id = mongoengine.IntField(required=True, unique=True)
     extra_artists = mongoengine.EmbeddedDocumentListField('ArtistCredit')
     formats = mongoengine.EmbeddedDocumentListField('Format')
@@ -37,7 +37,7 @@ class Release(Model, mongoengine.Document):
     labels = mongoengine.EmbeddedDocumentListField('LabelCredit')
     master_id = mongoengine.IntField()
     release_date = mongoengine.DateTimeField()
-    status = mongoengine.StringField()
+    #status = mongoengine.StringField()
     styles = mongoengine.ListField(mongoengine.StringField())
     title = mongoengine.StringField()
     tracklist = mongoengine.EmbeddedDocumentListField('Track')
@@ -56,44 +56,66 @@ class Release(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        #cls.drop_collection()
+        cls.drop_collection()
+        # Pass one.
         releases_xml_path = Bootstrap.releases_xml_path
         with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
-            releases_iterator = Bootstrap.iterparse(file_pointer, 'release')
-            releases_iterator = Bootstrap.clean_elements(releases_iterator)
-            for release_element in releases_iterator:
-                cls.from_element(release_element)
+            iterator = Bootstrap.iterparse(file_pointer, 'release')
+            iterator = Bootstrap.clean_elements(iterator)
+            for i, element in enumerate(iterator):
+                try:
+                    with systemtools.Timer(verbose=False) as timer:
+                        document = cls.from_element(element)
+                        document.save()
+                        message = u'{} (Pass 1) {} [{}]: {}'.format(
+                            cls.__name__.upper(),
+                            document.discogs_id,
+                            timer.elapsed_time,
+                            document.title,
+                            )
+                        print(message)
+                except mongoengine.errors.ValidationError:
+                    traceback.print_exc()
+        # Pass two.
+        for document in cls.objects:
+            changed = document.resolve_references()
+            if changed:
+                document.save()
+                message = u'{} (Pass 2) {} [{}]: {}'.format(
+                    cls.__name__.upper(),
+                    document.discogs_id,
+                    timer.elapsed_time,
+                    document.title,
+                    )
+                print(message)
+
+    def resolve_references(self):
+        from discograph import models
+        changed = False
+        for company_credit in self.companies:
+            query = models.Label.objects(name=company_credit.name)
+            query = query.only('discogs_id', 'name')
+            found = list(query)
+            if not len(found):
+                continue
+            company_credit.discogs_id = found[0].discogs_id
+            changed = True
+        for label_credit in self.labels:
+            query = models.Label.objects(name=label_credit.name)
+            query = query.only('discogs_id', 'name')
+            found = list(query)
+            if not len(found):
+                continue
+            label_credit.discogs_id = found[0].discogs_id
+            changed = True
+        return changed
 
     @classmethod
     def from_element(cls, element):
-        index = [('discogs_id', 1)]
         discogs_id = int(element.attrib.get('id'))
-        query_set = cls.objects(discogs_id=discogs_id)\
-            .hint(index)\
-            .only('discogs_id', 'title')
-            #.no_dereference()
-        if 0 < query_set.count():
-            document = query_set[0]
-            message = u'RELEASE {} [preserved]: {}'.format(
-                document.discogs_id,
-                document.title,
-                )
-            print(message)
-            return document
-        with systemtools.Timer(verbose=False) as timer:
-            data = cls.tags_to_fields(element)
-            data.update(
-                discogs_id=discogs_id,
-                status=element.attrib.get('status'),
-                )
-            document = cls(**data)
-            document.save()
-        message = u'RELEASE {} [{}]: {}'.format(
-            document.discogs_id,
-            timer.elapsed_time,
-            document.title,
-            )
-        print(message)
+        data = cls.tags_to_fields(element)
+        data.update(discogs_id=discogs_id)
+        document = cls(**data)
         return document
 
     @classmethod
@@ -146,7 +168,7 @@ Release._tags_to_fields_mapping = {
     'artists': ('artists', ArtistCredit.from_elements),
     'companies': ('companies', CompanyCredit.from_elements),
     'country': ('country', Bootstrap.element_to_string),
-    'data_quality': ('data_quality', Bootstrap.element_to_string),
+    #'data_quality': ('data_quality', Bootstrap.element_to_string),
     'extraartists': ('extra_artists', ArtistCredit.from_elements),
     'formats': ('formats', Format.from_elements),
     'genres': ('genres', Bootstrap.element_to_strings),
