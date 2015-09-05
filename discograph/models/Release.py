@@ -56,38 +56,41 @@ class Release(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        cls.drop_collection()
+        #cls.drop_collection()
         # Pass one.
-        releases_xml_path = Bootstrap.releases_xml_path
-        with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
-            iterator = Bootstrap.iterparse(file_pointer, 'release')
-            iterator = Bootstrap.clean_elements(iterator)
-            for i, element in enumerate(iterator):
-                try:
-                    with systemtools.Timer(verbose=False) as timer:
-                        document = cls.from_element(element)
-                        document.save()
-                        message = u'{} (Pass 1) {} [{}]: {}'.format(
-                            cls.__name__.upper(),
-                            document.discogs_id,
-                            timer.elapsed_time,
-                            document.title,
-                            )
-                        print(message)
-                except mongoengine.errors.ValidationError:
-                    traceback.print_exc()
+        #releases_xml_path = Bootstrap.releases_xml_path
+        #with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
+        #    iterator = Bootstrap.iterparse(file_pointer, 'release')
+        #    iterator = Bootstrap.clean_elements(iterator)
+        #    for i, element in enumerate(iterator):
+        #        try:
+        #            with systemtools.Timer(verbose=False) as timer:
+        #                document = cls.from_element(element)
+        #                document.save()
+        #                message = u'{} (Pass 1) {} [{}]: {}'.format(
+        #                    cls.__name__.upper(),
+        #                    document.discogs_id,
+        #                    timer.elapsed_time,
+        #                    document.title,
+        #                    )
+        #                print(message)
+        #        except mongoengine.errors.ValidationError:
+        #            traceback.print_exc()
         # Pass two.
-        for document in cls.objects:
-            changed = document.resolve_references()
-            if changed:
-                document.save()
-                message = u'{} (Pass 2) {} [{}]: {}'.format(
-                    cls.__name__.upper(),
-                    document.discogs_id,
-                    timer.elapsed_time,
-                    document.title,
-                    )
-                print(message)
+        count = cls.objects.count()
+        for index in range(count):
+            document = cls.objects.no_cache()[index]
+            with systemtools.Timer(verbose=False) as timer:
+                changed = document.resolve_references()
+                if changed:
+                    document.save()
+                    message = u'{} (Pass 2) {} [{}]: {}'.format(
+                        cls.__name__.upper(),
+                        document.discogs_id,
+                        timer.elapsed_time,
+                        document.title,
+                        )
+                    print(message)
 
     def resolve_references(self):
         from discograph import models

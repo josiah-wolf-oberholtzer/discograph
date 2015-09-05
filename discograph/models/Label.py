@@ -68,17 +68,20 @@ class Label(Model, mongoengine.Document):
                 except mongoengine.errors.ValidationError:
                     traceback.print_exc()
         # Pass two.
-        for document in cls.objects:
-            changed = document.resolve_references()
-            if changed:
-                document.save()
-                message = u'{} (Pass 2) {} [{}]: {}'.format(
-                    cls.__name__.upper(),
-                    document.discogs_id,
-                    timer.elapsed_time,
-                    document.name,
-                    )
-                print(message)
+        count = cls.objects.count()
+        for index in range(count):
+            document = cls.objects.no_cache()[index]
+            with systemtools.Timer(verbose=False) as timer:
+                changed = document.resolve_references()
+                if changed:
+                    document.save()
+                    message = u'{} (Pass 2) {} [{}]: {}'.format(
+                        cls.__name__.upper(),
+                        document.discogs_id,
+                        timer.elapsed_time,
+                        document.name,
+                        )
+                    print(message)
 
     @classmethod
     def from_element(cls, element):
