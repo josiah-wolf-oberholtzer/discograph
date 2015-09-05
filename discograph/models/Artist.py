@@ -74,9 +74,15 @@ class Artist(Model, mongoengine.Document):
                     traceback.print_exc()
 
         # Pass two.
-        count = cls.objects.count()
-        for index in range(count):
-            document = cls.objects.no_cache()[index]
+        cls.ensure_indexes()
+        query = cls.objects().no_cache().timeout(False)
+        query = query.only(
+            'aliases',
+            'discogs_id',
+            'groups',
+            'name',
+            )
+        for document in query:
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references()
                 if changed:

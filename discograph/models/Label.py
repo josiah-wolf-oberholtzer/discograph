@@ -21,9 +21,10 @@ class Label(Model, mongoengine.Document):
 
     meta = {
         'indexes': [
+            '#name',
+            '$name',
             'discogs_id',
             'name',
-            '$name',
             ],
         }
 
@@ -68,9 +69,9 @@ class Label(Model, mongoengine.Document):
                 except mongoengine.errors.ValidationError:
                     traceback.print_exc()
         # Pass two.
-        count = cls.objects.count()
-        for index in range(count):
-            document = cls.objects.no_cache()[index]
+        cls.ensure_indexes()
+        query = cls.objects().no_cache().timeout(False)
+        for document in query:
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references()
                 if changed:

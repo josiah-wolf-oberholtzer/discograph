@@ -46,9 +46,10 @@ class Release(Model, mongoengine.Document):
 
     meta = {
         'indexes': [
+            '#title',
+            '$title',
             'discogs_id',
             'title',
-            '$title',
             ],
         }
 
@@ -56,6 +57,7 @@ class Release(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
+        from discograph import models
         #cls.drop_collection()
         # Pass one.
         #releases_xml_path = Bootstrap.releases_xml_path
@@ -77,15 +79,25 @@ class Release(Model, mongoengine.Document):
         #        except mongoengine.errors.ValidationError:
         #            traceback.print_exc()
         # Pass two.
-        count = cls.objects.count()
-        for index in range(count):
-            document = cls.objects.no_cache()[index]
+        cls.ensure_indexes()
+        models.Label.ensure_indexes()
+        #count = cls.objects.count()
+        #for index in range(623329, count):
+        query = cls.objects().no_cache()
+        query = query.only(
+            'companies',
+            'discogs_id',
+            'labels',
+            'title',
+            )
+        for i, document in enumerate(query):
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references()
                 if changed:
                     document.save()
-                    message = u'{} (Pass 2) {} [{}]: {}'.format(
+                    message = u'{} (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
                         cls.__name__.upper(),
+                        i,
                         document.discogs_id,
                         timer.elapsed_time,
                         document.title,
@@ -97,6 +109,8 @@ class Release(Model, mongoengine.Document):
         changed = False
         for company_credit in self.companies:
             query = models.Label.objects(name=company_credit.name)
+            query = query.no_cache()
+            query = query.hint([('name', 1)])
             query = query.only('discogs_id', 'name')
             found = list(query)
             if not len(found):
@@ -105,6 +119,8 @@ class Release(Model, mongoengine.Document):
             changed = True
         for label_credit in self.labels:
             query = models.Label.objects(name=label_credit.name)
+            query = query.no_cache()
+            query = query.hint([('name', 1)])
             query = query.only('discogs_id', 'name')
             found = list(query)
             if not len(found):

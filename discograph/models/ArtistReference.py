@@ -27,8 +27,8 @@ class ArtistReference(Model, mongoengine.EmbeddedDocument):
         result = []
         if names is None or not len(names):
             return result
-        for alias in names:
-            name = alias.text
+        for name in names:
+            name = name.text
             if not name:
                 continue
             result.append(cls(name=name))

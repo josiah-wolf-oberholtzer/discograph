@@ -262,13 +262,13 @@ class Relation(Model, mongoengine.Document):
                         aggregate_roles[role_name] = set()
                     aggregate_roles[role_name].add(extra_artist)
                     continue
-                triples.add((entity_two, role_name, extra_artist))
+                triples.add((extra_artist, role_name, entity_two))
 
         # Handle extra artists on individual tracks.
         all_track_artists = set()
         for track in release.tracklist:
-            all_track_artists.update(_.artist for _ in track.artists)
             track_artists = set(_.artist for _ in track.artists)
+            all_track_artists.update(track_artists)
             track_artists = track_artists or artists or labels
             iterator = itertools.product(track_artists, track.extra_artists)
             for entity_two, credit in iterator:
@@ -277,13 +277,13 @@ class Relation(Model, mongoengine.Document):
                     role_name = role.name
                     if role_name not in models.ArtistRole._available_credit_roles:
                         continue
-                    triples.add((entity_two, role_name, extra_artist))
+                    triples.add((extra_artist, role_name, entity_two))
 
         # Handle aggregate artists (DJ, Compiler, Curator, Presenter, etc.)
         for role_name, aggregate_artists in aggregate_roles.items():
             iterator = itertools.product(all_track_artists, aggregate_artists)
             for track_artist, aggregate_artist in iterator:
-                triples.add((track_artist, role_name, aggregate_artist))
+                triples.add((aggregate_artist, role_name, track_artist))
 
         key_function = lambda x: (
             getattr(x[0], 'discogs_id', 0) or 0,
