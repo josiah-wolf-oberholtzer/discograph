@@ -94,8 +94,9 @@ class Artist(Model, mongoengine.Document):
                 changed = document.resolve_references()
                 if changed:
                     document.save()
-                    message = u'{} (Pass 2) {} [{}]: {}'.format(
+                    message = u'{} (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
                         cls.__name__.upper(),
+                        i,
                         document.discogs_id,
                         timer.elapsed_time,
                         document.name,

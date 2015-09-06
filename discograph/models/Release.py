@@ -57,32 +57,39 @@ class Release(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discograph import models
-        #cls.drop_collection()
+        cls.drop_collection()
+        cls.bootstrap_pass_one()
+        cls.bootstrap_pass_two()
+
+    @classmethod
+    def bootstrap_pass_one(cls):
         # Pass one.
-        #releases_xml_path = Bootstrap.releases_xml_path
-        #with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
-        #    iterator = Bootstrap.iterparse(file_pointer, 'release')
-        #    iterator = Bootstrap.clean_elements(iterator)
-        #    for i, element in enumerate(iterator):
-        #        try:
-        #            with systemtools.Timer(verbose=False) as timer:
-        #                document = cls.from_element(element)
-        #                document.save()
-        #                message = u'{} (Pass 1) {} [{}]: {}'.format(
-        #                    cls.__name__.upper(),
-        #                    document.discogs_id,
-        #                    timer.elapsed_time,
-        #                    document.title,
-        #                    )
-        #                print(message)
-        #        except mongoengine.errors.ValidationError:
-        #            traceback.print_exc()
+        releases_xml_path = Bootstrap.releases_xml_path
+        with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
+            iterator = Bootstrap.iterparse(file_pointer, 'release')
+            iterator = Bootstrap.clean_elements(iterator)
+            for i, element in enumerate(iterator):
+                try:
+                    with systemtools.Timer(verbose=False) as timer:
+                        document = cls.from_element(element)
+                        document.save()
+                        message = u'{} (Pass 1) {} [{}]: {}'.format(
+                            cls.__name__.upper(),
+                            document.discogs_id,
+                            timer.elapsed_time,
+                            document.title,
+                            )
+                        print(message)
+                except mongoengine.errors.ValidationError:
+                    traceback.print_exc()
+
+    @classmethod
+    def bootstrap_pass_two(cls):
+        from discograph import models
         # Pass two.
         cls.ensure_indexes()
+        models.Artist.ensure_indexes()
         models.Label.ensure_indexes()
-        #count = cls.objects.count()
-        #for index in range(623329, count):
         query = cls.objects().no_cache()
         query = query.only(
             'companies',

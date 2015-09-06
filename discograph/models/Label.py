@@ -49,6 +49,11 @@ class Label(Model, mongoengine.Document):
     @classmethod
     def bootstrap(cls):
         cls.drop_collection()
+        cls.bootstrap_pass_one()
+        cls.bootstrap_pass_two()
+
+    @classmethod
+    def bootstrap_pass_one(cls):
         # Pass one.
         labels_xml_path = Bootstrap.labels_xml_path
         with gzip.GzipFile(labels_xml_path, 'r') as file_pointer:
@@ -68,6 +73,9 @@ class Label(Model, mongoengine.Document):
                         print(message)
                 except mongoengine.errors.ValidationError:
                     traceback.print_exc()
+
+    @classmethod
+    def bootstrap_pass_two(cls):
         # Pass two.
         cls.ensure_indexes()
         query = cls.objects().no_cache().timeout(False)
