@@ -51,31 +51,6 @@
         },
     }
 
-    /* UTILITY METHODS */
-
-    dg.buildNodeMap = function(nodes) {
-        var map = d3.map();
-        nodes.forEach(function(node) {
-            node.key = node.id;
-            map.set(node.id, node);
-        });
-        return map;
-    }
-
-    dg.buildLinkMap = function(links) {
-        var map = d3.map();
-        links.forEach(function(link) {
-            var role = link.role.toLocaleLowerCase().replace(/\s+/g, "-");
-            var key = link.source + "-" + role + "-" + link.target;
-            if (link.role == "Alias") {
-                link.dotted = true;
-            }
-            link.key = key;
-            map.set(key, link);
-        });
-        return map;
-    }
-
     /* GRAPH METHODS */
 
     dg.handleNewGraphData = function(error, json) {
@@ -146,12 +121,9 @@
         return 9 + (Math.sqrt(d.size) * 2);
     }
 
-    function getKey(d) {
-        return d.key;
-    }
-
     function onHaloEnter(haloEnter) {
-        haloEnter = haloEnter.append("g")
+        var haloEnter = haloEnter.append("g")
+            .filter(function(d, i) { return !d.isIntermediate ? this : null })
             .attr("class", function(d) { return "node node-" + d.key; })
         haloEnter.append("circle")
             .attr("class", "halo")
@@ -163,7 +135,7 @@
     }
 
     function onLinkEnter(linkEnter) {
-        linkEnter = linkEnter.append("line")
+        var linkEnter = linkEnter.append("line")
             .attr("class", function(d) { return "link link-" + d.key; })
             .style("stroke-width", 1)
             .style("stroke-dasharray", function(d) {
@@ -179,7 +151,8 @@
     }
 
     function onNodeEnter(nodeEnter) {
-        nodeEnter = nodeEnter.append("g")
+        var nodeEnter = nodeEnter.append("g")
+            //.filter(function(d, i) { return !d.isIntermediate ? this : null })
             .attr("class", function(d) { return "node node-" + d.key; })
             .style("fill", function(d) { return dg.color.heatmap(d); })
             .call(dg.graph.forceLayout.drag);
@@ -226,7 +199,8 @@
     }
 
     function onTextEnter(textEnter) {
-        textEnter = textEnter.append("g")
+        var textEnter = textEnter.append("g")
+            .filter(function(d, i) { return !d.isIntermediate ? this : null })
             .attr("class", function(d) { return "node node-" + d.key; })
         textEnter.append("text")
             .attr("class", "outer")
@@ -247,22 +221,34 @@
     dg.startForceLayout = function() {
         dg.graph.forceLayout.start();
         dg.graph.haloSelection = dg.graph.haloSelection
-            .data(dg.graph.nodes, getKey);
+            .data(dg.graph.nodes, function(d) { return d.key; });
         dg.graph.linkSelection = dg.graph.linkSelection
-            .data(dg.graph.links, getKey);
+            .data(dg.graph.links, function(d) { return d.key; });
         dg.graph.nodeSelection = dg.graph.nodeSelection
-            .data(dg.graph.nodes, getKey);
+            .data(dg.graph.nodes, function(d) { return d.key; });
         dg.graph.textSelection = dg.graph.textSelection
-            .data(dg.graph.nodes, getKey);
-        onHaloEnter(dg.graph.haloSelection.enter());
+            .data(dg.graph.nodes, function(d) { return d.key; });
+
+        var haloEnter = dg.graph.haloSelection.enter();
+        var haloEnter2 = haloEnter.filter(function(d, i) { 
+            return d.isIntermediate ? null : this;
+        });
+        onHaloEnter(haloEnter);
         onHaloExit(dg.graph.haloSelection.exit());
-        onLinkEnter(dg.graph.linkSelection.enter());
-        onLinkExit(dg.graph.linkSelection.exit());
-        onNodeEnter(dg.graph.nodeSelection.enter());
+
+        var nodeEnter = dg.graph.nodeSelection.enter();
+        onNodeEnter(nodeEnter);
         onNodeExit(dg.graph.nodeSelection.exit());
         onNodeUpdate(dg.graph.nodeSelection);
-        onTextEnter(dg.graph.textSelection.enter());
+
+        var textEnter = dg.graph.textSelection.enter();
+        onTextEnter(textEnter);
         onTextExit(dg.graph.textSelection.exit());
+
+        var linkEnter = dg.graph.linkSelection.enter();
+        onLinkEnter(linkEnter);
+        onLinkExit(dg.graph.linkSelection.exit());
+
         dg.graph.svgSelection.transition()
             .duration(1000)
             .style("opacity", 1);
@@ -284,56 +270,96 @@
 
     dg.updateForceLayout = function() {
         var json = dg.graph.json;
-        var newNodeMap = dg.buildNodeMap(json.nodes);
-        var newLinkMap = dg.buildLinkMap(json.links);
+
+        var newNodeMap = d3.map();
+        json.nodes.forEach(function(node) {
+            node.key = node.id;
+            newNodeMap.set(node.id, node);
+        });
+
+        var newLinkMap = d3.map();
+        json.links.forEach(function(link) {
+            var role = link.role.toLocaleLowerCase().replace(/\s+/g, "-");
+            var key = link.source + "-" + role + "-" + link.target;
+            var source = link.source,
+                target = link.target,
+                intermediate = {key: key, isIntermediate: true, size: 0};
+            var siLink = {
+                isIntermediate: true,
+                key: "(i)-" + key,
+                source: source, 
+                target: key, 
+                nodes: [source, intermediate, target],
+            };
+            var itLink = {
+                isIntermediate: true,
+                key: key + "-(i)",
+                source: key, 
+                target: target, 
+            };
+            link.intermediate = key;
+            newNodeMap.set(key, intermediate);
+            newLinkMap.set(siLink.key, siLink);
+            newLinkMap.set(itLink.key, itLink);
+        });
+
+        // NODES
         var nodeKeysToRemove = [];
-        var linkKeysToRemove = [];
         dg.graph.nodeMap.keys().forEach(function(key) {
             if (!newNodeMap.has(key)) {
                 nodeKeysToRemove.push(key);
             };
         });
+        nodeKeysToRemove.forEach(function(key) {
+            dg.graph.nodeMap.remove(key);
+        });
+
+        // LINKS
+        var linkKeysToRemove = [];
         dg.graph.linkMap.keys().forEach(function(key) {
             if (!newLinkMap.has(key)) {
                 linkKeysToRemove.push(key);
             };
         });
-        nodeKeysToRemove.forEach(function(key) {
-            dg.graph.nodeMap.remove(key);
-        });
         linkKeysToRemove.forEach(function(key) {
             dg.graph.linkMap.remove(key);
         });
+
+        // UPDATE NODE PROPERTIES
         newNodeMap.entries().forEach(function(entry) {
             var key = entry.key;
             var value = entry.value;
             if (dg.graph.nodeMap.has(key)) {
-                var node = dg.graph.nodeMap.get(key);
-                node.distance = value.distance;
-                node.missing = value.missing;
+                if (!value.isIntermediate) {
+                    var node = dg.graph.nodeMap.get(key);
+                    node.distance = value.distance;
+                    node.missing = value.missing;
+                }
             } else {
                 value.x = dg.graph.newNodeCoords[0] + (Math.random() * 100) - 50;
                 value.y = dg.graph.newNodeCoords[1] + (Math.random() * 100) - 50;
                 dg.graph.nodeMap.set(key, value);
             }
         });
+
+        // UPDATE LINK REFERENCES
         newLinkMap.entries().forEach(function(entry) {
             if (!dg.graph.linkMap.has(entry.key)) {
                 entry.value.source = dg.graph.nodeMap.get(entry.value.source);
                 entry.value.target = dg.graph.nodeMap.get(entry.value.target);
+                if (entry.value.nodes !== undefined) {
+                    entry.value.nodes[0] = dg.graph.nodeMap.get(entry.value.nodes[0]);
+                    entry.value.nodes[2] = dg.graph.nodeMap.get(entry.value.nodes[2]);
+                }
                 dg.graph.linkMap.set(entry.key, entry.value);
             }
         });
+
+        // PUSH DATA
         dg.graph.nodes.length = 0;
-        Array.prototype.push.apply(
-            dg.graph.nodes,
-            dg.graph.nodeMap.values()
-            );
+        Array.prototype.push.apply(dg.graph.nodes, dg.graph.nodeMap.values());
         dg.graph.links.length = 0;
-        Array.prototype.push.apply(
-            dg.graph.links,
-            dg.graph.linkMap.values()
-            );
+        Array.prototype.push.apply(dg.graph.links, dg.graph.linkMap.values());
         dg.graph.centerNodeID = json.center[0];
     }
 
