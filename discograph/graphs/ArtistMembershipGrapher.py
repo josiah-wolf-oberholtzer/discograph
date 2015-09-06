@@ -128,32 +128,34 @@ class ArtistMembershipGrapher(object):
         aliases = []
         nodes = []
         edges = []
-        for alias in artist.aliases:
-            alias_query = models.Artist.objects(name=alias)
-            if not alias_query.count():
+        for artist_reference in artist.aliases:
+            if not artist_reference.discogs_id:
                 continue
-            alias = alias_query.first()
-            edge = sorted([artist.discogs_id, alias.discogs_id])
+            edge = sorted([artist.discogs_id, artist_reference.discogs_id])
             edge.append('Alias')
-            aliases.append(alias.discogs_id)
+            aliases.append(artist_reference.discogs_id)
             edges.append(tuple(edge))
-            nodes.append(as_dict(alias))
-        for group in artist.groups:
+            nodes.append(as_dict(artist_reference))
+        for artist_reference in artist.groups:
+            if not artist_reference.discogs_id:
+                continue
             edge = (
                 artist.discogs_id,
-                group.discogs_id,
+                artist_reference.discogs_id,
                 'Member Of',
                 )
             edges.append(edge)
-            nodes.append(as_dict(group))
-        for member in artist.members:
+            nodes.append(as_dict(artist_reference))
+        for artist_reference in artist.members:
+            if not artist_reference.discogs_id:
+                continue
             edge = (
-                member.discogs_id,
+                artist_reference.discogs_id,
                 artist.discogs_id,
                 'Member Of',
                 )
             edges.append(edge)
-            nodes.append(as_dict(member))
+            nodes.append(as_dict(artist_reference))
         neighborhood = {
             'id': artist.discogs_id,
             'name': artist.name,
