@@ -191,7 +191,11 @@ class RelationGrapher(object):
                 artist_id = current_artist_ids_to_visit.pop()
                 if artist_id in artist_ids_visited:
                     continue
-                artist = models.Artist.objects.get(discogs_id=artist_id)
+                try:
+                    artist = models.Artist.objects.get(discogs_id=artist_id)
+                except Exception as e:
+                    print('ARTIST ID: {!r}'.format(artist_id))
+                    raise e
                 neighborhood = self.get_neighborhood(artist, cache=self.cache)
                 neighborhood['distance'] = distance
                 artist_ids_visited[neighborhood['id']] = neighborhood
