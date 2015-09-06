@@ -7,7 +7,7 @@ from discograph import models
 # TODO: match discogs id against name and degree (use dict, not set).
 
 
-class ArtistMembershipGrapher(object):
+class RelationGrapher(object):
 
     ### INITIALIZER ###
 

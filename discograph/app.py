@@ -2,7 +2,6 @@
 import discograph
 import mongoengine
 import random
-import traceback
 from flask import (
     Flask,
     abort,
@@ -56,7 +55,7 @@ def route__api__cluster__artist_id(artist_id):
         artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
     except:
         abort(404)
-    artist_graph = discograph.graphs.ArtistMembershipGrapher(
+    artist_graph = discograph.graphs.RelationGrapher(
         artists=[artist],
         cache=cache,
         degree=12,

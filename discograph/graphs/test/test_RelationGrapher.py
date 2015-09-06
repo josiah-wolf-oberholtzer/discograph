@@ -13,7 +13,7 @@ class Test(unittest.TestCase):
 
     def test_1(self):
         artist = discograph.models.Artist.objects.get(name='Morris Day')
-        grapher = discograph.graphs.ArtistMembershipGrapher
+        grapher = discograph.graphs.RelationGrapher
         neighborhood = grapher.get_neighborhood(artist)
         assert neighborhood == {
             'aliases': (),
@@ -32,7 +32,7 @@ class Test(unittest.TestCase):
 
     def test_2(self):
         artist = discograph.models.Artist.objects.get(name='Time, The')
-        grapher = discograph.graphs.ArtistMembershipGrapher
+        grapher = discograph.graphs.RelationGrapher
         neighborhood = grapher.get_neighborhood(artist)
         assert neighborhood == {
             'aliases': (2561672,),
@@ -71,7 +71,7 @@ class Test(unittest.TestCase):
 
     def test_3(self):
         artist = discograph.models.Artist.objects.get(name='Morris Day')
-        grapher = discograph.graphs.ArtistMembershipGrapher([artist], 1)
+        grapher = discograph.graphs.RelationGrapher([artist], 1)
         network = grapher.get_network()
         assert network == {
             'center': [152882],
@@ -89,7 +89,7 @@ class Test(unittest.TestCase):
 
     def test_4(self):
         artist = discograph.models.Artist.objects.get(name='Morris Day')
-        grapher = discograph.graphs.ArtistMembershipGrapher([artist], 2)
+        grapher = discograph.graphs.RelationGrapher([artist], 2)
         network = grapher.get_network()
         assert network == {
             'center': [152882],
@@ -133,7 +133,7 @@ class Test(unittest.TestCase):
 
     def test_5(self):
         artist = discograph.models.Artist.objects.get(name='Morris Day')
-        grapher = discograph.graphs.ArtistMembershipGrapher(
+        grapher = discograph.graphs.RelationGrapher(
             [artist], degree=3, max_nodes=5)
         network = grapher.get_network()
         assert network == {
