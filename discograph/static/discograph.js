@@ -56,6 +56,7 @@
     dg.buildNodeMap = function(nodes) {
         var map = d3.map();
         nodes.forEach(function(node) {
+            node.key = node.id;
             map.set(node.id, node);
         });
         return map;
@@ -64,10 +65,12 @@
     dg.buildLinkMap = function(links) {
         var map = d3.map();
         links.forEach(function(link) {
-            var key = link.source + "-" + link.target;
-            if (link.role == 'Alias') {
-                key = key + '-dotted';
+            var role = link.role.toLocaleLowerCase().replace(/\s+/g, "-");
+            var key = link.source + "-" + role + "-" + link.target;
+            if (link.role == "Alias") {
+                link.dotted = true;
             }
+            link.key = key;
             map.set(key, link);
         });
         return map;
@@ -82,10 +85,10 @@
             dg.graph.cache.set(id, JSON.parse(JSON.stringify(json)));
             dg.graph.cacheHistory.push(id);
             if (50 <= dg.graph.cache.size()) {
-                dg.graph.cache.remove(dg.graph.cacheHistory.shift()); 
+                dg.graph.cache.remove(dg.graph.cacheHistory.shift());
             }
         }
-        var name = json.nodes.filter(function(d) { 
+        var name = json.nodes.filter(function(d) {
             return d.id == id;
         })[0].name;
         $(document).attr("body").id = id;
@@ -141,6 +144,10 @@
 
     function getInnerRadius(d) {
         return 9 + (Math.sqrt(d.size) * 2);
+    }
+
+    function getKey(d) {
+        return d.key;
     }
 
     function getLinkKey(d) {
