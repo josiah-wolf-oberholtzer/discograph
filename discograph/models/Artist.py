@@ -53,6 +53,11 @@ class Artist(Model, mongoengine.Document):
     @classmethod
     def bootstrap(cls):
         cls.drop_collection()
+        cls.bootstrap_pass_one()
+        cls.bootstrap_pass_two()
+
+    @classmethod
+    def bootstrap_pass_one(cls):
         # Pass one.
         artists_xml_path = Bootstrap.artists_xml_path
         with gzip.GzipFile(artists_xml_path, 'r') as file_pointer:
@@ -73,6 +78,8 @@ class Artist(Model, mongoengine.Document):
                 except mongoengine.errors.ValidationError:
                     traceback.print_exc()
 
+    @classmethod
+    def bootstrap_pass_two(cls):
         # Pass two.
         cls.ensure_indexes()
         query = cls.objects().no_cache().timeout(False)
@@ -193,6 +200,14 @@ class Artist(Model, mongoengine.Document):
     def resolve_references(self):
         changed = False
         for artist_reference in self.aliases:
+            query = type(self).objects(name=artist_reference.name)
+            query = query.only('discogs_id', 'name')
+            found = list(query)
+            if not len(found):
+                continue
+            artist_reference.discogs_id = found[0].discogs_id
+            changed = True
+        for artist_reference in self.members:
             query = type(self).objects(name=artist_reference.name)
             query = query.only('discogs_id', 'name')
             found = list(query)
