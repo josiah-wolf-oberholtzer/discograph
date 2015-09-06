@@ -154,3 +154,10 @@ class Test(unittest.TestCase):
                 {'distance': 1, 'group': 1, 'id': 2561672, 'missing': 5, 'name': 'Original 7ven, The', 'size': 7},
                 ),
             }
+
+    def test_6(self):
+        artist = discograph.models.Artist.objects.get(discogs_id=289473)
+        grapher = discograph.graphs.RelationGrapher(
+            [artist], degree=12, max_nodes=100)
+        network = grapher.get_network()
+        assert network == {}
