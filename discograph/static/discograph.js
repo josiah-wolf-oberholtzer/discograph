@@ -135,15 +135,16 @@
     }
 
     function onLinkEnter(linkEnter) {
-        var linkEnter = linkEnter.append("line")
+        var linkEnter = linkEnter.append("path")
+            .filter(function(d, i) { return d.nodes !== undefined ? this : null })
             .attr("class", function(d) { return "link link-" + d.key; })
-            .style("stroke-width", 1)
             .style("stroke-dasharray", function(d) {
-                if (d.role == 'Alias') {
-                    return "2, 4";
+                if (d.role == "Alias") {
+                    return "2, 2";
                 } else {
-                    return "";
-                }});
+                    return "0, 0";
+                }
+            });
     }
 
     function onLinkExit(linkExit) {
@@ -152,7 +153,7 @@
 
     function onNodeEnter(nodeEnter) {
         var nodeEnter = nodeEnter.append("g")
-            //.filter(function(d, i) { return !d.isIntermediate ? this : null })
+            .filter(function(d, i) { return !d.isIntermediate ? this : null })
             .attr("class", function(d) { return "node node-" + d.key; })
             .style("fill", function(d) { return dg.color.heatmap(d); })
             .call(dg.graph.forceLayout.drag);
@@ -257,8 +258,17 @@
 
     function translate(d) { return "translate(" + d.x + "," + d.y + ")"; };
 
+    function spline(d) {
+        return "M" + d.nodes[0].x + "," + d.nodes[0].y
+             + "S" + d.nodes[1].x + "," + d.nodes[1].y
+             + " " + d.nodes[2].x + "," + d.nodes[2].y;
+    }
+
     dg.tick = function() {
-        dg.graph.linkSelection
+        dg.graph.linkSelection.filter(function(d, i) {
+            return d.nodes !== undefined;
+            })
+            .attr("d", spline)
             .attr("x1", function(d) { return d.source.x; })
             .attr("y1", function(d) { return d.source.y; })
             .attr("x2", function(d) { return d.target.x; })
@@ -285,14 +295,15 @@
                 target = link.target,
                 intermediate = {key: key, isIntermediate: true, size: 0};
             var siLink = {
-                isIntermediate: true,
+                isPrimary: true,
                 key: "(i)-" + key,
+                role: link.role,
                 source: source, 
                 target: key, 
                 nodes: [source, intermediate, target],
             };
             var itLink = {
-                isIntermediate: true,
+                isPrimary: false,
                 key: key + "-(i)",
                 source: key, 
                 target: target, 
@@ -441,21 +452,14 @@
         dg.graph.forceLayout = d3.layout.force()
             .nodes(dg.graph.nodes)
             .links(dg.graph.links)
-            .linkStrength(0.5)
+            .linkStrength(1)
             .friction(0.95)
-            .linkDistance(function(e, i) {
-                // Expand alias bramble bushes.
-                if ((e.source.group === null) && (e.target.group === null)) {
-                    return 40;
-                } else if (e.source.group == e.target.group) {
-                    return 50;
-                } else {
-                    return 20;
-                }
+            .linkDistance(50)
+            .charge(function(d, i) {
+                return d.isIntermediate ? -50 : -150;
             })
-            .charge(-400)
-            .gravity(0.15)
-            .theta(0.1)
+            .gravity(0.1)
+            .theta(0.9)
             .alpha(0.1)
             .size(dg.graph.dimensions)
             .on("tick", dg.tick);

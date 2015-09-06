@@ -15,8 +15,10 @@ svg {
     }
 
 .link {
-    stroke: #999;
-    stroke-opacity: 0.75;
+    fill-opacity: 0;
+    stroke: #000;
+    stroke-opacity: 0.5;
+    stroke-width: 1;
     }
 
 .node {
