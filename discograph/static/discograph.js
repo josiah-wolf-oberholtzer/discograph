@@ -252,13 +252,13 @@
     dg.startForceLayout = function() {
         dg.graph.forceLayout.start();
         dg.graph.haloSelection = dg.graph.haloSelection
-            .data(dg.graph.forceLayout.nodes(), getNodeKey);
+            .data(dg.graph.nodes, getNodeKey);
         dg.graph.linkSelection = dg.graph.linkSelection
-            .data(dg.graph.forceLayout.links(), getLinkKey);
+            .data(dg.graph.links, getLinkKey);
         dg.graph.nodeSelection = dg.graph.nodeSelection
-            .data(dg.graph.forceLayout.nodes(), getNodeKey);
+            .data(dg.graph.nodes, getNodeKey);
         dg.graph.textSelection = dg.graph.textSelection
-            .data(dg.graph.forceLayout.nodes(), getNodeKey);
+            .data(dg.graph.nodes, getNodeKey);
         onHaloEnter(dg.graph.haloSelection.enter());
         onHaloExit(dg.graph.haloSelection.exit());
         onLinkEnter(dg.graph.linkSelection.enter());
