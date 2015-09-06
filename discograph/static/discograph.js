@@ -259,20 +259,23 @@
     function translate(d) { return "translate(" + d.x + "," + d.y + ")"; };
 
     function spline(d) {
-        return "M" + d.nodes[0].x + "," + d.nodes[0].y
-             + "S" + d.nodes[1].x + "," + d.nodes[1].y
-             + " " + d.nodes[2].x + "," + d.nodes[2].y;
+        var sR = d.nodes[0].radius;
+        var sX = d.nodes[0].x;
+        var sY = d.nodes[0].y;
+        var cX = d.nodes[1].x;
+        var cY = d.nodes[1].y;
+        var tR = d.nodes[0].radius;
+        var tX = d.nodes[2].x;
+        var tY = d.nodes[2].y;
+        return (
+            "M " + sX + "," + sY + " " + 
+            "L " + cX + "," + cY + " " +
+            "L " + tX + "," + tY
+            );
     }
 
     dg.tick = function() {
-        dg.graph.linkSelection.filter(function(d, i) {
-            return d.nodes !== undefined;
-            })
-            .attr("d", spline)
-            .attr("x1", function(d) { return d.nodes[0].x; })
-            .attr("y1", function(d) { return d.nodes[0].y; })
-            .attr("x2", function(d) { return d.nodes[2].x; })
-            .attr("y2", function(d) { return d.nodes[2].y; });
+        dg.graph.linkSelection.attr("d", spline);
         dg.graph.haloSelection.attr("transform", translate);
         dg.graph.nodeSelection.attr("transform", translate);
         dg.graph.textSelection.attr("transform", translate);

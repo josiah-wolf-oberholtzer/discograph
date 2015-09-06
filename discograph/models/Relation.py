@@ -112,21 +112,31 @@ class Relation(Model, mongoengine.Document):
         cls.drop_collection()
         cls.bootstrap_pass_one()
         cls.bootstrap_pass_two()
-        cls.bootstrap_pass_three()
+        #cls.bootstrap_pass_three()
 
     @classmethod
     def bootstrap_pass_one(cls):
         from discograph import models
-        for artist in models.Artist.objects.no_cache().timeout(False):
-            print(artist.discogs_id, artist.name)
+        query = models.Artist.objects.no_cache().timeout(False)
+        for i, artist in enumerate(query):
+            print('(idx:{}) (id:{}) {}'.format(
+                i,
+                artist.discogs_id,
+                artist.name,
+                ))
             for relation in cls.from_artist(artist):
                 relation.save_if_unique()
 
     @classmethod
     def bootstrap_pass_two(cls):
         from discograph import models
-        for label in models.Label.objects.no_cache().timeout(False):
-            print(label.discogs_id, label.name)
+        query = models.Label.objects.no_cache().timeout(False)
+        for i, label in enumerate(query):
+            print('(idx:{}) (id:{}) {}'.format(
+                i,
+                label.discogs_id,
+                label.name,
+                ))
             for relation in cls.from_label(label):
                 relation.save_if_unique()
 
