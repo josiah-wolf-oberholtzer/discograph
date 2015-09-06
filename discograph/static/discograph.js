@@ -109,29 +109,29 @@
     dg.selectNode = function(id) {
         dg.graph.selectedNodeID = id;
         dg.graph.haloSelection
-            .filter("*:not(.node" + dg.graph.selectedNodeID + ")")
+            .filter("*:not(.node-" + dg.graph.selectedNodeID + ")")
             .select(".halo")
             .style("fill-opacity", 0.);
         dg.graph.haloSelection
-            .filter(".node" + dg.graph.selectedNodeID)
+            .filter(".node-" + dg.graph.selectedNodeID)
             .select(".halo")
             .style("fill-opacity", 0.1);
         dg.graph.nodeSelection
-            .filter("*:not(.node" + dg.graph.selectedNodeID + ")")
+            .filter("*:not(.node-" + dg.graph.selectedNodeID + ")")
             .style("stroke", "#fff");
         dg.graph.nodeSelection
-            .filter("*:not(.node" + dg.graph.selectedNodeID + ")")
+            .filter("*:not(.node-" + dg.graph.selectedNodeID + ")")
             .select(".more")
             .style("fill", "#fff");
         dg.graph.nodeSelection
-            .filter(".node" + dg.graph.selectedNodeID)
+            .filter(".node-" + dg.graph.selectedNodeID)
             .style("stroke", "#000");
         dg.graph.nodeSelection
-            .filter(".node" + dg.graph.selectedNodeID)
+            .filter(".node-" + dg.graph.selectedNodeID)
             .select(".more")
             .style("fill", "#000");
         dg.graph.textSelection
-            .filter(".node" + dg.graph.selectedNodeID)
+            .filter(".node-" + dg.graph.selectedNodeID)
             .moveToFront();
     }
 
@@ -150,21 +150,9 @@
         return d.key;
     }
 
-    function getLinkKey(d) {
-        var key = d.source.id + "-" + d.target.id;
-        if (d.role == 'Alias') {
-            key = key + '-dotted';
-        }
-        return key;
-    }
-
-    function getNodeKey(d) {
-        return d.id;
-    }
-
     function onHaloEnter(haloEnter) {
         haloEnter = haloEnter.append("g")
-            .attr("class", function(d) { return "node node" + getNodeKey(d); })
+            .attr("class", function(d) { return "node node-" + d.key; })
         haloEnter.append("circle")
             .attr("class", "halo")
             .attr("r", function(d) { return getOuterRadius(d) + 40; });
@@ -176,7 +164,7 @@
 
     function onLinkEnter(linkEnter) {
         linkEnter = linkEnter.append("line")
-            .attr("class", function(d) { return "link link" + getLinkKey(d); })
+            .attr("class", function(d) { return "link link-" + d.key; })
             .style("stroke-width", 1)
             .style("stroke-dasharray", function(d) {
                 if (d.role == 'Alias') {
@@ -192,7 +180,7 @@
 
     function onNodeEnter(nodeEnter) {
         nodeEnter = nodeEnter.append("g")
-            .attr("class", function(d) { return "node node" + getNodeKey(d); })
+            .attr("class", function(d) { return "node node-" + d.key; })
             .style("fill", function(d) { return dg.color.heatmap(d); })
             .call(dg.graph.forceLayout.drag);
         nodeEnter.on("mousedown", function(d) {
@@ -239,7 +227,7 @@
 
     function onTextEnter(textEnter) {
         textEnter = textEnter.append("g")
-            .attr("class", function(d) { return "node node" + getNodeKey(d); })
+            .attr("class", function(d) { return "node node-" + d.key; })
         textEnter.append("text")
             .attr("class", "outer")
             .attr("dy", ".35em")
@@ -259,13 +247,13 @@
     dg.startForceLayout = function() {
         dg.graph.forceLayout.start();
         dg.graph.haloSelection = dg.graph.haloSelection
-            .data(dg.graph.nodes, getNodeKey);
+            .data(dg.graph.nodes, getKey);
         dg.graph.linkSelection = dg.graph.linkSelection
-            .data(dg.graph.links, getLinkKey);
+            .data(dg.graph.links, getKey);
         dg.graph.nodeSelection = dg.graph.nodeSelection
-            .data(dg.graph.nodes, getNodeKey);
+            .data(dg.graph.nodes, getKey);
         dg.graph.textSelection = dg.graph.textSelection
-            .data(dg.graph.nodes, getNodeKey);
+            .data(dg.graph.nodes, getKey);
         onHaloEnter(dg.graph.haloSelection.enter());
         onHaloExit(dg.graph.haloSelection.exit());
         onLinkEnter(dg.graph.linkSelection.enter());
