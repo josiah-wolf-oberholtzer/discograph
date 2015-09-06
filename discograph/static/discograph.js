@@ -153,6 +153,22 @@
                     return "0, 0";
                 }
             });
+        linkEnter.append("title").text(function(d) { 
+            var source = d.nodes[0].name,
+                role = d.role,
+                target = d.nodes[2].name;
+            if (role == "Alias") {
+                return source + " ↔ (" + role + ") ↔ " + target;
+            } else {
+                return source + " → (" + role + ") → " + target;
+            }
+        })
+        linkEnter.on("mouseover", function(d) {
+            d3.select(this).style("stroke-width", 5);
+        });
+        linkEnter.on("mouseout", function(d) {
+            d3.select(this).style("stroke-width", 1);
+        });
     }
 
     function onLinkExit(linkExit) {
