@@ -154,43 +154,26 @@ class Test(unittest.TestCase):
             discograph.models.Release(
                 artists=[
                     discograph.models.ArtistCredit(
-                        artist=discograph.models.Artist(
-                            discogs_id=1,
-                            has_been_scraped=False,
-                            name='Persuader, The',
-                            ),
                         discogs_id=1,
                         name='Persuader, The',
                         ),
                     ],
                 companies=[
                     discograph.models.CompanyCredit(
-                        company=discograph.models.Label(
-                            has_been_scraped=False,
-                            name='The Globe Studios',
-                            ),
                         entity_type=23,
                         entity_type_name='Recorded At',
+                        name='The Globe Studios',
                         ),
                     discograph.models.CompanyCredit(
-                        company=discograph.models.Label(
-                            has_been_scraped=False,
-                            name='MPO',
-                            ),
                         entity_type=17,
                         entity_type_name='Pressed By',
+                        name='MPO',
                         ),
                     ],
                 country='Sweden',
-                data_quality='Complete and Correct',
                 discogs_id=1,
                 extra_artists=[
                     discograph.models.ArtistCredit(
-                        artist=discograph.models.Artist(
-                            discogs_id=239,
-                            has_been_scraped=False,
-                            name='Jesper Dahlbäck',
-                            ),
                         discogs_id=239,
                         name='Jesper Dahlbäck',
                         roles=[
@@ -230,14 +213,10 @@ class Test(unittest.TestCase):
                 labels=[
                     discograph.models.LabelCredit(
                         catalog_number='SK032',
-                        label=discograph.models.Label(
-                            has_been_scraped=False,
-                            name='Svek',
-                            ),
+                        name='Svek',
                         ),
                     ],
                 release_date=datetime.datetime(1999, 3, 1, 0, 0),
-                status='Accepted',
                 styles=['Deep House'],
                 title='Stockholm',
                 tracklist=[
@@ -639,43 +618,26 @@ class Test(unittest.TestCase):
             discograph.models.Release(
                 artists=[
                     discograph.models.ArtistCredit(
-                        artist=discograph.models.Artist(
-                            discogs_id=3,
-                            has_been_scraped=False,
-                            name='Josh Wink',
-                            ),
                         discogs_id=3,
                         name='Josh Wink',
                         ),
                     ],
                 companies=[
                     discograph.models.CompanyCredit(
-                        company=discograph.models.Label(
-                            has_been_scraped=False,
-                            name='Columbia Records',
-                            ),
                         entity_type=10,
                         entity_type_name='Manufactured By',
+                        name='Columbia Records',
                         ),
                     discograph.models.CompanyCredit(
-                        company=discograph.models.Label(
-                            has_been_scraped=False,
-                            name='Columbia Records',
-                            ),
                         entity_type=9,
                         entity_type_name='Distributed By',
+                        name='Columbia Records',
                         ),
                     ],
                 country='US',
-                data_quality='Correct',
                 discogs_id=3,
                 extra_artists=[
                     discograph.models.ArtistCredit(
-                        artist=discograph.models.Artist(
-                            discogs_id=3,
-                            has_been_scraped=False,
-                            name='Josh Wink',
-                            ),
                         discogs_id=3,
                         name='Josh Wink',
                         roles=[
@@ -702,36 +664,22 @@ class Test(unittest.TestCase):
                 labels=[
                     discograph.models.LabelCredit(
                         catalog_number='CK 63628',
-                        label=discograph.models.Label(
-                            has_been_scraped=False,
-                            name='Ruffhouse Records',
-                            ),
+                        name='Ruffhouse Records',
                         ),
                     ],
                 master_id=66526,
                 release_date=datetime.datetime(1999, 7, 13, 0, 0),
-                status='Accepted',
                 styles=['Techno', 'Tech House'],
                 title='Profound Sounds Vol. 1',
                 tracklist=[
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=5,
-                                    has_been_scraped=False,
-                                    name='Heiko Laux',
-                                    ),
                                 discogs_id=5,
                                 join='&',
                                 name='Heiko Laux',
                                 ),
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=4,
-                                    has_been_scraped=False,
-                                    name='Johannes Heil',
-                                    ),
                                 discogs_id=4,
                                 join=',',
                                 name='Johannes Heil',
@@ -745,11 +693,6 @@ class Test(unittest.TestCase):
                         artists=[
                             discograph.models.ArtistCredit(
                                 anv='K.A.B.',
-                                artist=discograph.models.Artist(
-                                    discogs_id=15525,
-                                    has_been_scraped=False,
-                                    name='Karl Axel Bissler',
-                                    ),
                                 discogs_id=15525,
                                 join=',',
                                 name='Karl Axel Bissler',
@@ -762,11 +705,6 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=7,
-                                    has_been_scraped=False,
-                                    name='Sylk 130',
-                                    ),
                                 discogs_id=7,
                                 join=',',
                                 name='Sylk 130',
@@ -775,11 +713,6 @@ class Test(unittest.TestCase):
                         duration='5:25',
                         extra_artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=8,
-                                    has_been_scraped=False,
-                                    name='Mood II Swing',
-                                    ),
                                 discogs_id=8,
                                 name='Mood II Swing',
                                 roles=[
@@ -795,11 +728,6 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=1,
-                                    has_been_scraped=False,
-                                    name='Persuader, The',
-                                    ),
                                 discogs_id=1,
                                 join=',',
                                 name='Persuader, The',
@@ -812,11 +740,6 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=267132,
-                                    has_been_scraped=False,
-                                    name='Care Company (2)',
-                                    ),
                                 discogs_id=267132,
                                 join=',',
                                 name='Care Company (2)',
@@ -829,11 +752,6 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=6981,
-                                    has_been_scraped=False,
-                                    name='Gez Varley',
-                                    ),
                                 discogs_id=6981,
                                 join=',',
                                 name='Gez Varley',
@@ -846,11 +764,6 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=11,
-                                    has_been_scraped=False,
-                                    name='DJ Dozia',
-                                    ),
                                 discogs_id=11,
                                 join=',',
                                 name='DJ Dozia',
@@ -863,21 +776,11 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=10702,
-                                    has_been_scraped=False,
-                                    name="Nerio's Dubwork",
-                                    ),
                                 discogs_id=10702,
                                 join='Meets',
                                 name="Nerio's Dubwork",
                                 ),
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=233190,
-                                    has_been_scraped=False,
-                                    name='Kathy Lee',
-                                    ),
                                 discogs_id=233190,
                                 join=',',
                                 name='Kathy Lee',
@@ -886,11 +789,6 @@ class Test(unittest.TestCase):
                         duration='5:42',
                         extra_artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=23,
-                                    has_been_scraped=False,
-                                    name='Alex Hi-Fi',
-                                    ),
                                 discogs_id=23,
                                 name='Alex Hi-Fi',
                                 roles=[
@@ -906,11 +804,6 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=13,
-                                    has_been_scraped=False,
-                                    name='Blaze',
-                                    ),
                                 discogs_id=13,
                                 join=',',
                                 name='Blaze',
@@ -919,11 +812,6 @@ class Test(unittest.TestCase):
                         duration='5:47',
                         extra_artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=14,
-                                    has_been_scraped=False,
-                                    name='Eight Miles High',
-                                    ),
                                 discogs_id=14,
                                 name='Eight Miles High',
                                 roles=[
@@ -939,21 +827,11 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=67226,
-                                    has_been_scraped=False,
-                                    name='Stacey Pullen',
-                                    ),
                                 discogs_id=67226,
                                 join='Presents',
                                 name='Stacey Pullen',
                                 ),
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=7554,
-                                    has_been_scraped=False,
-                                    name='Black Odyssey',
-                                    ),
                                 discogs_id=7554,
                                 join=',',
                                 name='Black Odyssey',
@@ -962,11 +840,6 @@ class Test(unittest.TestCase):
                         duration='6:06',
                         extra_artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=67226,
-                                    has_been_scraped=False,
-                                    name='Stacey Pullen',
-                                    ),
                                 discogs_id=67226,
                                 name='Stacey Pullen',
                                 roles=[
@@ -982,11 +855,6 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=3906,
-                                    has_been_scraped=False,
-                                    name='Christian Smith & John Selway',
-                                    ),
                                 discogs_id=3906,
                                 join=',',
                                 name='Christian Smith & John Selway',
@@ -999,11 +867,6 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=3,
-                                    has_been_scraped=False,
-                                    name='Josh Wink',
-                                    ),
                                 discogs_id=3,
                                 join=',',
                                 name='Josh Wink',
@@ -1016,11 +879,6 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=19,
-                                    has_been_scraped=False,
-                                    name='Sound Associates',
-                                    ),
                                 discogs_id=19,
                                 join=',',
                                 name='Sound Associates',
@@ -1033,11 +891,6 @@ class Test(unittest.TestCase):
                     discograph.models.Track(
                         artists=[
                             discograph.models.ArtistCredit(
-                                artist=discograph.models.Artist(
-                                    discogs_id=20,
-                                    has_been_scraped=False,
-                                    name='Percy X',
-                                    ),
                                 discogs_id=20,
                                 join=',',
                                 name='Percy X',
@@ -1142,17 +995,11 @@ class Test(unittest.TestCase):
             discograph.models.Release(
                 artists=[
                     discograph.models.ArtistCredit(
-                        artist=discograph.models.Artist(
-                            discogs_id=12584,
-                            has_been_scraped=False,
-                            name='Felix Kubin',
-                            ),
                         discogs_id=12584,
                         name='Felix Kubin',
                         ),
                     ],
                 country='Germany',
-                data_quality='Correct',
                 discogs_id=138522,
                 formats=[
                     discograph.models.Format(
@@ -1165,15 +1012,11 @@ class Test(unittest.TestCase):
                 labels=[
                     discograph.models.LabelCredit(
                         catalog_number='a19',
-                        label=discograph.models.Label(
-                            has_been_scraped=False,
-                            name='A-Musik',
-                            ),
+                        name='A-Musik',
                         ),
                     ],
                 master_id=86193,
                 release_date=datetime.datetime(2002, 2, 6, 0, 0),
-                status='Accepted',
                 styles=['Acid House', 'Experimental', 'Happy Hardcore'],
                 title='Jetlag Disco',
                 tracklist=[
@@ -1296,17 +1139,11 @@ class Test(unittest.TestCase):
             discograph.models.Release(
                 artists=[
                     discograph.models.ArtistCredit(
-                        artist=discograph.models.Artist(
-                            discogs_id=12584,
-                            has_been_scraped=False,
-                            name='Felix Kubin',
-                            ),
                         discogs_id=12584,
                         name='Felix Kubin',
                         ),
                     ],
                 country='Germany',
-                data_quality='Correct',
                 discogs_id=138522,
                 formats=[
                     discograph.models.Format(
@@ -1319,15 +1156,11 @@ class Test(unittest.TestCase):
                 labels=[
                     discograph.models.LabelCredit(
                         catalog_number='a19',
-                        label=discograph.models.Label(
-                            has_been_scraped=False,
-                            name='A-Musik',
-                            ),
+                        name='A-Musik',
                         ),
                     ],
                 master_id=86193,
                 release_date=datetime.datetime(2002, 1, 1, 0, 0),
-                status='Accepted',
                 styles=['Acid House', 'Experimental', 'Happy Hardcore'],
                 title='Jetlag Disco',
                 tracklist=[

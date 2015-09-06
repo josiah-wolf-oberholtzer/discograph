@@ -57,23 +57,30 @@ class Test(unittest.TestCase):
         expected = stringtools.normalize('''
             discograph.models.Artist(
                 aliases=[
-                    'ADCL',
-                    'Alexi Delano & Cari Lekebusch',
-                    'Crushed Insect & The Sick Puppy',
-                    'Puente Latino',
-                    'Yakari & Delano',
+                    discograph.models.ArtistReference(
+                        name='ADCL',
+                        ),
+                    discograph.models.ArtistReference(
+                        name='Alexi Delano & Cari Lekebusch',
+                        ),
+                    discograph.models.ArtistReference(
+                        name='Crushed Insect & The Sick Puppy',
+                        ),
+                    discograph.models.ArtistReference(
+                        name='Puente Latino',
+                        ),
+                    discograph.models.ArtistReference(
+                        name='Yakari & Delano',
+                        ),
                     ],
                 discogs_id=2,
-                has_been_scraped=True,
                 members=[
-                    discograph.models.Artist(
+                    discograph.models.ArtistReference(
                         discogs_id=26,
-                        has_been_scraped=False,
                         name='Alexi Delano',
                         ),
-                    discograph.models.Artist(
+                    discograph.models.ArtistReference(
                         discogs_id=27,
-                        has_been_scraped=False,
                         name='Cari Lekebusch',
                         ),
                     ],
@@ -84,7 +91,7 @@ class Test(unittest.TestCase):
                     'Mr. Barth & A.D.',
                     'Mr. James Barth & A. D.',
                     ],
-                real_name='Mr. James Barth & A.D.',
+                real_name='Cari Lekebusch & Alexi Delano',
                 )
             ''')
         assert actual == expected

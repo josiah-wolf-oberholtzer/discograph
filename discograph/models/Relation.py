@@ -110,31 +110,41 @@ class Relation(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
+        cls.drop_collection()
+        cls.bootstrap_pass_one()
+        cls.bootstrap_pass_two()
+        cls.bootstrap_pass_three()
+
+    @classmethod
+    def bootstrap_pass_one(cls):
         from discograph import models
-        #cls.drop_collection()
-        #for artist in models.Artist.objects:
-        #    print(artist.discogs_id, artist.name)
-        #    for relation in cls.from_artist(artist):
-        #        relation.save_if_unique()
-        #for label in models.Label.objects:
-        #    print(label.discogs_id, label.name)
-        #    for relation in cls.from_label(label):
-        #        relation.save_if_unique()
-        for release in models.Release.objects:
+        for artist in models.Artist.objects.no_cache().timeout(False):
+            print(artist.discogs_id, artist.name)
+            for relation in cls.from_artist(artist):
+                relation.save_if_unique()
+
+    @classmethod
+    def bootstrap_pass_two(cls):
+        from discograph import models
+        for label in models.Label.objects.no_cache().timeout(False):
+            print(label.discogs_id, label.name)
+            for relation in cls.from_label(label):
+                relation.save_if_unique()
+
+    @classmethod
+    def bootstrap_pass_three(cls):
+        from discograph import models
+        for release in models.Release.objects.no_cache().timeout(False):
             print(release.discogs_id, release.title)
             for relation in cls.from_release(release):
                 relation.save_if_unique()
 
     @classmethod
     def from_artist(cls, artist):
-        from discograph import models
         triples = set()
         for alias in artist.aliases:
-            query = models.Artist.objects(name=alias)
-            query = query.hint([('name', 'hashed')])
-            if not query.count():
+            if not alias.discogs_id:
                 continue
-            alias = query.first()
             artist_one, artist_two = sorted(
                 [artist, alias],
                 key=lambda x: x.discogs_id,
@@ -172,10 +182,10 @@ class Relation(Model, mongoengine.Document):
                 year = release.release_date.year
         for entity_one, role_name, entity_two in triples:
             entity_one_type = cls.EntityType.ARTIST
-            if isinstance(entity_one, models.Label):
+            if isinstance(entity_one, (models.Label, models.LabelReference)):
                 entity_one_type = cls.EntityType.LABEL
             entity_two_type = cls.EntityType.ARTIST
-            if isinstance(entity_two, models.Label):
+            if isinstance(entity_two, (models.Label, models.LabelReference)):
                 entity_two_type = cls.EntityType.LABEL
             category, subcategory = cls._get_categories(role_name)
             is_trivial = None

@@ -37,11 +37,6 @@ class Test(unittest.TestCase):
         artist_credits = models.ArtistCredit.from_elements(element)
         assert format(artist_credits[0]) == stringtools.normalize(r'''
             discograph.models.ArtistCredit(
-                artist=discograph.models.Artist(
-                    discogs_id=1,
-                    has_been_scraped=False,
-                    name='Persuader, The',
-                    ),
                 discogs_id=1,
                 name='Persuader, The',
                 )
@@ -64,11 +59,6 @@ class Test(unittest.TestCase):
         artist_credits = models.ArtistCredit.from_elements(element)
         assert format(artist_credits[0]) == stringtools.normalize(r'''
             discograph.models.ArtistCredit(
-                artist=discograph.models.Artist(
-                    discogs_id=239,
-                    has_been_scraped=False,
-                    name='Jesper Dahlbäck',
-                    ),
                 discogs_id=239,
                 name='Jesper Dahlbäck',
                 roles=[

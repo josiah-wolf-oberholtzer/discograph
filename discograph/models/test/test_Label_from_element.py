@@ -57,15 +57,12 @@ class Test(unittest.TestCase):
         expected = stringtools.normalize(u'''
             discograph.models.Label(
                 discogs_id=3,
-                has_been_scraped=True,
                 name='Seasons Recordings',
                 sublabels=[
-                    discograph.models.Label(
-                        has_been_scraped=False,
+                    discograph.models.LabelReference(
                         name='Seasons Classics',
                         ),
-                    discograph.models.Label(
-                        has_been_scraped=False,
+                    discograph.models.LabelReference(
                         name='Seasons Limited',
                         ),
                     ],
