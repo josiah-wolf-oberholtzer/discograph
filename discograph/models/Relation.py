@@ -1,3 +1,4 @@
+import collections
 import itertools
 import mongoengine
 from abjad.tools import datastructuretools
@@ -8,6 +9,11 @@ from discograph.models.Model import Model
 class Relation(Model, mongoengine.Document):
 
     ### CLASS VARIABLES ###
+
+    Reference = collections.namedtuple(
+        'Reference',
+        ['class_', 'discogs_id', 'name'],
+        )
 
     class EntityType(datastructuretools.Enumeration):
         ARTIST = 1
@@ -89,24 +95,17 @@ class Relation(Model, mongoengine.Document):
 
     ### PUBLIC METHODS ###
 
-    def save_if_unique(self):
-        query = type(self).objects(
-            entity_one_id=self.entity_one_id,
-            entity_one_type=self.entity_one_type,
-            entity_two_id=self.entity_two_id,
-            entity_two_type=self.entity_two_type,
-            role_name=self.role_name,
-            release_id=self.release_id,
+    @classmethod
+    def model_to_tuple(cls, reference):
+        from discograph import models
+        class_ = models.Artist
+        if isinstance(reference, (models.Label, models.LabelReference)):
+            class_ = models.Label
+        return cls.Reference(
+            class_=class_,
+            discogs_id=reference.discogs_id,
+            name=reference.name,
             )
-        if query.count():
-            print('    SKIPPING {!r} : {} : {!r}'.format(
-                self.entity_one_name, self.role_name, self.entity_two_name)
-                )
-        else:
-            print('    {!r} : {} : {!r}'.format(
-                self.entity_one_name, self.role_name, self.entity_two_name)
-                )
-            self.save()
 
     @classmethod
     def bootstrap(cls):
@@ -142,6 +141,7 @@ class Relation(Model, mongoengine.Document):
     @classmethod
     def from_artist(cls, artist):
         triples = set()
+        role = 'Alias'
         for alias in artist.aliases:
             if not alias.discogs_id:
                 continue
@@ -149,9 +149,14 @@ class Relation(Model, mongoengine.Document):
                 [artist, alias],
                 key=lambda x: x.discogs_id,
                 )
-            triples.add((artist_one, 'Alias', artist_two))
+            entity_one = cls.model_to_tuple(artist_one)
+            entity_two = cls.model_to_tuple(artist_two)
+            triples.add((entity_one, role, entity_two))
+        role = 'Member Of'
         for member in artist.members:
-            triples.add((member, 'Member Of', artist))
+            entity_one = cls.model_to_tuple(member)
+            entity_two = cls.model_to_tuple(artist)
+            triples.add((entity_one, role, entity_two))
         key_function = lambda x: (x[0].discogs_id, x[1], x[2].discogs_id)
         triples = sorted(triples, key=key_function)
         relations = cls.from_triples(triples)
@@ -162,10 +167,13 @@ class Relation(Model, mongoengine.Document):
         if not label.discogs_id:
             return []
         triples = set()
+        role = 'Sublabel Of'
         for sublabel in label.sublabels:
             if not sublabel.discogs_id:
                 continue
-            triples.add((sublabel, 'Sublabel Of', label))
+            entity_one = cls.model_to_tuple(sublabel)
+            entity_two = cls.model_to_tuple(label)
+            triples.add((entity_one, role, entity_two))
         key_function = lambda x: (x[0].discogs_id, x[1], x[2].discogs_id)
         triples = sorted(triples, key=key_function)
         relations = cls.from_triples(triples)
@@ -182,10 +190,10 @@ class Relation(Model, mongoengine.Document):
                 year = release.release_date.year
         for entity_one, role_name, entity_two in triples:
             entity_one_type = cls.EntityType.ARTIST
-            if isinstance(entity_one, (models.Label, models.LabelReference)):
+            if entity_one.class_ is models.Label:
                 entity_one_type = cls.EntityType.LABEL
             entity_two_type = cls.EntityType.ARTIST
-            if isinstance(entity_two, (models.Label, models.LabelReference)):
+            if entity_two.class_ is models.Label:
                 entity_two_type = cls.EntityType.LABEL
             category, subcategory = cls._get_categories(role_name)
             is_trivial = None
@@ -305,3 +313,22 @@ class Relation(Model, mongoengine.Document):
         triples = sorted(triples, key=key_function)
         relations = cls.from_triples(triples, release=release)
         return relations
+
+    def save_if_unique(self):
+        query = type(self).objects(
+            entity_one_id=self.entity_one_id,
+            entity_one_type=self.entity_one_type,
+            entity_two_id=self.entity_two_id,
+            entity_two_type=self.entity_two_type,
+            role_name=self.role_name,
+            release_id=self.release_id,
+            )
+        if query.count():
+            print('    SKIPPING {!r} : {} : {!r}'.format(
+                self.entity_one_name, self.role_name, self.entity_two_name)
+                )
+        else:
+            print('    {!r} : {} : {!r}'.format(
+                self.entity_one_name, self.role_name, self.entity_two_name)
+                )
+            self.save()

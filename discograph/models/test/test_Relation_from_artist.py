@@ -22,8 +22,15 @@ class Test(unittest.TestCase):
         artist_element = next(iterator)
         artist_element = next(iterator)
         artist_document = models.Artist.from_element(artist_element)
+        for discogs_id, member in enumerate(artist_document.members, 200000000):
+            name = member.name
+            models.Artist(discogs_id=discogs_id, name=name).save()
         for discogs_id, alias in enumerate(artist_document.aliases, 100000000):
-            models.Artist(discogs_id=discogs_id, name=alias).save()
+            name = alias.name
+            models.Artist(discogs_id=discogs_id, name=name).save()
+        artist_document.resolve_references()
+        artist_document.save()
+        artist_document.reload()
         relations = models.Relation.from_artist(artist_document)
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
@@ -79,7 +86,7 @@ class Test(unittest.TestCase):
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
-                entity_one_id=26,
+                entity_one_id=200000000,
                 entity_one_name='Alexi Delano',
                 entity_one_type=discograph.models.Relation.EntityType.ARTIST,
                 entity_two_id=2,
@@ -89,7 +96,7 @@ class Test(unittest.TestCase):
                 )
             discograph.models.Relation(
                 category=discograph.models.ArtistRole.Category.RELATION,
-                entity_one_id=27,
+                entity_one_id=200000001,
                 entity_one_name='Cari Lekebusch',
                 entity_one_type=discograph.models.Relation.EntityType.ARTIST,
                 entity_two_id=2,

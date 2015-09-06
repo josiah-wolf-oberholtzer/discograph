@@ -34,6 +34,7 @@ class Test(unittest.TestCase):
             ''')
         label_element = ElementTree.fromstring(source)
         label_document = models.Label.from_element(label_element)
+        label_document.save()
 
         source = stringtools.normalize('''
             <label>
@@ -43,7 +44,8 @@ class Test(unittest.TestCase):
             </label>
             ''')
         sublabel_element = ElementTree.fromstring(source)
-        models.Label.from_element(sublabel_element)
+        sublabel_document = models.Label.from_element(sublabel_element)
+        sublabel_document.save()
 
         source = stringtools.normalize('''
             <label>
@@ -53,8 +55,11 @@ class Test(unittest.TestCase):
             </label>
             ''')
         sublabel_element = ElementTree.fromstring(source)
-        models.Label.from_element(sublabel_element)
+        sublabel_document = models.Label.from_element(sublabel_element)
+        sublabel_document.save()
 
+        label_document.resolve_references()
+        label_document.save()
         label_document.reload()
         sublabels = label_document.sublabels
         assert len(sublabels) == 2
