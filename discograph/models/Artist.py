@@ -89,7 +89,7 @@ class Artist(Model, mongoengine.Document):
             'groups',
             'name',
             )
-        for document in query:
+        for i, document in enumerate(query):
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references()
                 if changed:
