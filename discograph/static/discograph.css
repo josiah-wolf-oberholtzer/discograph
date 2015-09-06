@@ -16,14 +16,17 @@ svg {
 
 .link {
     fill-opacity: 0;
-    stroke: #000;
+    fill: #000;
+    stroke-linecap: round;
     stroke-opacity: 0.5;
     stroke-width: 1;
+    stroke: #000;
     }
 
 .node {
     cursor: move;
-    //opacity: 0.125;
+    fill-opacity: 0.5;
+    stroke-opacity: 0;
     stroke: #fff;
     stroke-width: 1.5px;
     }

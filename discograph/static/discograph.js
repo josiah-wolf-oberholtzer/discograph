@@ -138,9 +138,10 @@
         var linkEnter = linkEnter.append("path")
             .filter(function(d, i) { return d.nodes !== undefined ? this : null })
             .attr("class", function(d) { return "link link-" + d.key; })
+            .attr("marker-end", "url(#arrowhead)")
             .style("stroke-dasharray", function(d) {
                 if (d.role == "Alias") {
-                    return "2, 2";
+                    return "2, 4";
                 } else {
                     return "0, 0";
                 }
@@ -268,10 +269,10 @@
             return d.nodes !== undefined;
             })
             .attr("d", spline)
-            .attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
+            .attr("x1", function(d) { return d.nodes[0].x; })
+            .attr("y1", function(d) { return d.nodes[0].y; })
+            .attr("x2", function(d) { return d.nodes[2].x; })
+            .attr("y2", function(d) { return d.nodes[2].y; });
         dg.graph.haloSelection.attr("transform", translate);
         dg.graph.nodeSelection.attr("transform", translate);
         dg.graph.textSelection.attr("transform", translate);
@@ -283,6 +284,7 @@
         var newNodeMap = d3.map();
         json.nodes.forEach(function(node) {
             node.key = node.id;
+            node.radius = getOuterRadius(node);
             newNodeMap.set(node.id, node);
         });
 
@@ -434,6 +436,21 @@
         dg.graph.svgSelection = d3.select("body").append("svg")
             .attr("width", dg.graph.dimensions[0])
             .attr("height", dg.graph.dimensions[1]);
+
+        dg.graph.svgSelection.append("defs")
+            .append("marker")
+            .attr("id", "arrowhead")
+            .attr("viewBox", "-5 -5 10 10")
+            .attr("refX", 0)
+            .attr("refY", 0)
+            .attr("markerWidth", 10)
+            .attr("markerHeight", 10)
+            .attr("markerUnits", "strokeWidth")
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M 0,0 m -5,-5 L 5,0 L -5,5 Z")
+            ;
+
         dg.graph.haloLayer = dg.graph.svgSelection.append("g")
             .attr("id", "haloLayer");
         dg.graph.linkLayer = dg.graph.svgSelection.append("g")
@@ -451,7 +468,7 @@
         dg.graph.forceLayout = d3.layout.force()
             .nodes(dg.graph.nodes)
             .links(dg.graph.links)
-            .linkStrength(1)
+            .linkStrength(5)
             .friction(0.95)
             .linkDistance(50)
             .charge(function(d, i) {
