@@ -153,7 +153,7 @@
 
     function onNodeEnter(nodeEnter) {
         var nodeEnter = nodeEnter.append("g")
-            .filter(function(d, i) { return !d.isIntermediate ? this : null })
+            //.filter(function(d, i) { return !d.isIntermediate ? this : null })
             .attr("class", function(d) { return "node node-" + d.key; })
             .style("fill", function(d) { return dg.color.heatmap(d); })
             .call(dg.graph.forceLayout.drag);
@@ -221,33 +221,32 @@
 
     dg.startForceLayout = function() {
         dg.graph.forceLayout.start();
-        dg.graph.haloSelection = dg.graph.haloSelection
-            .data(dg.graph.nodes, function(d) { return d.key; });
-        dg.graph.linkSelection = dg.graph.linkSelection
-            .data(dg.graph.links, function(d) { return d.key; });
-        dg.graph.nodeSelection = dg.graph.nodeSelection
-            .data(dg.graph.nodes, function(d) { return d.key; });
-        dg.graph.textSelection = dg.graph.textSelection
-            .data(dg.graph.nodes, function(d) { return d.key; });
 
-        var haloEnter = dg.graph.haloSelection.enter();
-        var haloEnter2 = haloEnter.filter(function(d, i) { 
-            return d.isIntermediate ? null : this;
-        });
-        onHaloEnter(haloEnter);
+        var keyFunc = function(d) { return d.key }
+
+        var nodes = dg.graph.nodes.filter(function(d) {
+            return !d.isIntermediate;
+        })
+        var links = dg.graph.links.filter(function(d) {
+            return d.isPrimary;
+        })
+
+        dg.graph.haloSelection = dg.graph.haloSelection.data(nodes, keyFunc);
+        dg.graph.nodeSelection = dg.graph.nodeSelection.data(nodes, keyFunc);
+        dg.graph.textSelection = dg.graph.textSelection.data(nodes, keyFunc);
+        dg.graph.linkSelection = dg.graph.linkSelection.data(links, keyFunc);
+
+        onHaloEnter(dg.graph.haloSelection.enter());
         onHaloExit(dg.graph.haloSelection.exit());
 
-        var nodeEnter = dg.graph.nodeSelection.enter();
-        onNodeEnter(nodeEnter);
+        onNodeEnter(dg.graph.nodeSelection.enter());
         onNodeExit(dg.graph.nodeSelection.exit());
         onNodeUpdate(dg.graph.nodeSelection);
 
-        var textEnter = dg.graph.textSelection.enter();
-        onTextEnter(textEnter);
+        onTextEnter(dg.graph.textSelection.enter());
         onTextExit(dg.graph.textSelection.exit());
 
-        var linkEnter = dg.graph.linkSelection.enter();
-        onLinkEnter(linkEnter);
+        onLinkEnter(dg.graph.linkSelection.enter());
         onLinkExit(dg.graph.linkSelection.exit());
 
         dg.graph.svgSelection.transition()
