@@ -203,26 +203,32 @@ class Artist(Model, mongoengine.Document):
             query = type(self).objects(name=artist_reference.name)
             query = query.only('discogs_id', 'name')
             found = list(query)
-            if not len(found):
-                continue
-            artist_reference.discogs_id = found[0].discogs_id
-            changed = True
+            if len(found):
+                artist_reference.discogs_id = found[0].discogs_id
+                changed = True
+            elif not len(found) and artist_reference.discogs_id:
+                artist_reference.discogs_id = None
+                changed = True
         for artist_reference in self.members:
             query = type(self).objects(name=artist_reference.name)
             query = query.only('discogs_id', 'name')
             found = list(query)
-            if not len(found):
-                continue
-            artist_reference.discogs_id = found[0].discogs_id
-            changed = True
+            if len(found):
+                artist_reference.discogs_id = found[0].discogs_id
+                changed = True
+            elif not len(found) and artist_reference.discogs_id:
+                artist_reference.discogs_id = None
+                changed = True
         for artist_reference in self.groups:
             query = type(self).objects(name=artist_reference.name)
             query = query.only('discogs_id', 'name')
             found = list(query)
-            if not len(found):
-                continue
-            artist_reference.discogs_id = found[0].discogs_id
-            changed = True
+            if len(found):
+                artist_reference.discogs_id = found[0].discogs_id
+                changed = True
+            elif not len(found) and artist_reference.discogs_id:
+                artist_reference.discogs_id = None
+                changed = True
         return changed
 
 
