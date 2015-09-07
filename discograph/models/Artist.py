@@ -93,6 +93,14 @@ class Artist(Model, mongoengine.Document):
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references()
             if not changed:
+                message = u'{} [SKIPPED] (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
+                    cls.__name__.upper(),
+                    i,
+                    document.discogs_id,
+                    timer.elapsed_time,
+                    document.name,
+                    )
+                print(message)
                 continue
             document.save()
             assert not document.resolve_references()
