@@ -347,6 +347,7 @@
         json.links.forEach(function(link) {
             var role = link.role.toLocaleLowerCase().replace(/\s+/g, "-");
             var key = link.source + "-" + role + "-" + link.target;
+            link.key = key;
             var source = link.source,
                 target = link.target,
                 intermediate = {key: key, isIntermediate: true, size: 0};
@@ -366,6 +367,7 @@
             };
             link.intermediate = key;
             newNodeMap.set(key, intermediate);
+            //newLinkMap.set(link.key, link);
             newLinkMap.set(siLink.key, siLink);
             newLinkMap.set(itLink.key, itLink);
         });
@@ -547,17 +549,18 @@
         dg.graph.forceLayout = d3.layout.force()
             .nodes(dg.graph.nodes)
             .links(dg.graph.links)
+            .size(dg.graph.dimensions)
+            .on("tick", dg.tick)
             .linkStrength(5)
             .friction(0.95)
-            .linkDistance(50)
+            .linkDistance(100)
             .charge(function(d, i) {
-                return d.isIntermediate ? -50 : -150;
+                return d.isIntermediate ? -10 : -250;
             })
             .gravity(0.1)
             .theta(0.8)
             .alpha(0.1)
-            .size(dg.graph.dimensions)
-            .on("tick", dg.tick);
+            ;
 
         console.log('Discograph initialized.')
     }
