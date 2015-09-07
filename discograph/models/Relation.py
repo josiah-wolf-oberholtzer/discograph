@@ -113,15 +113,15 @@ class Relation(Model, mongoengine.Document):
             discogs_id=reference.discogs_id,
             name=reference.name,
             )
-        print(reference, result)
+        #print(reference, result)
         return result
 
     @classmethod
     def bootstrap(cls):
-        cls.drop_collection()
-        cls.bootstrap_pass_one()
-        cls.bootstrap_pass_two()
-        #cls.bootstrap_pass_three()
+        #cls.drop_collection()
+        #cls.bootstrap_pass_one()
+        #cls.bootstrap_pass_two()
+        cls.bootstrap_pass_three()
 
     @classmethod
     def bootstrap_pass_one(cls):
@@ -152,8 +152,13 @@ class Relation(Model, mongoengine.Document):
     @classmethod
     def bootstrap_pass_three(cls):
         from discograph import models
-        for release in models.Release.objects.no_cache().timeout(False):
-            print(release.discogs_id, release.title)
+        query = models.Release.objects.no_cache().timeout(False)
+        for i, release in enumerate(query):
+            print('(idx:{}) (id:{}) {}'.format(
+                i,
+                release.discogs_id,
+                release.title,
+                ))
             for relation in cls.from_release(release):
                 relation.save_if_unique()
 
@@ -201,8 +206,8 @@ class Relation(Model, mongoengine.Document):
     @classmethod
     def from_triples(cls, triples, release=None):
         from discograph import models
-        for triple in triples:
-            print(triple)
+        #for triple in triples:
+        #    print(triple)
         relations = []
         release_id, year = None, None
         if release is not None:
