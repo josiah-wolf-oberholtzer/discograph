@@ -5,7 +5,7 @@
         greyscale: function(d) {
             var hue = 0;
             var saturation = 0;
-            var lightness = Math.pow((d.distance / 12), 2);
+            var lightness = (d.distance / (dg.graph.maxDistance + 1));
             return d3.hsl(hue, saturation, lightness).toString();
         },
         heatmap: function(d) {
@@ -33,6 +33,7 @@
         nodeMap: d3.map(),
         nodes: [],
         selectedNodeID: null,
+        maxDistance: null,
         // selections
         svgSelection: null,
         haloSelection: null,
@@ -162,8 +163,6 @@
             });
         linkEnter.on("mouseover", function(d) {
             d3.select(this).select(".inner")
-                .transition()
-                .duration(125)
                 .style("stroke-width", 3);
             });
         linkEnter.on("mouseout", function(d) {
@@ -424,6 +423,16 @@
             }
         });
 
+        // CALCULATE MAXIMUM DISTANCE
+        var distances = []
+        dg.graph.nodes.forEach(function(node) {
+            if (node.distance !== undefined) {
+                distances.push(node.distance);
+            }
+        })
+        console.log(distances);
+        dg.graph.maxDistance = Math.max.apply(Math, distances);
+
         // PUSH DATA
         dg.graph.nodes.length = 0;
         Array.prototype.push.apply(dg.graph.nodes, dg.graph.nodeMap.values());
@@ -461,7 +470,7 @@
     /* INITIALIZATION */
 
     dg.init = function() {
-        dg.color.colorFunc = dg.color.heatmap;
+        dg.color.colorFunc = dg.color.greyscale;
 
         d3.selection.prototype.moveToFront = function() {
             return this.each(function(){ this.parentNode.appendChild(this); });

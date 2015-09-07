@@ -193,14 +193,15 @@ class RelationGrapher(object):
                     continue
                 try:
                     artist = models.Artist.objects.get(discogs_id=artist_id)
-                except Exception as e:
-                    print('ARTIST ID: {!r}'.format(artist_id))
-                    raise e
+                except Exception:
+                    print('MISSING ARTIST ID: {!r}'.format(artist_id))
+                    continue
                 neighborhood = self.get_neighborhood(artist, cache=self.cache)
                 neighborhood['distance'] = distance
                 artist_ids_visited[neighborhood['id']] = neighborhood
                 for node in neighborhood['nodes']:
                     artist_ids_to_visit.add(node['id'])
+                    #print(neighborhood['id'], node['id'])
         return artist_ids_visited
 
     def get_network(self):
