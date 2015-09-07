@@ -11,7 +11,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
     <script src="/static/typeahead.bundle.js"></script>
-    <title>Discograph: {{ artist.name }}</title>
+    <title>{{ title }}</title>
 </head>
 
 <body id="{{ artist.discogs_id }}">
@@ -28,7 +28,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/random/">DiscoGraph</a>
+                <a class="navbar-brand" href="/random/">discoGraph</a>
             </div>
             <div class="collapse navbar-collapse">
                 <form id="search" class="navbar-form navbar-right" role="search" method="get">
@@ -67,27 +67,36 @@ $('#input').typeahead(
     }
 );
 
+$("#input").bind("typeahead:render", function(event, suggestion, async, name) {
+    if (suggestion !== undefined) {
+        $(this).data("selectedID", suggestion._id);
+    } else {
+        $(this).data("selectedID", null);
+    }
+});
+
 $("#input").bind("typeahead:select", function(obj, datum) {
-    console.log("typeahead:select", $(this), obj, datum);
     $(this).data("selectedID", datum._id);
 });
 
 $("#input").bind("typeahead:autocomplete", function(obj, datum) {
-    console.log("typeahead:autocomplete", $(this), obj, datum);
+    $(this).data("selectedID", datum._id);
 })
 
-$("#input").off("blur")
-
 $("#input").keydown(function(event){
-    if(event.keyCode == 13) {
+    if (event.keyCode == 13) {
         event.preventDefault();
         var datum = $(this).data("selectedID");
-        console.log("keydown", $(this), event, datum);
-        if ((datum !== undefined) && (0 < datum)) {
+        if ((datum !== undefined) && (datum !== null) && (0 < datum)) {
             dg.navigateGraph(datum);
+            $("#input").typeahead("close");
+            $("#input").blur();
         };
+    } else if (event.keyCode == 27) {
+        $("#input").typeahead("close");
     }
 });
+
 </script>
 
 </body>

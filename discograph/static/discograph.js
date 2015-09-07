@@ -75,7 +75,7 @@
             return d.id == id;
         })[0].name;
         $(document).attr("body").id = id;
-        document.title = "DiscoGraph: " + name;
+        document.title = "discoGraph: " + name;
         dg.graph.json = json;
         dg.updateForceLayout();
         dg.startForceLayout();
@@ -584,7 +584,7 @@
             .alpha(0.1)
             ;
 
-        console.log('DiscoGraph initialized.')
+        console.log('discoGraph initialized.')
     }
     this.dg = dg;
     dg.init();

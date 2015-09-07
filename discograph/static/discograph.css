@@ -39,7 +39,7 @@ svg {
 
 .node text.inner {
     pointer-events: none;
-    font: 10px sans-serif;
+    font: 12px sans-serif;
     fill: #000;
     stroke: #000;
     stroke-opacity: 0;
@@ -47,7 +47,7 @@ svg {
 
 .node text.outer {
     pointer-events: none;
-    font: 10px sans-serif;
+    font: 12px sans-serif;
     stroke: #fff;
     stroke-width: 2.5px;
     stroke-opacity: 1;

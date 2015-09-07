@@ -22,7 +22,11 @@ mongoengine.connect('discograph')
 
 @app.route('/')
 def route__index():
-    return render_template('index.html', artist=0)
+    return render_template(
+        'index.html',
+        artist=None,
+        title='discoGraph',
+        )
 
 
 @app.route('/random')
@@ -45,7 +49,11 @@ def route__artist_id(artist_id):
         artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
     except:
         abort(404)
-    return render_template('index.html', artist=artist)
+    return render_template(
+        'index.html',
+        artist=artist,
+        title='discoGraph: {}'.format(artist.name),
+        )
 
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
