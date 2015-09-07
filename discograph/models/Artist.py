@@ -92,16 +92,18 @@ class Artist(Model, mongoengine.Document):
         for i, document in enumerate(query):
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references()
-                if changed:
-                    document.save()
-                    message = u'{} (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
-                        cls.__name__.upper(),
-                        i,
-                        document.discogs_id,
-                        timer.elapsed_time,
-                        document.name,
-                        )
-                    print(message)
+            if not changed:
+                continue
+            document.save()
+            assert not document.resolve_references()
+            message = u'{} (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
+                cls.__name__.upper(),
+                i,
+                document.discogs_id,
+                timer.elapsed_time,
+                document.name,
+                )
+            print(message)
 
     @classmethod
     def from_element(cls, element):
@@ -200,35 +202,35 @@ class Artist(Model, mongoengine.Document):
 
     def resolve_references(self):
         changed = False
-        for artist_reference in self.aliases:
-            query = type(self).objects(name=artist_reference.name)
+        for reference in self.aliases:
+            query = type(self).objects(name=reference.name)
             query = query.only('discogs_id', 'name')
             found = list(query)
-            if len(found):
-                artist_reference.discogs_id = found[0].discogs_id
+            if len(found) and found[0].discogs_id != reference.discogs_id:
+                reference.discogs_id = found[0].discogs_id
                 changed = True
-            elif not len(found) and artist_reference.discogs_id:
-                artist_reference.discogs_id = None
+            elif not len(found) and reference.discogs_id:
+                reference.discogs_id = None
                 changed = True
-        for artist_reference in self.members:
-            query = type(self).objects(name=artist_reference.name)
+        for reference in self.members:
+            query = type(self).objects(name=reference.name)
             query = query.only('discogs_id', 'name')
             found = list(query)
-            if len(found):
-                artist_reference.discogs_id = found[0].discogs_id
+            if len(found) and found[0].discogs_id != reference.discogs_id:
+                reference.discogs_id = found[0].discogs_id
                 changed = True
-            elif not len(found) and artist_reference.discogs_id:
-                artist_reference.discogs_id = None
+            elif not len(found) and reference.discogs_id:
+                reference.discogs_id = None
                 changed = True
-        for artist_reference in self.groups:
-            query = type(self).objects(name=artist_reference.name)
+        for reference in self.groups:
+            query = type(self).objects(name=reference.name)
             query = query.only('discogs_id', 'name')
             found = list(query)
-            if len(found):
-                artist_reference.discogs_id = found[0].discogs_id
+            if len(found) and found[0].discogs_id != reference.discogs_id:
+                reference.discogs_id = found[0].discogs_id
                 changed = True
-            elif not len(found) and artist_reference.discogs_id:
-                artist_reference.discogs_id = None
+            elif not len(found) and reference.discogs_id:
+                reference.discogs_id = None
                 changed = True
         return changed
 

@@ -82,15 +82,16 @@ class Label(Model, mongoengine.Document):
         for document in query:
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references()
-                if changed:
-                    document.save()
-                    message = u'{} (Pass 2) {} [{}]: {}'.format(
-                        cls.__name__.upper(),
-                        document.discogs_id,
-                        timer.elapsed_time,
-                        document.name,
-                        )
-                    print(message)
+            if not changed:
+                continue
+            document.save()
+            message = u'{} (Pass 2) {} [{}]: {}'.format(
+                cls.__name__.upper(),
+                document.discogs_id,
+                timer.elapsed_time,
+                document.name,
+                )
+            print(message)
 
     @classmethod
     def from_element(cls, element):
@@ -100,19 +101,21 @@ class Label(Model, mongoengine.Document):
 
     def resolve_references(self):
         changed = False
-        for label_reference in self.sublabels:
-            query = type(self).objects(name=label_reference.name)
+        for reference in self.sublabels:
+            query = type(self).objects(name=reference.name)
             query = query.only('discogs_id', 'name')
             found = list(query)
-            if not len(found):
-                continue
-            label_reference.discogs_id = found[0].discogs_id
-            changed = True
+            if len(found) and found[0].discogs_id != reference.discogs_id:
+                reference.discogs_id = found[0].discogs_id
+                changed = True
+            elif not len(found) and reference.discogs_id:
+                reference.discogs_id = None
+                changed = True
         if self.parent_label:
             query = type(self).objects(name=self.parent_label.name)
             query = query.only('discogs_id', 'name')
             found = list(query)
-            if len(found):
+            if len(found) and found[0].discogs_id != self.parent_label.discogs_id:
                 self.parent_label.discogs_id = found[0].discogs_id
                 changed = True
         return changed
