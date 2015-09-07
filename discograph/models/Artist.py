@@ -246,7 +246,7 @@ class Artist(Model, mongoengine.Document):
     def search_text(cls, search_string='', limit=10):
         query = cls.objects.search_text(search_string).order_by('$text_score')
         query = query.limit(limit).only('discogs_id', 'name').as_pymongo()
-        result = tuple(query)
+        result = list(query)
         return result
 
 
