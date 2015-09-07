@@ -33,7 +33,7 @@
         nodeMap: d3.map(),
         nodes: [],
         selectedNodeID: null,
-        maxDistance: null,
+        maxDistance: 0,
         // selections
         svgSelection: null,
         haloSelection: null,
@@ -310,11 +310,17 @@
         var sR = d.nodes[0].radius;
         var sX = d.nodes[0].x;
         var sY = d.nodes[0].y;
-        var cX = d.nodes[1].x;
-        var cY = d.nodes[1].y;
+
         var tR = d.nodes[2].radius;
         var tX = d.nodes[2].x;
         var tY = d.nodes[2].y;
+
+        var cX = d.nodes[1].x;
+        var cY = d.nodes[1].y;
+
+        cX = (sX + cX + tX) / 3.;
+        cY = (sY + cY + tY) / 3.;
+
         sXY = splineInner("Source", sX, sY, sR, cX, cY);
         tXY = splineInner("Source", tX, tY, tR, cX, cY);
         return (
@@ -470,7 +476,7 @@
     /* INITIALIZATION */
 
     dg.init = function() {
-        dg.color.colorFunc = dg.color.greyscale;
+        dg.color.colorFunc = dg.color.heatmap;
 
         d3.selection.prototype.moveToFront = function() {
             return this.each(function(){ this.parentNode.appendChild(this); });
