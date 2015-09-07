@@ -161,3 +161,17 @@ class Test(unittest.TestCase):
             [artist], degree=12, max_nodes=100)
         network = grapher.get_network()
         assert network == {}
+
+    def test_7(self):
+        artist = discograph.models.Artist.objects.get(discogs_id=1012125)
+        grapher = discograph.graphs.RelationGrapher(
+            [artist], degree=12, max_nodes=100)
+        network = grapher.get_network()
+        assert network == {}
+
+    def test_8(self):
+        artist = discograph.models.Artist.objects.get(discogs_id=728867)
+        grapher = discograph.graphs.RelationGrapher(
+            [artist], degree=12, max_nodes=100)
+        network = grapher.get_network()
+        assert network == {}
