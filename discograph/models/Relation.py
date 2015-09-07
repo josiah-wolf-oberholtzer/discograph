@@ -98,14 +98,23 @@ class Relation(Model, mongoengine.Document):
     @classmethod
     def model_to_tuple(cls, reference):
         from discograph import models
+        if isinstance(reference, cls.Reference):
+            return reference
         class_ = models.Artist
-        if isinstance(reference, (models.Label, models.LabelReference)):
+        prototype = (
+            models.Label,
+            models.LabelCredit,
+            models.LabelReference,
+            )
+        if isinstance(reference, prototype):
             class_ = models.Label
-        return cls.Reference(
+        result = cls.Reference(
             class_=class_,
             discogs_id=reference.discogs_id,
             name=reference.name,
             )
+        print(reference, result)
+        return result
 
     @classmethod
     def bootstrap(cls):
@@ -192,6 +201,8 @@ class Relation(Model, mongoengine.Document):
     @classmethod
     def from_triples(cls, triples, release=None):
         from discograph import models
+        for triple in triples:
+            print(triple)
         relations = []
         release_id, year = None, None
         if release is not None:
@@ -200,10 +211,10 @@ class Relation(Model, mongoengine.Document):
                 year = release.release_date.year
         for entity_one, role_name, entity_two in triples:
             entity_one_type = cls.EntityType.ARTIST
-            if entity_one.class_ is models.Label:
+            if issubclass(entity_one.class_, (models.Label, models.LabelReference)):
                 entity_one_type = cls.EntityType.LABEL
             entity_two_type = cls.EntityType.ARTIST
-            if entity_two.class_ is models.Label:
+            if issubclass(entity_two.class_, (models.Label, models.LabelReference)):
                 entity_two_type = cls.EntityType.LABEL
             category, subcategory = cls._get_categories(role_name)
             is_trivial = None
@@ -211,14 +222,15 @@ class Relation(Model, mongoengine.Document):
                 entity_one_type == entity_two_type == cls.EntityType.ARTIST and
                 role_name not in ('Member Of', 'Alias')
                 ):
-                if entity_one.discogs_id == entity_two.discogs_id:
-                    is_trivial = True
-                if entity_one in entity_two.members:
-                    is_trivial = True
-                if entity_one.name in entity_two.aliases:
-                    is_trivial = True
-                if entity_two.name in entity_one.aliases:
-                    is_trivial = True
+                pass
+                #if entity_one.discogs_id == entity_two.discogs_id:
+                #    is_trivial = True
+                #if entity_one in entity_two.members:
+                #    is_trivial = True
+                #if entity_one.name in entity_two.aliases:
+                #    is_trivial = True
+                #if entity_two.name in entity_one.aliases:
+                #    is_trivial = True
             relation = cls(
                 category=category,
                 entity_one_id=entity_one.discogs_id,
@@ -240,29 +252,28 @@ class Relation(Model, mongoengine.Document):
     def from_release(cls, release):
         from discograph import models
 
+        triples = set()
         is_compilation = False
-
-        artists = set(credit.artist for credit in release.artists)
-
+        artists = set(cls.model_to_tuple(_) for _ in release.artists)
+        labels = set(cls.model_to_tuple(_) for _ in release.labels)
         if len(artists) == 1 and list(artists)[0].name == 'Various':
             is_compilation = True
             artists.clear()
             for track in release.tracklist:
-                artists.update(credit.artist for credit in track.artists)
-
+                artists.update(cls.model_to_tuple(_) for _ in track.artists)
         for format_ in release.formats:
             for description in format_.descriptions:
                 if description == 'Compilation':
                     is_compilation = True
                     break
 
-        labels = set(_.label for _ in release.labels)
-        triples = set()
-
         # Handle Artist-Label release relations.
         iterator = itertools.product(artists, labels)
+        role = 'Released On'
         for artist, label in iterator:
-            triples.add((artist, 'Released On', label))
+            entity_one = cls.model_to_tuple(artist)
+            entity_two = cls.model_to_tuple(label)
+            triples.add((entity_one, role, entity_two))
 
         # TODO: Filter out "Hosted By", "Presenter", "DJ Mix", "Compiled By"
         aggregate_roles = {}
@@ -280,38 +291,42 @@ class Relation(Model, mongoengine.Document):
         else:
             iterator = itertools.product(artists, release.extra_artists)
         for entity_two, credit in iterator:
-            extra_artist = credit.artist
+            entity_two = cls.model_to_tuple(entity_two)
             for role in credit.roles:
                 role_name = role.name
                 if role_name not in models.ArtistRole._available_credit_roles:
                     continue
                 elif role_name in aggregate_role_names:
                     if role_name not in aggregate_roles:
-                        aggregate_roles[role_name] = set()
-                    aggregate_roles[role_name].add(extra_artist)
+                        aggregate_roles[role_name] = []
+                    aggregate_roles[role_name].append(credit)
                     continue
-                triples.add((extra_artist, role_name, entity_two))
+                entity_one = cls.model_to_tuple(credit)
+                triples.add((entity_one, role_name, entity_two))
 
         # Handle extra artists on individual tracks.
         all_track_artists = set()
         for track in release.tracklist:
-            track_artists = set(_.artist for _ in track.artists)
+            track_artists = set(cls.model_to_tuple(_) for _ in track.artists)
             all_track_artists.update(track_artists)
             track_artists = track_artists or artists or labels
             iterator = itertools.product(track_artists, track.extra_artists)
             for entity_two, credit in iterator:
-                extra_artist = credit.artist
+                entity_two = cls.model_to_tuple(entity_two)
                 for role in credit.roles:
                     role_name = role.name
                     if role_name not in models.ArtistRole._available_credit_roles:
                         continue
-                    triples.add((extra_artist, role_name, entity_two))
+                    entity_one = cls.model_to_tuple(credit)
+                    triples.add((entity_one, role_name, entity_two))
 
         # Handle aggregate artists (DJ, Compiler, Curator, Presenter, etc.)
         for role_name, aggregate_artists in aggregate_roles.items():
             iterator = itertools.product(all_track_artists, aggregate_artists)
             for track_artist, aggregate_artist in iterator:
-                triples.add((aggregate_artist, role_name, track_artist))
+                entity_one = cls.model_to_tuple(aggregate_artist)
+                entity_two = cls.model_to_tuple(track_artist)
+                triples.add((entity_one, role_name, entity_two))
 
         key_function = lambda x: (
             getattr(x[0], 'discogs_id', 0) or 0,

@@ -111,9 +111,11 @@ class Release(Model, mongoengine.Document):
                         )
                     print(message)
 
-    def resolve_references(self):
+    def resolve_references(self, spuriously=False):
         from discograph import models
         changed = False
+        spurious_discogs_id = 0
+        spurious_references = {}
         for company_credit in self.companies:
             query = models.Label.objects(name=company_credit.name)
             query = query.no_cache()
@@ -121,6 +123,11 @@ class Release(Model, mongoengine.Document):
             query = query.only('discogs_id', 'name')
             found = list(query)
             if not len(found):
+                if spuriously:
+                    if company_credit.name not in spurious_references:
+                        spurious_discogs_id -= 1
+                        spurious_references[company_credit.name] = spurious_discogs_id
+                    company_credit.discogs_id = spurious_references[company_credit.name]
                 continue
             company_credit.discogs_id = found[0].discogs_id
             changed = True
@@ -131,6 +138,11 @@ class Release(Model, mongoengine.Document):
             query = query.only('discogs_id', 'name')
             found = list(query)
             if not len(found):
+                if spuriously:
+                    if label_credit.name not in spurious_references:
+                        spurious_discogs_id -= 1
+                        spurious_references[label_credit.name] = spurious_discogs_id
+                    label_credit.discogs_id = spurious_references[label_credit.name]
                 continue
             label_credit.discogs_id = found[0].discogs_id
             changed = True
