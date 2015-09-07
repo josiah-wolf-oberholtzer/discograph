@@ -75,7 +75,7 @@
             return d.id == id;
         })[0].name;
         $(document).attr("body").id = id;
-        document.title = "Discograph: " + name;
+        document.title = "DiscoGraph: " + name;
         dg.graph.json = json;
         dg.updateForceLayout();
         dg.startForceLayout();
@@ -150,8 +150,8 @@
                 if (d.role == "Alias") {
                     return "none";
                 } else {
-                    return "url(#aggregate)";
-                    //return "url(#arrowhead)";
+                    //return "url(#aggregate)";
+                    return "url(#arrowhead)";
                 }
             })
             .style("stroke-dasharray", function(d) {
@@ -173,6 +173,7 @@
         });
         linkEnter.append("g:path")
             .attr("class", "outer")
+            //.attr("filter", "url(#blur)")
             .append("title").text(function(d) { 
                 var source = d.nodes[0].name,
                     role = d.role,
@@ -182,7 +183,7 @@
                 } else {
                     return source + " → (" + role + ") → " + target;
                 }
-            })
+            });
     }
 
     function onLinkExit(linkExit) {
@@ -310,17 +311,11 @@
         var sR = d.nodes[0].radius;
         var sX = d.nodes[0].x;
         var sY = d.nodes[0].y;
-
         var tR = d.nodes[2].radius;
         var tX = d.nodes[2].x;
         var tY = d.nodes[2].y;
-
         var cX = d.nodes[1].x;
         var cY = d.nodes[1].y;
-
-        cX = (sX + cX + tX) / 3.;
-        cY = (sY + cY + tY) / 3.;
-
         sXY = splineInner("Source", sX, sY, sR, cX, cY);
         tXY = splineInner("Source", tX, tY, tR, cX, cY);
         return (
@@ -358,6 +353,7 @@
                 intermediate = {key: key, isIntermediate: true, size: 0};
             var siLink = {
                 isPrimary: true,
+                isSpline: true,
                 key: "(i)-" + key,
                 role: link.role,
                 source: source, 
@@ -366,13 +362,14 @@
             };
             var itLink = {
                 isPrimary: false,
+                isSpline: true,
                 key: key + "-(i)",
                 source: key, 
                 target: target, 
             };
             link.intermediate = key;
             newNodeMap.set(key, intermediate);
-            //newLinkMap.set(link.key, link);
+            newLinkMap.set(link.key, link);
             newLinkMap.set(siLink.key, siLink);
             newLinkMap.set(itLink.key, itLink);
         });
@@ -511,9 +508,9 @@
             .attr("width", dg.graph.dimensions[0])
             .attr("height", dg.graph.dimensions[1]);
 
-        dg.graph.svgSelection.append("defs");
+        var defs = dg.graph.svgSelection.append("defs");
         
-        dg.graph.svgSelection.select("defs").append("marker")
+        defs.append("marker")
             .attr("id", "arrowhead")
             .attr("viewBox", "-5 -5 10 10")
             .attr("refX", 4)
@@ -529,7 +526,7 @@
             .attr("stroke-linejoin", "round")
             ;
 
-        dg.graph.svgSelection.select("defs").append("marker")
+        defs.append("marker")
             .attr("id", "aggregate")
             .attr("viewBox", "-5 -5 10 10")
             .attr("refX", 5)
@@ -546,6 +543,15 @@
             .attr("stroke-linejoin", "round")
             .attr("stroke-width", 1.5)
             ;
+
+        /*
+        var blur = defs.append("filter")
+            .attr("id", "blur")
+            .append("feGaussianBlur")
+            .attr("in", "SourceGraphic")
+            .attr("stdDeviation", 1)
+            ;
+        */
 
         dg.graph.haloLayer = dg.graph.svgSelection.append("g")
             .attr("id", "haloLayer");
@@ -566,21 +572,26 @@
             .links(dg.graph.links)
             .size(dg.graph.dimensions)
             .on("tick", dg.tick)
-            .linkStrength(5)
+            .linkStrength(1)
             .friction(0.95)
-            .linkDistance(100)
+            .linkDistance(function(d, i) {
+                return d.isSpline ? 50 : 100; 
+            })
             .charge(function(d, i) {
-                return d.isIntermediate ? -10 : -250;
+                return d.isIntermediate ? -25 : -400;
             })
             .gravity(0.1)
             .theta(0.8)
             .alpha(0.1)
             ;
 
-        console.log('Discograph initialized.')
+        console.log('DiscoGraph initialized.')
     }
     this.dg = dg;
     dg.init();
 }();
 
-dg.navigateGraph(d3.select("body").attr("id"));
+
+if (0 < d3.select("body").attr("id")) {
+    dg.navigateGraph(d3.select("body").attr("id"));
+}

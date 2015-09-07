@@ -2,6 +2,7 @@
 import discograph
 import mongoengine
 import random
+import re
 from flask import (
     Flask,
     abort,
@@ -19,9 +20,13 @@ mongoengine.connect('discograph')
 
 
 @app.route('/')
-@app.route('/index')
-@app.route('/index/')
-def route():
+def route__index():
+    return render_template('index.html', artist=0)
+
+
+@app.route('/random')
+@app.route('/random/')
+def route__random():
     count = discograph.models.Artist.objects.count()
     index = random.randrange(count)
     artist = discograph.models.Artist.objects[index]
@@ -44,7 +49,7 @@ def route__artist_id(artist_id):
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
 @app.route('/api/artist/network/<int:artist_id>/', methods=['GET'])
-def route__api__cluster__artist_id(artist_id):
+def route__api__cluster(artist_id):
     key = 'cache:/api/artist/network/{}'.format(artist_id)
     data = cache.get(key)
     if data is not None:
@@ -62,6 +67,25 @@ def route__api__cluster__artist_id(artist_id):
         max_nodes=100,
         )
     data = artist_graph.get_network()
+    cache.set(key, data)
+    return jsonify(data)
+
+
+urlify_pattern = re.compile(r"\s+", re.MULTILINE)
+
+
+@app.route('/api/search/<search_string>', methods=['GET'])
+def route__api__search(search_string):
+    key = 'cache:/api/search/{}'.format(search_string)
+    key = urlify_pattern.sub('+', key)
+    print(key)
+    data = cache.get(key)
+    if data is not None:
+        #print('CACHE HIT:', key)
+        return jsonify(data)
+    #print('CACHE MISS:', key)
+    data = discograph.models.Artist.search_text(search_string)
+    data = {'results': data}
     cache.set(key, data)
     return jsonify(data)
 

@@ -242,6 +242,13 @@ class Artist(Model, mongoengine.Document):
                 changed = True
         return changed
 
+    @classmethod
+    def search_text(cls, search_string='', limit=10):
+        query = cls.objects.search_text(search_string).order_by('$text_score')
+        query = query.limit(limit).only('discogs_id', 'name').as_pymongo()
+        result = tuple(query)
+        return result
+
 
 Artist._tags_to_fields_mapping = {
     'id': ('discogs_id', Bootstrap.element_to_integer),
