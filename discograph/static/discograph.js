@@ -116,6 +116,13 @@
         dg.graph.textSelection
             .filter(".node-" + dg.graph.selectedNodeID)
             .moveToFront();
+        var linkKeys = dg.graph.nodeSelection.filter(function(d) { return d.id == dg.graph.selectedNodeID }).data()[0].links;
+        dg.graph.linkSelection.filter(function(d) { return 0 <= linkKeys.indexOf(d.key); })
+            .style("opacity", 1);
+        dg.graph.linkSelection.filter(function(d) { return linkKeys.indexOf(d.key) == -1; })
+            .transition()
+            .duration(500)
+            .style("opacity", 0.333);
     }
 
     function getOuterRadius(d) {
@@ -428,12 +435,30 @@
 
         // CALCULATE MAXIMUM DISTANCE
         var distances = []
-        dg.graph.nodes.forEach(function(node) {
+        dg.graph.nodeMap.values().forEach(function(node) {
             if (node.distance !== undefined) {
                 distances.push(node.distance);
             }
         })
         dg.graph.maxDistance = Math.max.apply(Math, distances);
+
+        // CALCULATE NEIGHBORHOODS
+        var linkNeighborhoodMap = d3.map()
+        dg.graph.linkMap.values().forEach(function(link) {
+            if (link.nodes !== undefined) {
+                if (!linkNeighborhoodMap.has(link.nodes[0].key)) {
+                    linkNeighborhoodMap.set(link.nodes[0].key, []);
+                }
+                linkNeighborhoodMap.get(link.nodes[0].key).push(link.key);
+                if (!linkNeighborhoodMap.has(link.nodes[2].key)) {
+                    linkNeighborhoodMap.set(link.nodes[2].key, []);
+                }
+                linkNeighborhoodMap.get(link.nodes[2].key).push(link.key);
+            }
+        });
+        linkNeighborhoodMap.entries().forEach(function(entry) {
+            dg.graph.nodeMap.get(entry.key).links = entry.value;
+        });
 
         // PUSH DATA
         dg.graph.nodes.length = 0;
@@ -520,7 +545,7 @@
             .attr("orient", "auto")
             .append("path")
             .attr("d", "M 0,0 m -5,-5 L 5,0 L -5,5 L -2.5,0 L -5,-5 Z")
-            .attr("fill", "#666")
+            //.attr("fill", "#666")
             .attr("stroke-linecap", "round")
             .attr("stroke-linejoin", "round")
             ;
@@ -536,8 +561,8 @@
             .attr("orient", "auto")
             .append("path")
             .attr("d", "M 0,0 m 5,0 L 0,-3 L -5,0 L 0,3 L 5,0 Z")
-            .attr("fill", "#fff")
-            .attr("stroke", "#666")
+            //.attr("fill", "#fff")
+            //.attr("stroke", "#666")
             .attr("stroke-linecap", "round")
             .attr("stroke-linejoin", "round")
             .attr("stroke-width", 1.5)
