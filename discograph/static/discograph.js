@@ -433,7 +433,6 @@
                 distances.push(node.distance);
             }
         })
-        console.log(distances);
         dg.graph.maxDistance = Math.max.apply(Math, distances);
 
         // PUSH DATA

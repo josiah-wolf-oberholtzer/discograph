@@ -7,8 +7,10 @@
     <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/static/typeahead-bootstrap.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="/static/typeahead.bundle.js"></script>
     <title>Discograph: {{ artist.name }}</title>
 </head>
 
@@ -28,10 +30,65 @@
                 </button>
                 <a class="navbar-brand" href="/random/">DiscoGraph</a>
             </div>
+            <div class="collapse navbar-collapse">
+                <form id="search" class="navbar-form navbar-right" role="search" method="get">
+                    <div class="form-group">
+                        <input id="input" type="text" class="form-control" placeholder="Search">
+                    </div>
+                </form>
+            </div>
         </div>
     </nav>
 
 <script src="/static/discograph.js"></script>
+<script>
+var results = new Bloodhound({
+    datumTokenizer: Bloodhound.tokenizers.whitespace,
+    queryTokenizer: Bloodhound.tokenizers.whitespace,
+    remote: {
+        url: "/api/search/%QUERY",
+        wildcard: "%QUERY",
+        filter: function(response) {
+            return response.results;
+        },
+    },
+});
+
+$('#input').typeahead(
+    {
+        hint: true, 
+        highlight: true,
+        minLength: 1,
+    }, {
+        name: "results",
+        display: "name",
+        source: results,
+        limit: 20,
+    }
+);
+
+$("#input").bind("typeahead:select", function(obj, datum) {
+    console.log("typeahead:select", $(this), obj, datum);
+    $(this).data("selectedID", datum._id);
+});
+
+$("#input").bind("typeahead:autocomplete", function(obj, datum) {
+    console.log("typeahead:autocomplete", $(this), obj, datum);
+})
+
+$("#input").off("blur")
+
+$("#input").keydown(function(event){
+    if(event.keyCode == 13) {
+        event.preventDefault();
+        var datum = $(this).data("selectedID");
+        console.log("keydown", $(this), event, datum);
+        if ((datum !== undefined) && (0 < datum)) {
+            dg.navigateGraph(datum);
+        };
+    }
+});
+</script>
 
 </body>
 </html>
