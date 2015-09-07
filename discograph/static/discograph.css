@@ -14,12 +14,19 @@ svg {
     z-index: -1;
     }
 
-.link {
+.link .inner {
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1;
     stroke: #666;
+    }
+
+.link .outer {
+    fill: none;
+    stroke: #000;
+    stroke-opacity: 0.02;
+    stroke-width: 10;
     }
 
 .node {

@@ -130,7 +130,6 @@
 
     function onHaloEnter(haloEnter) {
         var haloEnter = haloEnter.append("g")
-            .filter(function(d, i) { return !d.isIntermediate ? this : null })
             .attr("class", function(d) { return "node node-" + d.key; })
         haloEnter.append("circle")
             .attr("class", "halo")
@@ -142,9 +141,10 @@
     }
 
     function onLinkEnter(linkEnter) {
-        var linkEnter = linkEnter.append("path")
-            .filter(function(d, i) { return d.nodes !== undefined ? this : null })
-            .attr("class", function(d) { return "link link-" + d.key; })
+        var linkEnter = linkEnter.append("g")
+            .attr("class", function(d) { return "link link-" + d.key; });
+        linkEnter.append("g:path")
+            .attr("class", "inner")
             .attr("marker-end", function(d) {
                 if (d.role == "Alias") {
                     return "none";
@@ -160,28 +160,30 @@
                     return "0, 0";
                 }
             });
-        linkEnter.append("title").text(function(d) { 
-            var source = d.nodes[0].name,
-                role = d.role,
-                target = d.nodes[2].name;
-            if (role == "Alias") {
-                return source + " ↔ (" + role + ") ↔ " + target;
-            } else {
-                return source + " → (" + role + ") → " + target;
-            }
-        })
         linkEnter.on("mouseover", function(d) {
-            d3.select(this)
+            d3.select(this).select(".inner")
                 .transition()
                 .duration(125)
                 .style("stroke-width", 3);
-        });
+            });
         linkEnter.on("mouseout", function(d) {
-            d3.select(this)
+            d3.select(this).select(".inner")
                 .transition()
                 .duration(500)
                 .style("stroke-width", 1);
         });
+        linkEnter.append("g:path")
+            .attr("class", "outer")
+            .append("title").text(function(d) { 
+                var source = d.nodes[0].name,
+                    role = d.role,
+                    target = d.nodes[2].name;
+                if (role == "Alias") {
+                    return source + " ↔ (" + role + ") ↔ " + target;
+                } else {
+                    return source + " → (" + role + ") → " + target;
+                }
+            })
     }
 
     function onLinkExit(linkExit) {
@@ -324,7 +326,8 @@
     }
 
     dg.tick = function() {
-        dg.graph.linkSelection.attr("d", spline);
+        dg.graph.linkSelection.select(".inner").attr("d", spline);
+        dg.graph.linkSelection.select(".outer").attr("d", spline);
         dg.graph.haloSelection.attr("transform", translate);
         dg.graph.nodeSelection.attr("transform", translate);
         dg.graph.textSelection.attr("transform", translate);
@@ -551,7 +554,7 @@
                 return d.isIntermediate ? -50 : -150;
             })
             .gravity(0.1)
-            .theta(0.9)
+            .theta(0.8)
             .alpha(0.1)
             .size(dg.graph.dimensions)
             .on("tick", dg.tick);
