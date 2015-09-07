@@ -145,7 +145,14 @@
         var linkEnter = linkEnter.append("path")
             .filter(function(d, i) { return d.nodes !== undefined ? this : null })
             .attr("class", function(d) { return "link link-" + d.key; })
-            .attr("marker-end", "url(#arrowhead)")
+            .attr("marker-end", function(d) {
+                if (d.role == "Alias") {
+                    return "none";
+                } else {
+                    return "url(#aggregate)";
+                    //return "url(#arrowhead)";
+                }
+            })
             .style("stroke-dasharray", function(d) {
                 if (d.role == "Alias") {
                     return "2, 4";
@@ -164,10 +171,16 @@
             }
         })
         linkEnter.on("mouseover", function(d) {
-            d3.select(this).style("stroke-width", 5);
+            d3.select(this)
+                .transition()
+                .duration(125)
+                .style("stroke-width", 3);
         });
         linkEnter.on("mouseout", function(d) {
-            d3.select(this).style("stroke-width", 1);
+            d3.select(this)
+                .transition()
+                .duration(500)
+                .style("stroke-width", 1);
         });
     }
 
@@ -281,19 +294,32 @@
 
     function translate(d) { return "translate(" + d.x + "," + d.y + ")"; };
 
+    function splineInner(name, sX, sY, sR, cX, cY) {
+        var dX = (sX - cX),
+            dY = (sY - cY);
+        var angle = Math.atan(dY / dX);
+        dX = Math.abs(Math.cos(angle) * sR);
+        dY = Math.abs(Math.sin(angle) * sR);
+        sX = (sX < cX) ? sX + dX : sX - dX;
+        sY = (sY < cY) ? sY + dY : sY - dY;
+        return [sX, sY];
+    }
+
     function spline(d) {
         var sR = d.nodes[0].radius;
         var sX = d.nodes[0].x;
         var sY = d.nodes[0].y;
         var cX = d.nodes[1].x;
         var cY = d.nodes[1].y;
-        var tR = d.nodes[0].radius;
+        var tR = d.nodes[2].radius;
         var tX = d.nodes[2].x;
         var tY = d.nodes[2].y;
+        sXY = splineInner("Source", sX, sY, sR, cX, cY);
+        tXY = splineInner("Source", tX, tY, tR, cX, cY);
         return (
-            "M " + sX + "," + sY + " " + 
-            "L " + cX + "," + cY + " " +
-            "L " + tX + "," + tY
+            "M " + sXY[0] + "," + sXY[1] + " " +
+            "S " + cX + "," + cY + " " +
+            " " + tXY[0] + "," + tXY[1] + " "
             );
     }
 
@@ -465,18 +491,40 @@
             .attr("width", dg.graph.dimensions[0])
             .attr("height", dg.graph.dimensions[1]);
 
-        dg.graph.svgSelection.append("defs")
-            .append("marker")
+        dg.graph.svgSelection.append("defs");
+        
+        dg.graph.svgSelection.select("defs").append("marker")
             .attr("id", "arrowhead")
             .attr("viewBox", "-5 -5 10 10")
-            .attr("refX", 0)
+            .attr("refX", 4)
             .attr("refY", 0)
-            .attr("markerWidth", 10)
-            .attr("markerHeight", 10)
+            .attr("markerWidth", 8)
+            .attr("markerHeight", 8)
             .attr("markerUnits", "strokeWidth")
             .attr("orient", "auto")
             .append("path")
-            .attr("d", "M 0,0 m -5,-5 L 5,0 L -5,5 Z")
+            .attr("d", "M 0,0 m -5,-5 L 5,0 L -5,5 L -2.5,0 L -5,-5 Z")
+            .attr("fill", "#666")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-linejoin", "round")
+            ;
+
+        dg.graph.svgSelection.select("defs").append("marker")
+            .attr("id", "aggregate")
+            .attr("viewBox", "-5 -5 10 10")
+            .attr("refX", 5)
+            .attr("refY", 0)
+            .attr("markerWidth", 8)
+            .attr("markerHeight", 8)
+            .attr("markerUnits", "strokeWidth")
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M 0,0 m 5,0 L 0,-3 L -5,0 L 0,3 L 5,0 Z")
+            .attr("fill", "#fff")
+            .attr("stroke", "#666")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-width", 1.5)
             ;
 
         dg.graph.haloLayer = dg.graph.svgSelection.append("g")
