@@ -1,12 +1,13 @@
 #! /usr/bin/env python
 
-from distutils.core import setup
+import setuptools
 
 
 if __name__ == '__main__':
-    setup(
+    setuptools.setup(
         author='Josiah Wolf Oberholtzer',
         author_email='josiah.oberholtzer@gmail.com',
+        include_package_data=True,
         install_requires=[
             'abjad',
             'flask',

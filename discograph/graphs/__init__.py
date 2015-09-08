@@ -1,7 +1,1 @@
-from abjad.tools import systemtools
-
-
-systemtools.ImportManager.import_structured_package(
-    __path__[0],
-    globals(),
-    )
+from discograph.graphs.RelationGrapher import RelationGrapher

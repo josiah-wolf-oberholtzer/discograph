@@ -1,0 +1,3 @@
+recursive-include discograph *
+recursive-exclude discograph/data *
+recursive-exclude discograph *.pyc
