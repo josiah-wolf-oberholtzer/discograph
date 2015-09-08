@@ -12,6 +12,8 @@ if __name__ == '__main__':
             'flask',
             'mongoengine',
             'pytest',
+            'python-levenshtein',
+            'python-memcached',
             'six',
             ],
         license='MIT',
