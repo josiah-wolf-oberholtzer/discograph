@@ -93,7 +93,7 @@ def route__api__search(search_string):
         #print('CACHE HIT:', key)
         return jsonify(data)
     #print('CACHE MISS:', key)
-    data = discograph.models.Artist.search_text(search_string)
+    data = discograph.models.Artist.search_text(search_string, limit=50)
     data.sort(key=lambda x: Levenshtein.distance(x['name'], search_string))
     print(search_string)
     for datum in data:

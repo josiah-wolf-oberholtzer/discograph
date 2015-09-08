@@ -98,7 +98,7 @@
         dg.graph.haloSelection
             .filter(".node-" + dg.graph.selectedNodeID)
             .select(".halo")
-            .style("fill-opacity", 0.1);
+            .style("fill-opacity", 0.05);
         dg.graph.nodeSelection
             .filter("*:not(.node-" + dg.graph.selectedNodeID + ")")
             .style("stroke", "#fff");
@@ -118,11 +118,11 @@
             .moveToFront();
         var linkKeys = dg.graph.nodeSelection.filter(function(d) { return d.id == dg.graph.selectedNodeID }).data()[0].links;
         dg.graph.linkSelection.filter(function(d) { return 0 <= linkKeys.indexOf(d.key); })
-            .style("opacity", 1);
+            .style("opacity", 0.75);
         dg.graph.linkSelection.filter(function(d) { return linkKeys.indexOf(d.key) == -1; })
             .transition()
             .duration(500)
-            .style("opacity", 0.333);
+            .style("opacity", 0.25);
     }
 
     function getOuterRadius(d) {
@@ -414,8 +414,8 @@
                     node.missing = value.missing;
                 }
             } else {
-                value.x = dg.graph.newNodeCoords[0] + (Math.random() * 100) - 50;
-                value.y = dg.graph.newNodeCoords[1] + (Math.random() * 100) - 50;
+                value.x = dg.graph.newNodeCoords[0] + (Math.random() * 200) - 100;
+                value.y = dg.graph.newNodeCoords[1] + (Math.random() * 200) - 100;
                 dg.graph.nodeMap.set(key, value);
             }
         });
