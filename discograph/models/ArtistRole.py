@@ -38,6 +38,7 @@ class ArtistRole(Model, mongoengine.EmbeddedDocument):
 
         "Alias": (Category.RELATION,),
         "Member Of": (Category.RELATION,),
+        "Compiled On": (Category.RELATION,),
         "Released On": (Category.RELATION,),
         "Sublabel Of": (Category.RELATION,),
         "Split With": (Category.RELATION,),
