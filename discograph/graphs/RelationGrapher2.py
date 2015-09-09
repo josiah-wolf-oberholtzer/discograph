@@ -81,12 +81,6 @@ class RelationGrapher2(object):
                     print('already visited', entity_key)
                     continue
                 entity_type, entity_id = entity_key
-                if (
-                    entity_type == 'label' and
-                    entity_key not in original_entities
-                    ):
-                    print('skipping', entity_key)
-                    continue
                 if entity_type == 'artist':
                     entity_cls = models.Artist
                 elif entity_type == 'label':
@@ -106,6 +100,12 @@ class RelationGrapher2(object):
                     )
                 neighborhood['distance'] = distance
                 entities_visited[entity_key] = neighborhood
+                if (
+                    entity_type == 'label' and
+                    entity_key not in original_entities
+                    ):
+                    print('skipping', entity_key)
+                    continue
                 entities_to_visit.update(neighborhood['nodes'])
         print('DONE', len(entities_visited))
         return entities_visited
@@ -115,7 +115,7 @@ class RelationGrapher2(object):
         return '{}-{}-{}-{}-{}'.format(
             link['source'][0],
             link['source'][1],
-            cls.word_pattern.sub('-', link['role_name']).lower(),
+            cls.word_pattern.sub('-', link['role']).lower(),
             link['target'][0],
             link['target'][1],
             )
@@ -137,7 +137,12 @@ class RelationGrapher2(object):
         return key
 
     @classmethod
-    def get_neighborhood(cls, entity, cache=None, role_names=None):
+    def get_neighborhood(
+        cls,
+        entity,
+        cache=None,
+        role_names=None,
+        ):
         key = cls.get_neighborhood_cache_key(entity, role_names=role_names)
         if cache is not None:
             neighborhood = cache.get(key)
@@ -226,10 +231,15 @@ class RelationGrapher2(object):
                 }
             nodes.append(node)
         links = tuple(sorted(links.values(),
-            key=lambda x: (x['source'], x['role_name'], x['target'])))
+            key=lambda x: (x['source'], x['role'], x['target'])))
+        for link in links:
+            link['source'] = '{}-{}'.format(*link['source'])
+            link['target'] = '{}-{}'.format(*link['target'])
         nodes = tuple(sorted(nodes, key=lambda x: (x['type'], x['id'])))
-        center = tuple((type(_).__name__.lower(), _.discogs_id)
-            for _ in self.entities)
+        center = tuple(
+            '{}-{}'.format(type(_).__name__.lower(), _.discogs_id)
+            for _ in self.entities
+            )
         network = {
             'center': center,
             'nodes': nodes,
