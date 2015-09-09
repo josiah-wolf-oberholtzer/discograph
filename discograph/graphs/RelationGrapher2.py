@@ -170,6 +170,7 @@ class RelationGrapher2(object):
         nodes = set()
         if not no_query:
             links = cls.query_relations(entity, role_names=role_names)
+            processed_links = []
             for link in links:
                 try:
                     entity_one_id = link['entity_one_id']
@@ -178,12 +179,26 @@ class RelationGrapher2(object):
                     entity_one_type = entity_one_type.name.lower()
                     source_key = (entity_one_type, entity_one_id)
                     link['source'] = source_key
+
                     entity_two_id = link['entity_two_id']
                     entity_two_type = link['entity_two_type']
                     entity_two_type = models.Relation.EntityType(entity_two_type)
                     entity_two_type = entity_two_type.name.lower()
                     target_key = (entity_two_type, entity_two_id)
                     link['target'] = target_key
+
+                    if (
+                        entity_one_type == 'label' and
+                        'Not On Label' in link['entity_one_name']
+                        ):
+                        continue
+
+                    if (
+                        entity_two_type == 'label' and
+                        'Not On Label' in link['entity_two_name']
+                        ):
+                        continue
+
                     del(link['entity_one_id'])
                     del(link['entity_one_name'])
                     del(link['entity_one_type'])
@@ -192,12 +207,14 @@ class RelationGrapher2(object):
                     del(link['entity_two_type'])
                     link['role'] = link['role_name']
                     del(link['role_name'])
+
                     nodes.update((source_key, target_key))
+                    processed_links.append(link)
                 except Exception as e:
                     #print(link)
                     raise e
             neighborhood['nodes'] = tuple(sorted(nodes))
-            neighborhood['links'] = links
+            neighborhood['links'] = tuple(processed_links)
         else:
             neighborhood['nodes'] = ()
             neighborhood['links'] = ()
