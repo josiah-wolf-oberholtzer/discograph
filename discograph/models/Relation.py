@@ -4,6 +4,8 @@ import mongoengine
 from abjad.tools import datastructuretools
 from abjad.tools import systemtools
 from discograph.models.Model import Model
+from discograph.models.Artist import Artist
+from discograph.models.Label import Label
 
 
 class Relation(Model, mongoengine.Document):
@@ -18,6 +20,11 @@ class Relation(Model, mongoengine.Document):
     class EntityType(datastructuretools.Enumeration):
         ARTIST = 1
         LABEL = 2
+
+    _model_to_entity_type = {
+        Artist: EntityType.ARTIST,
+        Label: EntityType.LABEL,
+        }
 
     ### MONGOENGINE FIELDS ###
 
@@ -41,6 +48,7 @@ class Relation(Model, mongoengine.Document):
             '#entity_one_name',
             '#entity_two_name',
             '#role_name',
+            'role_name',
             'category',
             'entity_one_id',
             'entity_one_type',
