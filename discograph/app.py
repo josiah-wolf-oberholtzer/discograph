@@ -51,7 +51,7 @@ def route__artist_id(artist_id):
         abort(404)
     return render_template(
         'index.html',
-        artist=artist,
+        key='artist-{}'.format(artist.discogs_id),
         title='discoGraph: {}'.format(artist.name),
         )
 
@@ -62,20 +62,20 @@ def route__api__cluster(artist_id):
     key = 'cache:/api/artist/network/{}'.format(artist_id)
     data = cache.get(key)
     if data is not None:
-        #print('CACHE HIT:', key)
+        print('NETWORK CACHE HIT:', key)
         return jsonify(data)
-    #print('CACHE MISS:', key)
+    print('NETWORK CACHE MISS:', key)
     try:
         artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
     except:
         abort(404)
-    artist_graph = discograph.graphs.RelationGrapher(
-        artists=[artist],
+    relation_grapher = discograph.graphs.RelationGrapher2(
+        entities=[artist],
         cache=cache,
         degree=12,
-        max_nodes=100,
+        max_nodes=200,
         )
-    data = artist_graph.get_network()
+    data = relation_grapher.get_network()
     cache.set(key, data)
     return jsonify(data)
 
@@ -97,6 +97,8 @@ def route__api__search(search_string):
     data.sort(key=lambda x: Levenshtein.distance(x['name'], search_string))
     print(search_string)
     for datum in data:
+        datum['key'] = 'artist-{}'.format(datum['_id'])
+        del(datum['_id'])
         print(datum)
     data = {'results': data}
     cache.set(key, data)

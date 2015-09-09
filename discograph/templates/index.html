@@ -14,7 +14,7 @@
     <title>{{ title }}</title>
 </head>
 
-<body id="{{ artist.discogs_id }}">
+<body id="{{ key }}">
 
     <nav class="navbar navbar-default navbar-fixed-top">
         <div class="container-fluid">
@@ -69,25 +69,25 @@ $('#input').typeahead(
 
 $("#input").bind("typeahead:render", function(event, suggestion, async, name) {
     if (suggestion !== undefined) {
-        $(this).data("selectedID", suggestion._id);
+        $(this).data("selectedKey", suggestion.key);
     } else {
-        $(this).data("selectedID", null);
+        $(this).data("selectedKey", null);
     }
 });
 
 $("#input").bind("typeahead:select", function(obj, datum) {
-    $(this).data("selectedID", datum._id);
+    $(this).data("selectedKey", datum.key);
 });
 
 $("#input").bind("typeahead:autocomplete", function(obj, datum) {
-    $(this).data("selectedID", datum._id);
+    $(this).data("selectedKey", datum.key);
 })
 
 $("#input").keydown(function(event){
     if (event.keyCode == 13) {
         event.preventDefault();
-        var datum = $(this).data("selectedID");
-        if ((datum !== undefined) && (datum !== null) && (0 < datum)) {
+        var datum = $(this).data("selectedKey");
+        if (datum) {
             dg.navigateGraph(datum);
             $("#input").typeahead("close");
             $("#input").blur();

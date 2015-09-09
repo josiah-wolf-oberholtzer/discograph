@@ -20,10 +20,9 @@
     }
 
     dg.graph = {
-        APIURL: "/api/artist/network/",
         cache: d3.map(),
         cacheHistory: [],
-        centerNodeID: null,
+        centerNodeKey: null,
         dimensions: [0, 0],
         isUpdating: false,
         json: null,
@@ -32,7 +31,7 @@
         newNodeCoords: [0, 0],
         nodeMap: d3.map(),
         nodes: [],
-        selectedNodeID: null,
+        selectedNodeKey: null,
         maxDistance: 0,
         // selections
         svgSelection: null,
@@ -50,12 +49,14 @@
     dg.history = {
         onPopState: function(event) {
             console.log(event, event.state);
-            dg.updateGraph(event.state.id);
+            dg.updateGraph(event.state.key);
         },
-        pushState: function(id) {
+        pushState: function(key) {
+            var entityType = key.split("-")[0];
+            var entityId = key.split("-")[1];
             var title = document.title;
-            var url = "/artist/" + id + "/";
-            window.history.pushState({id: id}, title, url);
+            var url = "/" + entityType + "/" + entityId + "/";
+            window.history.pushState({key: key}, title, url);
         },
     }
 
@@ -63,19 +64,19 @@
 
     dg.handleNewGraphData = function(error, json) {
         if (error) return console.warn(error);
-        var id = json.center[0];
-        if (!dg.graph.cache.has(id)) {
-            dg.graph.cache.set(id, JSON.parse(JSON.stringify(json)));
-            dg.graph.cacheHistory.push(id);
+        var key = json.center[0];
+        if (!dg.graph.cache.has(key)) {
+            dg.graph.cache.set(key, JSON.parse(JSON.stringify(json)));
+            dg.graph.cacheHistory.push(key);
             if (50 <= dg.graph.cache.size()) {
                 dg.graph.cache.remove(dg.graph.cacheHistory.shift());
             }
         }
-        var name = json.nodes.filter(function(d) {
-            return d.id == id;
-        })[0].name;
-        $(document).attr("body").id = id;
-        document.title = "discoGraph: " + name;
+        var name = json.nodes.filter(function(d) { return d.key == key; })
+        if (name.length) {
+            document.title = "discoGraph: " + name[0].name;
+        }
+        $(document).attr("body").id = key;
         dg.graph.json = json;
         dg.updateForceLayout();
         dg.startForceLayout();
@@ -84,39 +85,42 @@
         }, 2000);
     }
 
-    dg.navigateGraph = function(id) {
-        dg.history.pushState(id);
-        dg.updateGraph(id);
+    dg.navigateGraph = function(key) {
+        dg.history.pushState(key);
+        dg.updateGraph(key);
     }
 
-    dg.selectNode = function(id) {
-        dg.graph.selectedNodeID = id;
+    dg.selectNode = function(key) {
+        dg.graph.selectedNodeKey = key;
         dg.graph.haloSelection
-            .filter("*:not(.node-" + dg.graph.selectedNodeID + ")")
+            .filter("*:not(.node-" + dg.graph.selectedNodeKey + ")")
             .select(".halo")
             .style("fill-opacity", 0.);
         dg.graph.haloSelection
-            .filter(".node-" + dg.graph.selectedNodeID)
+            .filter(".node-" + dg.graph.selectedNodeKey)
             .select(".halo")
             .style("fill-opacity", 0.05);
         dg.graph.nodeSelection
-            .filter("*:not(.node-" + dg.graph.selectedNodeID + ")")
+            .filter("*:not(.node-" + dg.graph.selectedNodeKey + ")")
             .style("stroke", "#fff");
         dg.graph.nodeSelection
-            .filter("*:not(.node-" + dg.graph.selectedNodeID + ")")
+            .filter("*:not(.node-" + dg.graph.selectedNodeKey + ")")
             .select(".more")
             .style("fill", "#fff");
         dg.graph.nodeSelection
-            .filter(".node-" + dg.graph.selectedNodeID)
+            .filter(".node-" + dg.graph.selectedNodeKey)
             .style("stroke", "#000");
         dg.graph.nodeSelection
-            .filter(".node-" + dg.graph.selectedNodeID)
+            .filter(".node-" + dg.graph.selectedNodeKey)
             .select(".more")
             .style("fill", "#000");
         dg.graph.textSelection
-            .filter(".node-" + dg.graph.selectedNodeID)
+            .filter(".node-" + dg.graph.selectedNodeKey)
             .moveToFront();
-        var linkKeys = dg.graph.nodeSelection.filter(function(d) { return d.id == dg.graph.selectedNodeID }).data()[0].links;
+        var linkKeys = dg.graph.nodeSelection.filter(function(d) { 
+            return d.key == dg.graph.selectedNodeKey;
+        });
+        linkKeys = linkKeys.data()[0].links;
         dg.graph.linkSelection.filter(function(d) { return 0 <= linkKeys.indexOf(d.key); })
             .style("opacity", 0.75);
         dg.graph.linkSelection.filter(function(d) { return linkKeys.indexOf(d.key) == -1; })
@@ -201,25 +205,47 @@
         var nodeEnter = nodeEnter.append("g")
             //.filter(function(d, i) { return !d.isIntermediate ? this : null })
             .attr("class", function(d) { return "node node-" + d.key; })
-            .style("fill", function(d) { return dg.color.colorFunc(d); })
+            .style("fill", function(d) { 
+                if (d.type == 'artist') {
+                    return dg.color.heatmap(d); 
+                } else {
+                    return dg.color.greyscale(d);
+                }
+            })
             .call(dg.graph.forceLayout.drag);
         nodeEnter.on("mousedown", function(d) {
             if (!dg.graph.isUpdating) {
-                dg.selectNode(d.id);
+                dg.selectNode(d.key);
             }
         });
         nodeEnter.on("dblclick", function(d) {
             if (!dg.graph.isUpdating) {
-                dg.navigateGraph(d.id);
+                dg.navigateGraph(d.key);
             }
         });
-        nodeEnter.select(function(d, i) {return 0 < d.size ? this : null; })
+        var artistEnter = nodeEnter.select(function(d) { 
+            return d.type == 'artist' ? this : null;
+        });
+        artistEnter
+            .select(function(d, i) {return 0 < d.size ? this : null; })
             .append("circle")
             .attr("class", "outer")
             .attr("r", getOuterRadius);
-        nodeEnter.append("circle")
+        artistEnter
+            .append("circle")
             .attr("class", "inner")
             .attr("r", getInnerRadius);
+        var labelEnter = nodeEnter.select(function(d) { 
+            return d.type == 'label' ? this : null;
+        });
+        labelEnter
+            .append("rect")
+            .attr("class", "inner")
+            .attr("height", function(d) { return 2 * getInnerRadius(d); })
+            .attr("width", function(d) { return 2 * getInnerRadius(d); })
+            .attr("x", function(d) { return -1 * getInnerRadius(d); })
+            .attr("y", function(d) { return -1 * getInnerRadius(d); });
+
         nodeEnter.append("path")
             .attr("class", "more")
             .attr("d", d3.svg.symbol().type("cross").size(64))
@@ -238,7 +264,13 @@
     function onNodeUpdate(nodeSelection) {
         nodeSelection.transition()
             .duration(1000)
-            .style("fill", function(d) { return dg.color.colorFunc(d); })
+            .style("fill", function(d) { 
+                if (d.type == 'artist') {
+                    return dg.color.heatmap(d); 
+                } else {
+                    return dg.color.greyscale(d);
+                }
+            })
         nodeSelection.selectAll(".more")
             .transition()
             .duration(1000)
@@ -251,14 +283,26 @@
             .attr("class", function(d) { return "node node-" + d.key; })
         textEnter.append("text")
             .attr("class", "outer")
-            .attr("dy", ".35em")
             .attr("dx", function(d) { return getOuterRadius(d) + 3; })
-            .text(function(d) { return d.name; });
+            .attr("dy", ".35em")
+            .text(function(d) { 
+                var name = d.name;
+                if (50 < name.length) {
+                    name = name.slice(0, 50) + "...";
+                }
+                return name;
+            });
         textEnter.append("text")
             .attr("class", "inner")
-            .attr("dy", ".35em")
             .attr("dx", function(d) { return getOuterRadius(d) + 3; })
-            .text(function(d) { return d.name; });
+            .attr("dy", ".35em")
+            .text(function(d) { 
+                var name = d.name;
+                if (50 < name.length) {
+                    name = name.slice(0, 50) + "...";
+                }
+                return name;
+            })
     }
 
     function onTextExit(textExit) {
@@ -298,7 +342,7 @@
         dg.graph.svgSelection.transition()
             .duration(1000)
             .style("opacity", 1);
-        dg.selectNode(dg.graph.centerNodeID);
+        dg.selectNode(dg.graph.centerNodeKey);
     }
 
     function translate(d) { return "translate(" + d.x + "," + d.y + ")"; };
@@ -332,7 +376,21 @@
             );
     }
 
-    dg.tick = function() {
+    function converge(d) {
+    }
+
+    dg.tick = function(e) {
+        var k = 1 * e.alpha;
+        dg.graph.nodes.filter(function(d) { 
+            return d.key == dg.graph.centerNodeKey;
+        }).forEach(function(d) {
+            var dims = dg.graph.dimensions;
+            var dx = ((dims[0] / 2) - d.x) * k;
+            var dy = ((dims[1] / 2) - d.y) * k;
+            d.x += dx;
+            d.y += dy;
+            console.log(d.name, dims[0] / 2, dims[1] / 2, ":", d.x, d.y, "?", dx, dy,"(" + k + ")");
+        });
         dg.graph.linkSelection.select(".inner").attr("d", spline);
         dg.graph.linkSelection.select(".outer").attr("d", spline);
         dg.graph.haloSelection.attr("transform", translate);
@@ -345,16 +403,14 @@
 
         var newNodeMap = d3.map();
         json.nodes.forEach(function(node) {
-            node.key = node.id;
             node.radius = getOuterRadius(node);
-            newNodeMap.set(node.id, node);
+            newNodeMap.set(node.key, node);
         });
 
         var newLinkMap = d3.map();
         json.links.forEach(function(link) {
             var role = link.role.toLocaleLowerCase().replace(/\s+/g, "-");
-            var key = link.source + "-" + role + "-" + link.target;
-            link.key = key;
+            var key = link.key;
             var source = link.source,
                 target = link.target,
                 intermediate = {key: key, isIntermediate: true, size: 0};
@@ -465,13 +521,15 @@
         Array.prototype.push.apply(dg.graph.nodes, dg.graph.nodeMap.values());
         dg.graph.links.length = 0;
         Array.prototype.push.apply(dg.graph.links, dg.graph.linkMap.values());
-        dg.graph.centerNodeID = json.center[0];
+        dg.graph.centerNodeKey = json.center[0];
     }
 
-    dg.updateGraph = function(id) {
+    dg.updateGraph = function(key) {
+        var entityType = key.split("-")[0];
+        var entityId = key.split("-")[1];
         dg.graph.isUpdating = true;
         var foundNode = dg.graph.nodeSelection
-            .filter(function(d) { return d.id == id; });
+            .filter(function(d) { return d.key == key; });
         if (foundNode.length == 1) {
             foundNode.each(function(d) {
                 dg.graph.newNodeCoords = [d.x, d.y];
@@ -486,11 +544,12 @@
             .transition()
             .duration(250)
             .style("opacity", 0.333);
-        if (dg.graph.cache.has(id)) {
-            var json = JSON.parse(JSON.stringify(dg.graph.cache.get(id)));
+        if (dg.graph.cache.has(key)) {
+            var json = JSON.parse(JSON.stringify(dg.graph.cache.get(key)));
             dg.handleNewGraphData(null, json);
         } else {
-            d3.json(dg.graph.APIURL + id, dg.handleNewGraphData);
+            var url = "/api/" + entityType + "/network/" + entityId;
+            d3.json(url, dg.handleNewGraphData);
         }
     }
 
@@ -604,7 +663,7 @@
             .charge(function(d, i) {
                 return d.isIntermediate ? -25 : -400;
             })
-            .gravity(0.1)
+            .gravity(0.15)
             .theta(0.8)
             .alpha(0.1)
             ;
@@ -616,6 +675,6 @@
 }();
 
 
-if (0 < d3.select("body").attr("id")) {
+if (d3.select("body").attr("id").length) {
     dg.navigateGraph(d3.select("body").attr("id"));
 }

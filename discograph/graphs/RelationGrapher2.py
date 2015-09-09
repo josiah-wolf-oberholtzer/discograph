@@ -70,15 +70,15 @@ class RelationGrapher2(object):
         for distance in range(self.degree + 1):
             current_entities_to_visit = sorted(entities_to_visit)
             entities_to_visit.clear()
-            print('ROUND', distance, len(current_entities_to_visit))
-            print(current_entities_to_visit)
+            #print('ROUND', distance, current_entities_to_visit)
+            #print(current_entities_to_visit)
             while current_entities_to_visit:
                 if not self.can_continue_searching(distance, entities_visited):
-                    print('DONE', len(entities_visited))
+                    #print('DONE', len(entities_visited))
                     return entities_visited
                 entity_key = current_entities_to_visit.pop()
                 if entity_key in entities_visited:
-                    print('already visited', entity_key)
+                    #print('already visited', entity_key)
                     continue
                 entity_type, entity_id = entity_key
                 if entity_type == 'artist':
@@ -93,21 +93,23 @@ class RelationGrapher2(object):
                         ))
                     continue
                 entity = found_entity[0]
-                neighborhood = self.get_neighborhood(
-                    entity,
-                    cache=self.cache,
-                    role_names=self.role_names,
-                    )
-                neighborhood['distance'] = distance
-                entities_visited[entity_key] = neighborhood
+                no_query = False
                 if (
                     entity_type == 'label' and
                     entity_key not in original_entities
                     ):
-                    print('skipping', entity_key)
-                    continue
+                    #print('skipping', entity_key)
+                    no_query = True
+                neighborhood = self.get_neighborhood(
+                    entity,
+                    cache=self.cache,
+                    role_names=self.role_names,
+                    no_query=no_query,
+                    )
+                neighborhood['distance'] = distance
+                entities_visited[entity_key] = neighborhood
                 entities_to_visit.update(neighborhood['nodes'])
-        print('DONE', len(entities_visited))
+        #print('DONE', len(entities_visited))
         return entities_visited
 
     @classmethod
@@ -142,15 +144,16 @@ class RelationGrapher2(object):
         entity,
         cache=None,
         role_names=None,
+        no_query=None,
         ):
         key = cls.get_neighborhood_cache_key(entity, role_names=role_names)
-        if cache is not None:
+        if not no_query and cache is not None:
             neighborhood = cache.get(key)
             if neighborhood is not None:
+                print('NEIGHBORHOOD CACHE HIT!', key)
                 return neighborhood
-                print('HIT!', key)
-        else:
-            print('MISS!', key)
+            else:
+                print('NEIGHBORHOOD CACHE MISS!', key)
         neighborhood = {
             'id': entity.discogs_id,
             'type': type(entity).__name__.lower(),
@@ -165,36 +168,40 @@ class RelationGrapher2(object):
             generator = (_ for _ in entity.sublabels if _.discogs_id)
             neighborhood['size'] = len(tuple(generator))
         nodes = set()
-        links = cls.query_relations(entity, role_names=role_names)
-        for link in links:
-            try:
-                entity_one_id = link['entity_one_id']
-                entity_one_type = link['entity_one_type']
-                entity_one_type = models.Relation.EntityType(entity_one_type)
-                entity_one_type = entity_one_type.name.lower()
-                source_key = (entity_one_type, entity_one_id)
-                link['source'] = source_key
-                entity_two_id = link['entity_two_id']
-                entity_two_type = link['entity_two_type']
-                entity_two_type = models.Relation.EntityType(entity_two_type)
-                entity_two_type = entity_two_type.name.lower()
-                target_key = (entity_two_type, entity_two_id)
-                link['target'] = target_key
-                del(link['entity_one_id'])
-                del(link['entity_one_name'])
-                del(link['entity_one_type'])
-                del(link['entity_two_id'])
-                del(link['entity_two_name'])
-                del(link['entity_two_type'])
-                link['role'] = link['role_name']
-                del(link['role_name'])
-                nodes.update((source_key, target_key))
-            except Exception as e:
-                print(link)
-                raise e
-        neighborhood['nodes'] = tuple(sorted(nodes))
-        neighborhood['links'] = links
-        if cache is not None:
+        if not no_query:
+            links = cls.query_relations(entity, role_names=role_names)
+            for link in links:
+                try:
+                    entity_one_id = link['entity_one_id']
+                    entity_one_type = link['entity_one_type']
+                    entity_one_type = models.Relation.EntityType(entity_one_type)
+                    entity_one_type = entity_one_type.name.lower()
+                    source_key = (entity_one_type, entity_one_id)
+                    link['source'] = source_key
+                    entity_two_id = link['entity_two_id']
+                    entity_two_type = link['entity_two_type']
+                    entity_two_type = models.Relation.EntityType(entity_two_type)
+                    entity_two_type = entity_two_type.name.lower()
+                    target_key = (entity_two_type, entity_two_id)
+                    link['target'] = target_key
+                    del(link['entity_one_id'])
+                    del(link['entity_one_name'])
+                    del(link['entity_one_type'])
+                    del(link['entity_two_id'])
+                    del(link['entity_two_name'])
+                    del(link['entity_two_type'])
+                    link['role'] = link['role_name']
+                    del(link['role_name'])
+                    nodes.update((source_key, target_key))
+                except Exception as e:
+                    #print(link)
+                    raise e
+            neighborhood['nodes'] = tuple(sorted(nodes))
+            neighborhood['links'] = links
+        else:
+            neighborhood['nodes'] = ()
+            neighborhood['links'] = ()
+        if not no_query and cache is not None:
             cache.set(key, neighborhood)
         return neighborhood
 
@@ -208,7 +215,9 @@ class RelationGrapher2(object):
             missing = 0
             for link in entity_dict['links']:
                 if link['source'] in entities and link['target'] in entities:
-                    links[self.get_link_key(link)] = link
+                    link_key = self.get_link_key(link)
+                    link['key'] = link_key
+                    links[link_key] = link
                 else:
                     missing += 1
             cluster = None
