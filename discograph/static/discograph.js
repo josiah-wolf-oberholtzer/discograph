@@ -63,7 +63,11 @@
     /* GRAPH METHODS */
 
     dg.handleNewGraphData = function(error, json) {
-        if (error) return console.warn(error);
+        if (error) {
+            console.warn("404", error);
+            window.history.back();
+            return;
+        }
         var key = json.center[0];
         if (!dg.graph.cache.has(key)) {
             dg.graph.cache.set(key, JSON.parse(JSON.stringify(json)));
@@ -92,39 +96,40 @@
 
     dg.selectNode = function(key) {
         dg.graph.selectedNodeKey = key;
-        dg.graph.haloSelection
-            .filter("*:not(.node-" + dg.graph.selectedNodeKey + ")")
-            .select(".halo")
-            .style("fill-opacity", 0.);
-        dg.graph.haloSelection
-            .filter(".node-" + dg.graph.selectedNodeKey)
-            .select(".halo")
-            .style("fill-opacity", 0.05);
-        dg.graph.nodeSelection
-            .filter("*:not(.node-" + dg.graph.selectedNodeKey + ")")
-            .style("stroke", "#fff");
-        dg.graph.nodeSelection
-            .filter("*:not(.node-" + dg.graph.selectedNodeKey + ")")
-            .select(".more")
-            .style("fill", "#fff");
-        dg.graph.nodeSelection
-            .filter(".node-" + dg.graph.selectedNodeKey)
-            .style("stroke", "#000");
-        dg.graph.nodeSelection
-            .filter(".node-" + dg.graph.selectedNodeKey)
-            .select(".more")
-            .style("fill", "#000");
-        dg.graph.textSelection
-            .filter(".node-" + dg.graph.selectedNodeKey)
-            .moveToFront();
+
+        var haloOff = dg.graph.haloSelection
+            .filter("*:not(.node-" + dg.graph.selectedNodeKey + ")");
+        haloOff.select(".halo").style("fill-opacity", 0.);
+
+        var haloOn = dg.graph.haloSelection
+            .filter(".node-" + dg.graph.selectedNodeKey);
+        haloOn.select(".halo").style("fill-opacity", 0.1);
+
+        var nodeOff = dg.graph.nodeSelection
+            .filter("*:not(.node-" + dg.graph.selectedNodeKey + ")");
+        nodeOff.style("stroke", "#fff");
+        nodeOff.select(".more").style("fill", "#fff");
+
+        var nodeOn = dg.graph.nodeSelection
+            .filter(".node-" + dg.graph.selectedNodeKey);
+        nodeOn.style("stroke", "#000")
+        nodeOn.moveToFront();
+        nodeOn.select(".more").style("fill", "#000");
+
+        var textOn = dg.graph.textSelection
+            .filter(".node-" + dg.graph.selectedNodeKey);
+        textOn.moveToFront();
+
         var linkKeys = dg.graph.nodeSelection.filter(function(d) { 
             return d.key == dg.graph.selectedNodeKey;
         });
         linkKeys = linkKeys.data()[0].links;
-        dg.graph.linkSelection.filter(function(d) { return 0 <= linkKeys.indexOf(d.key); })
-            .style("opacity", 0.75);
-        dg.graph.linkSelection.filter(function(d) { return linkKeys.indexOf(d.key) == -1; })
-            .transition()
+        dg.graph.linkSelection.filter(function(d) { 
+            return 0 <= linkKeys.indexOf(d.key);
+        }).style("opacity", 1);
+        dg.graph.linkSelection.filter(function(d) { 
+            return linkKeys.indexOf(d.key) == -1;
+        }).transition()
             .duration(500)
             .style("opacity", 0.25);
     }
@@ -153,6 +158,10 @@
     }
 
     function onLinkEnter(linkEnter) {
+        var aggregateRoleNames = [
+            "Member Of", "Sublable Of",
+            "Released On", "Compiled On",
+            ]
         var linkEnter = linkEnter.append("g")
             .attr("class", function(d) { return "link link-" + d.key; });
         linkEnter.append("g:path")
@@ -160,8 +169,9 @@
             .attr("marker-end", function(d) {
                 if (d.role == "Alias") {
                     return "none";
+                } else if (aggregateRoleNames.indexOf(d.role) != -1) {
+                    return "url(#aggregate)";
                 } else {
-                    //return "url(#aggregate)";
                     return "url(#arrowhead)";
                 }
             })
@@ -174,6 +184,7 @@
             });
         linkEnter.on("mouseover", function(d) {
             d3.select(this).select(".inner")
+                .transition()
                 .style("stroke-width", 3);
             });
         linkEnter.on("mouseout", function(d) {
@@ -215,8 +226,16 @@
             .call(dg.graph.forceLayout.drag);
         nodeEnter.on("mousedown", function(d) {
             if (!dg.graph.isUpdating) {
+                dg.graph.nodes.forEach(function(n) { n.fixed = false; });
+                d.fixed = true;
                 dg.selectNode(d.key);
             }
+        });
+        nodeEnter.on("mouseover", function(d) {
+            var selection = dg.graph.nodeSelection.select(function(n) {
+                return n.key == d.key ? this : null;
+            });
+            selection.moveToFront();
         });
         nodeEnter.on("dblclick", function(d) {
             if (!dg.graph.isUpdating) {
@@ -245,7 +264,6 @@
             .attr("width", function(d) { return 2 * getInnerRadius(d); })
             .attr("x", function(d) { return -1 * getInnerRadius(d); })
             .attr("y", function(d) { return -1 * getInnerRadius(d); });
-
         nodeEnter.append("path")
             .attr("class", "more")
             .attr("d", d3.svg.symbol().type("cross").size(64))
@@ -275,6 +293,15 @@
             .transition()
             .duration(1000)
             .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
+    }
+
+    function onTextUpdate(textSelection) {
+        /*
+        textSelection.selectAll('text')
+            .transition()
+            .duration(1000)
+            .style("opacity", 0.1)
+        */
     }
 
     function onTextEnter(textEnter) {
@@ -312,6 +339,8 @@
     dg.startForceLayout = function() {
         dg.graph.forceLayout.start();
 
+        dg.graph.nodes.forEach(function(n) { n.fixed = false; });
+
         var keyFunc = function(d) { return d.key }
 
         var nodes = dg.graph.nodes.filter(function(d) {
@@ -335,6 +364,7 @@
 
         onTextEnter(dg.graph.textSelection.enter());
         onTextExit(dg.graph.textSelection.exit());
+        onTextUpdate(dg.graph.textSelection);
 
         onLinkEnter(dg.graph.linkSelection.enter());
         onLinkExit(dg.graph.linkSelection.exit());
@@ -345,7 +375,9 @@
         dg.selectNode(dg.graph.centerNodeKey);
     }
 
-    function translate(d) { return "translate(" + d.x + "," + d.y + ")"; };
+    function translate(d) { 
+        return "translate(" + d.x + "," + d.y + ")"; 
+    };
 
     function splineInner(name, sX, sY, sR, cX, cY) {
         var dX = (sX - cX),
@@ -376,20 +408,16 @@
             );
     }
 
-    function converge(d) {
-    }
-
     dg.tick = function(e) {
-        var k = 1 * e.alpha;
-        dg.graph.nodes.filter(function(d) { 
-            return d.key == dg.graph.centerNodeKey;
+        var k = e.alpha * 0.5;
+        dg.graph.nodes.filter(function(d) {
+            return d.key == dg.graph.centerNodeKey && !d.fixed;
         }).forEach(function(d) {
             var dims = dg.graph.dimensions;
             var dx = ((dims[0] / 2) - d.x) * k;
             var dy = ((dims[1] / 2) - d.y) * k;
             d.x += dx;
             d.y += dy;
-            console.log(d.name, dims[0] / 2, dims[1] / 2, ":", d.x, d.y, "?", dx, dy,"(" + k + ")");
         });
         dg.graph.linkSelection.select(".inner").attr("d", spline);
         dg.graph.linkSelection.select(".outer").attr("d", spline);
@@ -620,8 +648,8 @@
             .attr("orient", "auto")
             .append("path")
             .attr("d", "M 0,0 m 5,0 L 0,-3 L -5,0 L 0,3 L 5,0 Z")
-            //.attr("fill", "#fff")
-            //.attr("stroke", "#666")
+            .attr("fill", "#fff")
+            .attr("stroke", "#000")
             .attr("stroke-linecap", "round")
             .attr("stroke-linejoin", "round")
             .attr("stroke-width", 1.5)
@@ -644,7 +672,6 @@
             .attr("id", "nodeLayer");
         dg.graph.textLayer = dg.graph.svgSelection.append("g")
             .attr("id", "textLayer");
-
         dg.graph.haloSelection = dg.graph.haloLayer.selectAll(".node");
         dg.graph.linkSelection = dg.graph.linkLayer.selectAll(".link");
         dg.graph.nodeSelection = dg.graph.nodeLayer.selectAll(".node");
@@ -655,16 +682,15 @@
             .links(dg.graph.links)
             .size(dg.graph.dimensions)
             .on("tick", dg.tick)
-            .linkStrength(1)
+            .linkStrength(2)
             .friction(0.9)
             .linkDistance(function(d, i) {
                 return d.isSpline ? 50 : 100; 
             })
-            .charge(function(d, i) {
-                return d.isIntermediate ? -25 : -400;
-            })
+            .charge(-300)
+            .chargeDistance(500)
             .gravity(0.15)
-            .theta(0.8)
+            .theta(0.1)
             .alpha(0.1)
             ;
 
@@ -673,8 +699,3 @@
     this.dg = dg;
     dg.init();
 }();
-
-
-if (d3.select("body").attr("id").length) {
-    dg.navigateGraph(d3.select("body").attr("id"));
-}

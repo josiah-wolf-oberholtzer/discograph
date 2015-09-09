@@ -41,6 +41,13 @@
     </nav>
 
 <script src="/static/discograph.js"></script>
+
+<script>
+if (d3.select("body").attr("id").length) {
+    dg.navigateGraph(d3.select("body").attr("id"));
+}
+</script>
+
 <script>
 var results = new Bloodhound({
     datumTokenizer: Bloodhound.tokenizers.whitespace,
@@ -96,7 +103,6 @@ $("#input").keydown(function(event){
         $("#input").typeahead("close");
     }
 });
-
 </script>
 
 </body>

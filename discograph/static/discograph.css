@@ -37,20 +37,25 @@ svg {
     stroke-width: 1.5px;
     }
 
+/*
+.node text {
+    opacity: 0.1;
+    }
+*/
+
 .node text.inner {
     pointer-events: none;
-    font: 12px sans-serif;
+    font: 10px sans-serif;
     fill: #000;
-    stroke: #000;
-    stroke-opacity: 0;
+    stroke: none;
     }
 
 .node text.outer {
     pointer-events: none;
-    font: 12px sans-serif;
+    font: 10px sans-serif;
     stroke: #fff;
     stroke-width: 3px;
-    stroke-opacity: 1;
+    fill: none;
     }
 
 .node .halo {
