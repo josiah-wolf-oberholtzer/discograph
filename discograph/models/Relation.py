@@ -282,7 +282,10 @@ class Relation(Model, mongoengine.Document):
 
         # Handle Artist-Label release relations.
         iterator = itertools.product(artists, labels)
-        role = 'Released On'
+        if is_compilation:
+            role = 'Compiled On'
+        else:
+            role = 'Released On'
         for artist, label in iterator:
             entity_one = cls.model_to_tuple(artist)
             entity_two = cls.model_to_tuple(label)
