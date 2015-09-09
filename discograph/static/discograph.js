@@ -597,7 +597,7 @@
             .size(dg.graph.dimensions)
             .on("tick", dg.tick)
             .linkStrength(1)
-            .friction(0.95)
+            .friction(0.9)
             .linkDistance(function(d, i) {
                 return d.isSpline ? 50 : 100; 
             })
