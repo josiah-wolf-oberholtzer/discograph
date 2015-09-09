@@ -55,7 +55,7 @@
             var entityType = key.split("-")[0];
             var entityId = key.split("-")[1];
             var title = document.title;
-            var url = "/" + entityType + "/" + entityId + "/";
+            var url = "/" + entityType + "/" + entityId;
             window.history.pushState({key: key}, title, url);
         },
     }
@@ -97,41 +97,41 @@
     dg.selectNode = function(key) {
         dg.graph.selectedNodeKey = key;
 
-        var haloOff = dg.graph.haloSelection
-            .filter("*:not(.node-" + dg.graph.selectedNodeKey + ")");
+        if (key !== null) {
+            var haloOff = dg.graph.haloSelection.filter("*:not(.node-" + key + ")");
+            var nodeOff = dg.graph.nodeSelection.filter("*:not(.node-" + key + ")");
+            var nodeOn = dg.graph.nodeSelection.filter(".node-" + key);
+            var linkKeys = nodeOn.data()[0].links;
+            var linkOff = dg.graph.linkSelection.filter(function(d) { 
+                return linkKeys.indexOf(d.key) == -1;
+            });
+        } else {
+            var haloOff = dg.graph.haloSelection;
+            var nodeOff = dg.graph.nodeSelection;
+            var linkOff = dg.graph.linkSelection;
+        }
+
         haloOff.select(".halo").style("fill-opacity", 0.);
-
-        var haloOn = dg.graph.haloSelection
-            .filter(".node-" + dg.graph.selectedNodeKey);
-        haloOn.select(".halo").style("fill-opacity", 0.1);
-
-        var nodeOff = dg.graph.nodeSelection
-            .filter("*:not(.node-" + dg.graph.selectedNodeKey + ")");
-        nodeOff.style("stroke", "#fff");
+        linkOff.style("opacity", 0.25);
         nodeOff.select(".more").style("fill", "#fff");
+        nodeOff.style("stroke", "#fff");
 
-        var nodeOn = dg.graph.nodeSelection
-            .filter(".node-" + dg.graph.selectedNodeKey);
-        nodeOn.style("stroke", "#000")
+        if (key === null) {
+            return;
+        }
+
+        var haloOn = dg.graph.haloSelection.filter(".node-" + key);
+        var linkOn = dg.graph.linkSelection.filter(function(d) { 
+            return 0 <= linkKeys.indexOf(d.key);
+        });
+        var textOn = dg.graph.textSelection.filter(".node-" + key);
+
+        haloOn.select(".halo").style("fill-opacity", 0.1);
+        linkOn.style("opacity", 1);
         nodeOn.moveToFront();
         nodeOn.select(".more").style("fill", "#000");
-
-        var textOn = dg.graph.textSelection
-            .filter(".node-" + dg.graph.selectedNodeKey);
+        nodeOn.style("stroke", "#000")
         textOn.moveToFront();
-
-        var linkKeys = dg.graph.nodeSelection.filter(function(d) { 
-            return d.key == dg.graph.selectedNodeKey;
-        });
-        linkKeys = linkKeys.data()[0].links;
-        dg.graph.linkSelection.filter(function(d) { 
-            return 0 <= linkKeys.indexOf(d.key);
-        }).style("opacity", 1);
-        dg.graph.linkSelection.filter(function(d) { 
-            return linkKeys.indexOf(d.key) == -1;
-        }).transition()
-            .duration(500)
-            .style("opacity", 0.25);
     }
 
     function getOuterRadius(d) {
@@ -230,6 +230,7 @@
                 d.fixed = true;
                 dg.selectNode(d.key);
             }
+            d3.event.stopPropagation();
         });
         nodeEnter.on("mouseover", function(d) {
             var selection = dg.graph.nodeSelection.select(function(n) {
@@ -618,6 +619,11 @@
         dg.graph.svgSelection = d3.select("body").append("svg")
             .attr("width", dg.graph.dimensions[0])
             .attr("height", dg.graph.dimensions[1]);
+
+        dg.graph.svgSelection.on("mousedown", function() {
+            dg.graph.nodes.forEach(function(n) { n.fixed = false; });
+            dg.selectNode(null);
+        });
 
         var defs = dg.graph.svgSelection.append("defs");
         

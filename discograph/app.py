@@ -30,7 +30,6 @@ def route__index():
 
 
 @app.route('/random')
-@app.route('/random/')
 def route__random():
     count = discograph.models.Artist.objects.count()
     index = random.randrange(count)
@@ -43,7 +42,6 @@ def route__random():
 
 
 @app.route('/artist/<int:artist_id>', methods=['GET'])
-@app.route('/artist/<int:artist_id>/', methods=['GET'])
 def route__artist_id(artist_id):
     try:
         artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
@@ -57,14 +55,13 @@ def route__artist_id(artist_id):
 
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
-@app.route('/api/artist/network/<int:artist_id>/', methods=['GET'])
 def route__api__cluster(artist_id):
-    key = 'cache:/api/artist/network/{}'.format(artist_id)
-    data = cache.get(key)
+    cache_key = 'cache:/api/artist/network/{}'.format(artist_id)
+    data = cache.get(cache_key)
     if data is not None:
-        print('NETWORK CACHE HIT:', key)
+        print('NETWORK CACHE HIT:', cache_key)
         return jsonify(data)
-    print('NETWORK CACHE MISS:', key)
+    print('NETWORK CACHE MISS:', cache_key)
     try:
         artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
     except:
@@ -79,12 +76,11 @@ def route__api__cluster(artist_id):
             'Member Of',
             'Released On',
             'Sublabel Of',
-            #'Remix',
             'Producer',
             ],
         )
     data = relation_grapher.get_network()
-    cache.set(key, data)
+    cache.set(cache_key, data)
     return jsonify(data)
 
 
@@ -93,14 +89,14 @@ urlify_pattern = re.compile(r"\s+", re.MULTILINE)
 
 @app.route('/api/search/<search_string>', methods=['GET'])
 def route__api__search(search_string):
-    key = 'cache:/api/search/{}'.format(search_string)
-    key = urlify_pattern.sub('+', key)
-    print(key)
-    data = cache.get(key)
+    cache_key = 'cache:/api/search/{}'.format(search_string)
+    cache_key = urlify_pattern.sub('+', cache_key)
+    print(cache_key)
+    data = cache.get(cache_key)
     if data is not None:
-        #print('CACHE HIT:', key)
+        #print('CACHE HIT:', cache_key)
         return jsonify(data)
-    #print('CACHE MISS:', key)
+    #print('CACHE MISS:', cache_key)
     data = discograph.models.Artist.search_text(search_string, limit=50)
     data.sort(key=lambda x: Levenshtein.distance(x['name'], search_string))
     print(search_string)
@@ -109,7 +105,7 @@ def route__api__search(search_string):
         del(datum['_id'])
         print(datum)
     data = {'results': data}
-    cache.set(key, data)
+    cache.set(cache_key, data)
     return jsonify(data)
 
 
