@@ -1,5 +1,4 @@
-!function(){
-    var dg = {};
+var dg = (function(dg){
 
     dg.color = {
         greyscale: function(d) {
@@ -87,6 +86,7 @@
         setTimeout(function() {
             dg.graph.isUpdating = false;
         }, 2000);
+        $("#brand .loading").addClass("hidden");
     }
 
     dg.navigateGraph = function(key) {
@@ -573,6 +573,7 @@
             .transition()
             .duration(250)
             .style("opacity", 0.333);
+        $("#brand .loading").removeClass("hidden");
         if (dg.graph.cache.has(key)) {
             var json = JSON.parse(JSON.stringify(dg.graph.cache.get(key)));
             dg.handleNewGraphData(null, json);
@@ -702,6 +703,7 @@
 
         console.log('discoGraph initialized.')
     }
-    this.dg = dg;
-    dg.init();
-}();
+
+    return dg;
+
+}(dg || {}));

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="/static/discograph.css"/>
+    <title>{{ title }}</title>
     <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
@@ -11,7 +11,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
     <script src="/static/typeahead.bundle.js"></script>
-    <title>{{ title }}</title>
+    <link rel="stylesheet" type="text/css" href="/static/discograph.css"/>
 </head>
 
 <body id="{{ key }}">
@@ -28,12 +28,16 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/random">discoGraph</a>
+                <a id="brand" href="/random" type="button" class="btn btn-default navbar-btn">
+                    discoGraph
+                    <span class="loading glyphicon glyphicon-refresh glyphicon-refresh-animate hidden"></span>
+                </a>
             </div>
             <div class="collapse navbar-collapse">
                 <form id="search" class="navbar-form navbar-right" role="search" method="get">
-                    <div class="form-group">
-                        <input id="input" type="text" class="form-control" placeholder="Search">
+                    <div class="form-group has-feedback">
+                        <input id="typeahead" type="text" class="form-control" placeholder="Search">
+                        <span class="loading glyphicon glyphicon-refresh form-control-feedback glyphicon-refresh-animate invisible"></span> 
                     </div>
                 </form>
             </div>
@@ -41,69 +45,17 @@
     </nav>
 
 <script src="/static/discograph.js"></script>
+<script src="/static/discograph.typeahead.js"></script>
 
 <script>
-if (d3.select("body").attr("id").length) {
-    dg.navigateGraph(d3.select("body").attr("id"));
-}
-</script>
-
-<script>
-var results = new Bloodhound({
-    datumTokenizer: Bloodhound.tokenizers.whitespace,
-    queryTokenizer: Bloodhound.tokenizers.whitespace,
-    remote: {
-        url: "/api/search/%QUERY",
-        wildcard: "%QUERY",
-        filter: function(response) {
-            return response.results;
-        },
-    },
-});
-
-$('#input').typeahead(
-    {
-        hint: true, 
-        highlight: true,
-        minLength: 1,
-    }, {
-        name: "results",
-        display: "name",
-        source: results,
-        limit: 20,
-    }
-);
-
-$("#input").bind("typeahead:render", function(event, suggestion, async, name) {
-    if (suggestion !== undefined) {
-        $(this).data("selectedKey", suggestion.key);
-    } else {
-        $(this).data("selectedKey", null);
-    }
-});
-
-$("#input").bind("typeahead:select", function(obj, datum) {
-    $(this).data("selectedKey", datum.key);
-});
-
-$("#input").bind("typeahead:autocomplete", function(obj, datum) {
-    $(this).data("selectedKey", datum.key);
-})
-
-$("#input").keydown(function(event){
-    if (event.keyCode == 13) {
-        event.preventDefault();
-        var datum = $(this).data("selectedKey");
-        if (datum) {
-            dg.navigateGraph(datum);
-            $("#input").typeahead("close");
-            $("#input").blur();
-        };
-    } else if (event.keyCode == 27) {
-        $("#input").typeahead("close");
+$(document).ready(function() {
+    dg.init();
+    if (d3.select("body").attr("id").length) {
+        dg.navigateGraph(d3.select("body").attr("id"));
     }
 });
 </script>
+
 
 </body>
 </html>

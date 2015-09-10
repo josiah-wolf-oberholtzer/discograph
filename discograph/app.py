@@ -70,13 +70,14 @@ def route__api__cluster(artist_id):
         entities=[artist],
         cache=cache,
         degree=12,
-        max_nodes=100,
+        max_nodes=150,
         role_names=[
             'Alias',
             'Member Of',
             'Released On',
             'Sublabel Of',
             'Producer',
+            'Remix',
             ],
         )
     data = relation_grapher.get_network()
