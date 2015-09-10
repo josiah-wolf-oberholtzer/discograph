@@ -2,7 +2,7 @@
 import mongoengine
 import unittest
 from abjad.tools import stringtools
-from discograph import bootstrap
+from discograph import Bootstrapper
 from discograph import models
 
 
@@ -18,7 +18,7 @@ class Test(unittest.TestCase):
         self.database.close()
 
     def test_01(self):
-        iterator = bootstrap.Bootstrap.get_iterator('artist')
+        iterator = Bootstrapper.get_iterator('artist')
         artist_element = next(iterator)
         artist_element = next(iterator)
         artist_document = models.Artist.from_element(artist_element)

@@ -2,7 +2,7 @@
 import mongoengine
 import unittest
 from abjad import stringtools
-from discograph import bootstrap
+from discograph import Bootstrapper
 from discograph import models
 try:
     from xml.etree import cElementTree as ElementTree
@@ -22,9 +22,9 @@ class Test(unittest.TestCase):
         self.database.close()
 
     def test_01(self):
-        iterator = bootstrap.Bootstrap.get_iterator('release')
+        iterator = Bootstrapper.get_iterator('release')
         release_element = next(iterator)
-        actual = stringtools.normalize(bootstrap.Bootstrap.prettify(release_element))
+        actual = stringtools.normalize(Bootstrapper.prettify(release_element))
         expected = stringtools.normalize('''
             <?xml version="1.0" ?>
             <release id="1" status="Accepted">
@@ -256,11 +256,11 @@ class Test(unittest.TestCase):
         assert actual == expected
 
     def test_02(self):
-        iterator = bootstrap.Bootstrap.get_iterator('release')
+        iterator = Bootstrapper.get_iterator('release')
         release_element = next(iterator)
         release_element = next(iterator)
         release_element = next(iterator)
-        actual = stringtools.normalize(bootstrap.Bootstrap.prettify(release_element))
+        actual = stringtools.normalize(Bootstrapper.prettify(release_element))
         expected = stringtools.normalize('''
             <?xml version="1.0" ?>
             <release id="3" status="Accepted">

@@ -1,5 +1,5 @@
 import mongoengine
-from discograph.bootstrap import Bootstrap
+from discograph import Bootstrapper
 from discograph.models.Model import Model
 
 
@@ -22,8 +22,8 @@ class CompanyCredit(Model, mongoengine.EmbeddedDocument):
 
 
 CompanyCredit._tags_to_fields_mapping = {
-    'catno': ('catalog_number', Bootstrap.element_to_string),
-    'name': ('name', Bootstrap.element_to_string),
-    'entity_type': ('entity_type', Bootstrap.element_to_integer),
-    'entity_type_name': ('entity_type_name', Bootstrap.element_to_string)
+    'catno': ('catalog_number', Bootstrapper.element_to_string),
+    'name': ('name', Bootstrapper.element_to_string),
+    'entity_type': ('entity_type', Bootstrapper.element_to_integer),
+    'entity_type_name': ('entity_type_name', Bootstrapper.element_to_string)
     }

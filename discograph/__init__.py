@@ -1,7 +1,7 @@
 import mongoengine
-from discograph import bootstrap
-from discograph import graphs
-from discograph import models
+from discograph.Bootstrapper import Bootstrapper
+from discograph.RelationGrapher import RelationGrapher
+from discograph.models import *
 
 
 def connect():

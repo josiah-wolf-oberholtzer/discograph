@@ -1,5 +1,5 @@
 import mongoengine
-from discograph.bootstrap import Bootstrap
+from discograph import Bootstrapper
 from discograph.models.ArtistCredit import ArtistCredit
 from discograph.models.Model import Model
 
@@ -25,8 +25,8 @@ class Track(Model, mongoengine.EmbeddedDocument):
 
 Track._tags_to_fields_mapping = {
     'artists': ('artists', ArtistCredit.from_elements),
-    'duration': ('duration', Bootstrap.element_to_string),
+    'duration': ('duration', Bootstrapper.element_to_string),
     'extraartists': ('extra_artists', ArtistCredit.from_elements),
-    'position': ('position', Bootstrap.element_to_string),
-    'title': ('title', Bootstrap.element_to_string),
+    'position': ('position', Bootstrapper.element_to_string),
+    'title': ('title', Bootstrapper.element_to_string),
     }

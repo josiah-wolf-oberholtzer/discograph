@@ -3,7 +3,7 @@ import gzip
 import mongoengine
 import traceback
 from abjad.tools import systemtools
-from discograph.bootstrap import Bootstrap
+from discograph import Bootstrapper
 from discograph.models.ArtistReference import ArtistReference
 from discograph.models.Model import Model
 
@@ -59,10 +59,10 @@ class Artist(Model, mongoengine.Document):
     @classmethod
     def bootstrap_pass_one(cls):
         # Pass one.
-        artists_xml_path = Bootstrap.artists_xml_path
+        artists_xml_path = Bootstrapper.artists_xml_path
         with gzip.GzipFile(artists_xml_path, 'r') as file_pointer:
-            iterator = Bootstrap.iterparse(file_pointer, 'artist')
-            iterator = Bootstrap.clean_elements(iterator)
+            iterator = Bootstrapper.iterparse(file_pointer, 'artist')
+            iterator = Bootstrapper.clean_elements(iterator)
             for i, element in enumerate(iterator):
                 try:
                     with systemtools.Timer(verbose=False) as timer:
@@ -251,10 +251,10 @@ class Artist(Model, mongoengine.Document):
 
 
 Artist._tags_to_fields_mapping = {
-    'id': ('discogs_id', Bootstrap.element_to_integer),
-    'name': ('name', Bootstrap.element_to_string),
-    'realname': ('real_name', Bootstrap.element_to_string),
-    'namevariations': ('name_variations', Bootstrap.element_to_strings),
+    'id': ('discogs_id', Bootstrapper.element_to_integer),
+    'name': ('name', Bootstrapper.element_to_string),
+    'realname': ('real_name', Bootstrapper.element_to_string),
+    'namevariations': ('name_variations', Bootstrapper.element_to_strings),
     'aliases': ('aliases', ArtistReference.from_names),
     'groups': ('groups', ArtistReference.from_names),
     'members': ('members', ArtistReference.from_members),

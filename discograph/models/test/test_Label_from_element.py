@@ -2,7 +2,7 @@
 import mongoengine
 import unittest
 from abjad import stringtools
-from discograph import bootstrap
+from discograph import Bootstrapper
 from discograph import models
 
 
@@ -18,11 +18,11 @@ class Test(unittest.TestCase):
         self.database.close()
 
     def test_01(self):
-        iterator = bootstrap.Bootstrap.get_iterator('label')
+        iterator = Bootstrapper.get_iterator('label')
         label_element = next(iterator)
         label_element = next(iterator)
         label_element = next(iterator)
-        actual = stringtools.normalize(bootstrap.Bootstrap.prettify(label_element))
+        actual = stringtools.normalize(Bootstrapper.prettify(label_element))
         expected = stringtools.normalize(u'''
             <?xml version="1.0" ?>
             <label>

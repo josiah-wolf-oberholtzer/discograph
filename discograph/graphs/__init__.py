@@ -1,2 +1,0 @@
-from discograph.graphs.RelationGrapher import RelationGrapher
-from discograph.graphs.RelationGrapher2 import RelationGrapher2

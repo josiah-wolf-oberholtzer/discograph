@@ -6,7 +6,7 @@ import six
 from discograph import models
 
 
-class RelationGrapher2(object):
+class RelationGrapher(object):
 
     ### CLASS VARIABLES ###
 

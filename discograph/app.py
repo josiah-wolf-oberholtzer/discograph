@@ -66,7 +66,7 @@ def route__api__cluster(artist_id):
         artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
     except:
         abort(404)
-    relation_grapher = discograph.graphs.RelationGrapher2(
+    relation_grapher = discograph.RelationGrapher(
         entities=[artist],
         cache=cache,
         degree=12,

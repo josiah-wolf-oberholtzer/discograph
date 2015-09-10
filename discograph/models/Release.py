@@ -5,7 +5,7 @@ import mongoengine
 import re
 import traceback
 from abjad.tools import systemtools
-from discograph.bootstrap import Bootstrap
+from discograph import Bootstrapper
 from discograph.models.ArtistCredit import ArtistCredit
 from discograph.models.CompanyCredit import CompanyCredit
 from discograph.models.Format import Format
@@ -64,10 +64,10 @@ class Release(Model, mongoengine.Document):
     @classmethod
     def bootstrap_pass_one(cls):
         # Pass one.
-        releases_xml_path = Bootstrap.releases_xml_path
+        releases_xml_path = Bootstrapper.releases_xml_path
         with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
-            iterator = Bootstrap.iterparse(file_pointer, 'release')
-            iterator = Bootstrap.clean_elements(iterator)
+            iterator = Bootstrapper.iterparse(file_pointer, 'release')
+            iterator = Bootstrapper.clean_elements(iterator)
             for i, element in enumerate(iterator):
                 try:
                     with systemtools.Timer(verbose=False) as timer:
@@ -205,16 +205,16 @@ class Release(Model, mongoengine.Document):
 Release._tags_to_fields_mapping = {
     'artists': ('artists', ArtistCredit.from_elements),
     'companies': ('companies', CompanyCredit.from_elements),
-    'country': ('country', Bootstrap.element_to_string),
-    #'data_quality': ('data_quality', Bootstrap.element_to_string),
+    'country': ('country', Bootstrapper.element_to_string),
+    #'data_quality': ('data_quality', Bootstrapper.element_to_string),
     'extraartists': ('extra_artists', ArtistCredit.from_elements),
     'formats': ('formats', Format.from_elements),
-    'genres': ('genres', Bootstrap.element_to_strings),
+    'genres': ('genres', Bootstrapper.element_to_strings),
     'identifiers': ('identifiers', Identifier.from_elements),
     'labels': ('labels', LabelCredit.from_elements),
-    'master_id': ('master_id', Bootstrap.element_to_integer),
-    'released': ('release_date', Bootstrap.element_to_datetime),
-    'styles': ('styles', Bootstrap.element_to_strings),
-    'title': ('title', Bootstrap.element_to_string),
+    'master_id': ('master_id', Bootstrapper.element_to_integer),
+    'released': ('release_date', Bootstrapper.element_to_datetime),
+    'styles': ('styles', Bootstrapper.element_to_strings),
+    'title': ('title', Bootstrapper.element_to_string),
     'tracklist': ('tracklist', Track.from_elements),
     }

@@ -1,5 +1,5 @@
 import mongoengine
-from discograph.bootstrap import Bootstrap
+from discograph import Bootstrapper
 from discograph.models.ArtistRole import ArtistRole
 from discograph.models.Model import Model
 
@@ -32,10 +32,10 @@ class ArtistCredit(Model, mongoengine.EmbeddedDocument):
 
 
 ArtistCredit._tags_to_fields_mapping = {
-    'anv': ('anv', Bootstrap.element_to_string),
-    'id': ('discogs_id', Bootstrap.element_to_integer),
-    'join': ('join', Bootstrap.element_to_string),
-    'name': ('name', Bootstrap.element_to_string),
+    'anv': ('anv', Bootstrapper.element_to_string),
+    'id': ('discogs_id', Bootstrapper.element_to_integer),
+    'join': ('join', Bootstrapper.element_to_string),
+    'name': ('name', Bootstrapper.element_to_string),
     'role': ('roles', ArtistRole.from_element),
-    'tracks': ('tracks', Bootstrap.element_to_string),
+    'tracks': ('tracks', Bootstrapper.element_to_string),
     }

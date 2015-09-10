@@ -2,7 +2,7 @@
 import mongoengine
 import unittest
 from abjad.tools import stringtools
-from discograph import bootstrap
+from discograph import Bootstrapper
 from discograph import models
 try:
     from xml.etree import cElementTree as ElementTree
@@ -22,7 +22,7 @@ class Test(unittest.TestCase):
         self.database.close()
 
     def test_01(self):
-        iterator = bootstrap.Bootstrap.get_iterator('release')
+        iterator = Bootstrapper.get_iterator('release')
         release_element = next(iterator)
         release_document = models.Release.from_element(release_element)
         release_document.resolve_references(spuriously=True)
@@ -176,7 +176,7 @@ class Test(unittest.TestCase):
                 entity_two_name='Nordic Trax',
                 entity_two_type=discograph.models.Relation.EntityType.LABEL,
                 release_id=103,
-                role_name='Released On',
+                role_name='Compiled On',
                 year=1999,
                 )
             discograph.models.Relation(
@@ -187,7 +187,7 @@ class Test(unittest.TestCase):
                 entity_two_name='Nordic Trax',
                 entity_two_type=discograph.models.Relation.EntityType.LABEL,
                 release_id=103,
-                role_name='Released On',
+                role_name='Compiled On',
                 year=1999,
                 )
             discograph.models.Relation(
@@ -198,7 +198,7 @@ class Test(unittest.TestCase):
                 entity_two_name='Nordic Trax',
                 entity_two_type=discograph.models.Relation.EntityType.LABEL,
                 release_id=103,
-                role_name='Released On',
+                role_name='Compiled On',
                 year=1999,
                 )
             ''')
@@ -692,7 +692,7 @@ class Test(unittest.TestCase):
                 entity_two_name='Moonshine Music',
                 entity_two_type=discograph.models.Relation.EntityType.LABEL,
                 release_id=36,
-                role_name='Released On',
+                role_name='Compiled On',
                 year=2000,
                 )
             discograph.models.Relation(

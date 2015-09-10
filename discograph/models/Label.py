@@ -3,7 +3,7 @@ import gzip
 import mongoengine
 import traceback
 from abjad.tools import systemtools
-from discograph.bootstrap import Bootstrap
+from discograph import Bootstrapper
 from discograph.models.LabelReference import LabelReference
 from discograph.models.Model import Model
 
@@ -55,10 +55,10 @@ class Label(Model, mongoengine.Document):
     @classmethod
     def bootstrap_pass_one(cls):
         # Pass one.
-        labels_xml_path = Bootstrap.labels_xml_path
+        labels_xml_path = Bootstrapper.labels_xml_path
         with gzip.GzipFile(labels_xml_path, 'r') as file_pointer:
-            iterator = Bootstrap.iterparse(file_pointer, 'label')
-            iterator = Bootstrap.clean_elements(iterator)
+            iterator = Bootstrapper.iterparse(file_pointer, 'label')
+            iterator = Bootstrapper.clean_elements(iterator)
             for i, element in enumerate(iterator):
                 try:
                     with systemtools.Timer(verbose=False) as timer:
@@ -122,8 +122,8 @@ class Label(Model, mongoengine.Document):
 
 
 Label._tags_to_fields_mapping = {
-    'id': ('discogs_id', Bootstrap.element_to_integer),
-    'name': ('name', Bootstrap.element_to_string),
+    'id': ('discogs_id', Bootstrapper.element_to_integer),
+    'name': ('name', Bootstrapper.element_to_string),
     'sublabels': ('sublabels', LabelReference.from_sublabels),
     'parentLabel': ('parent_label', LabelReference.from_parent_label),
     }
