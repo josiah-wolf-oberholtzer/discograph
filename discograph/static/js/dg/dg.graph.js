@@ -1,23 +1,5 @@
 var dg = (function(dg){
 
-    dg.color = {
-        greyscale: function(d) {
-            var hue = 0;
-            var saturation = 0;
-            var lightness = (d.distance / (dg.graph.maxDistance + 1));
-            return d3.hsl(hue, saturation, lightness).toString();
-        },
-        heatmap: function(d) {
-            var hue = ((d.distance / 12) * 360) % 360;
-            var variation_a = ((d.id % 5) - 2) / 20;
-            var variation_b = ((d.id % 9) - 4) / 80;
-            var saturation = 0.67 + variation_a;
-            var lightness = 0.5 + variation_b;
-            return d3.hsl(hue, saturation, lightness).toString();
-        },
-        colorFunc: null,
-    }
-
     dg.graph = {
         cache: d3.map(),
         cacheHistory: [],
@@ -50,12 +32,14 @@ var dg = (function(dg){
             console.log(event, event.state);
             dg.updateGraph(event.state.key);
         },
-        pushState: function(key) {
-            var entityType = key.split("-")[0];
-            var entityId = key.split("-")[1];
+        pushState: function(entityKey, params) {
+            var entityType = entityKey.split("-")[0];
+            var entityId = entityKey.split("-")[1];
             var title = document.title;
             var url = "/" + entityType + "/" + entityId;
-            window.history.pushState({key: key}, title, url);
+            if (params) { url += "?" + $.params(params); }
+            var state = {key: entityKey, params: params};
+            window.history.pushState(state, title, url);
         },
     }
 
@@ -583,9 +567,7 @@ var dg = (function(dg){
         }
     }
 
-    /* INITIALIZATION */
-
-    dg.init = function() {
+    dg.graph.init = function() {
         dg.color.colorFunc = dg.color.heatmap;
 
         d3.selection.prototype.moveToFront = function() {
@@ -701,9 +683,6 @@ var dg = (function(dg){
             .alpha(0.1)
             ;
 
-        dg.typeahead.init();
-
-        console.log('discoGraph initialized.')
     }
 
     return dg;
