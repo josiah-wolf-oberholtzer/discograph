@@ -701,6 +701,8 @@ var dg = (function(dg){
             .alpha(0.1)
             ;
 
+        dg.typeahead.init();
+
         console.log('discoGraph initialized.')
     }
 
