@@ -1,6 +1,9 @@
 import collections
 import itertools
 import mongoengine
+import pprint
+import pymongo.errors
+import pymongo.operations
 from abjad.tools import datastructuretools
 from abjad.tools import systemtools
 from discograph.models.Model import Model
@@ -28,17 +31,21 @@ class Relation(Model, mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 
+    hash_id = mongoengine.IntField(primary_key=True)
+    category = mongoengine.IntField()
+    country = mongoengine.StringField()
     entity_one_id = mongoengine.IntField()
     entity_one_name = mongoengine.StringField()
     entity_one_type = mongoengine.IntField()
     entity_two_id = mongoengine.IntField()
     entity_two_name = mongoengine.StringField()
     entity_two_type = mongoengine.IntField()
-    role_name = mongoengine.StringField()
-    category = mongoengine.IntField()
-    subcategory = mongoengine.IntField(null=True)
+    genres = mongoengine.ListField(mongoengine.StringField)
     is_trivial = mongoengine.BooleanField()
     release_id = mongoengine.IntField(null=True)
+    role_name = mongoengine.StringField()
+    styles = mongoengine.ListField(mongoengine.StringField)
+    subcategory = mongoengine.IntField(null=True)
     year = mongoengine.IntField(null=True)
 
     ### MONOGENGINE META ###
@@ -63,6 +70,18 @@ class Relation(Model, mongoengine.Document):
     ### PRIVATE METHODS ###
 
     @classmethod
+    def _bulk_insert(cls, relations):
+        if not relations:
+            return
+        bulk = cls._get_collection().initialize_unordered_bulk_op()
+        for relation in relations:
+            bulk.insert(relation)
+        try:
+            bulk.execute()
+        except pymongo.errors.BulkWriteError as bwe:
+            pprint.pprint(bwe.details)
+
+    @classmethod
     def _get_categories(cls, role_name):
         from discograph import models
         categories = models.ArtistRole._available_credit_roles.get(
@@ -74,8 +93,46 @@ class Relation(Model, mongoengine.Document):
         return categories
 
     @classmethod
-    def _partition_artists(cls, artists):
-        pass
+    def _get_hash_id(cls, document):
+        category = document['category']
+        country = document['country']
+        genres = document['genres']
+        if genres is not None:
+            genres = tuple(genres)
+        genres = genres or None
+        entity_one_id = document['entity_one_id']
+        entity_one_name = document['entity_one_name']
+        entity_one_type = document['entity_one_type']
+        entity_two_id = document['entity_two_id']
+        entity_two_name = document['entity_two_name']
+        entity_two_type = document['entity_two_type']
+        is_trivial = document['is_trivial']
+        release_id = document['release_id']
+        role_name = document['role_name']
+        styles = document['styles']
+        if styles is not None:
+            styles = tuple(styles)
+        styles = styles or None
+        subcategory = document['subcategory']
+        year = document['year']
+        hash_values = (
+            category,
+            country,
+            genres,
+            entity_one_id,
+            entity_one_name,
+            entity_one_type,
+            entity_two_id,
+            entity_two_name,
+            entity_two_type,
+            is_trivial,
+            release_id,
+            role_name,
+            styles,
+            subcategory,
+            year,
+            )
+        return hash(hash_values)
 
     ### PRIVATE PROPERTIES ###
 
@@ -127,8 +184,8 @@ class Relation(Model, mongoengine.Document):
     @classmethod
     def bootstrap(cls):
         #cls.drop_collection()
-        #cls.bootstrap_pass_one()
-        #cls.bootstrap_pass_two()
+        cls.bootstrap_pass_one()
+        cls.bootstrap_pass_two()
         cls.bootstrap_pass_three()
 
     @classmethod
@@ -141,8 +198,8 @@ class Relation(Model, mongoengine.Document):
                 artist.discogs_id,
                 artist.name,
                 ))
-            for relation in cls.from_artist(artist):
-                relation.save_if_unique()
+            relations = cls.from_artist(artist)
+            cls._bulk_insert(relations)
 
     @classmethod
     def bootstrap_pass_two(cls):
@@ -154,8 +211,8 @@ class Relation(Model, mongoengine.Document):
                 label.discogs_id,
                 label.name,
                 ))
-            for relation in cls.from_label(label):
-                relation.save_if_unique()
+            relations = cls.from_label(label)
+            cls._bulk_insert(relations)
 
     @classmethod
     def bootstrap_pass_three(cls):
@@ -167,8 +224,8 @@ class Relation(Model, mongoengine.Document):
                 release.discogs_id,
                 release.title,
                 ))
-            for relation in cls.from_release(release):
-                relation.save_if_unique()
+            relations = cls.from_release(release)
+            cls._bulk_insert(relations)
 
     @classmethod
     def from_artist(cls, artist):
@@ -190,6 +247,9 @@ class Relation(Model, mongoengine.Document):
             entity_two = cls.model_to_tuple(artist)
             triples.add((entity_one, role, entity_two))
         key_function = lambda x: (x[0].discogs_id, x[1], x[2].discogs_id)
+        triples = (_ for _ in triples
+            if all((_[0].discogs_id, _[1], _[2].discogs_id))
+            )
         triples = sorted(triples, key=key_function)
         relations = cls.from_triples(triples)
         return relations
@@ -207,6 +267,9 @@ class Relation(Model, mongoengine.Document):
             entity_two = cls.model_to_tuple(label)
             triples.add((entity_one, role, entity_two))
         key_function = lambda x: (x[0].discogs_id, x[1], x[2].discogs_id)
+        triples = (_ for _ in triples
+            if all((_[0].discogs_id, _[1], _[2].discogs_id))
+            )
         triples = sorted(triples, key=key_function)
         relations = cls.from_triples(triples)
         return relations
@@ -217,11 +280,20 @@ class Relation(Model, mongoengine.Document):
         #for triple in triples:
         #    print(triple)
         relations = []
-        release_id, year = None, None
+        (
+            country,
+            genres,
+            release_id,
+            styles,
+            year,
+            ) = None, None, None, None, None
         if release is not None:
             release_id = release.discogs_id
             if release.release_date is not None:
                 year = release.release_date.year
+            country = release.country or None
+            genres = release.genres or None
+            styles = release.styles or None
         for entity_one, role_name, entity_two in triples:
             entity_one_type = cls.EntityType.ARTIST
             if issubclass(entity_one.class_, (models.Label, models.LabelReference)):
@@ -244,20 +316,26 @@ class Relation(Model, mongoengine.Document):
                 #    is_trivial = True
                 #if entity_two.name in entity_one.aliases:
                 #    is_trivial = True
-            relation = cls(
+            #relation = cls(
+            relation = dict(
                 category=category,
+                country=country,
                 entity_one_id=entity_one.discogs_id,
                 entity_one_name=entity_one.name,
                 entity_one_type=entity_one_type,
                 entity_two_id=entity_two.discogs_id,
                 entity_two_name=entity_two.name,
                 entity_two_type=entity_two_type,
+                genres=genres,
+                styles=styles,
+                is_trivial=is_trivial,
                 release_id=release_id,
                 role_name=role_name,
                 subcategory=subcategory,
                 year=year,
-                is_trivial=is_trivial,
                 )
+            #relation.hash_id = Relation._get_hash_id(relation)
+            relation['_id'] = Relation._get_hash_id(relation)
             relations.append(relation)
         return relations
 
@@ -351,25 +429,9 @@ class Relation(Model, mongoengine.Document):
             x[0].name,
             x[2].name,
             )
+        triples = (_ for _ in triples
+            if all((_[0].discogs_id, _[1], _[2].discogs_id))
+            )
         triples = sorted(triples, key=key_function)
         relations = cls.from_triples(triples, release=release)
         return relations
-
-    def save_if_unique(self):
-        query = type(self).objects(
-            entity_one_id=self.entity_one_id,
-            entity_one_type=self.entity_one_type,
-            entity_two_id=self.entity_two_id,
-            entity_two_type=self.entity_two_type,
-            role_name=self.role_name,
-            release_id=self.release_id,
-            )
-        if query.count():
-            print('    SKIPPING {!r} : {} : {!r}'.format(
-                self.entity_one_name, self.role_name, self.entity_two_name)
-                )
-        else:
-            print('    {!r} : {} : {!r}'.format(
-                self.entity_one_name, self.role_name, self.entity_two_name)
-                )
-            self.save()
