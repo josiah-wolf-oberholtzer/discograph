@@ -35,13 +35,11 @@ class Relation(Model, mongoengine.Document):
     category = mongoengine.IntField()
     country = mongoengine.StringField()
     entity_one_id = mongoengine.IntField()
-    entity_one_name = mongoengine.StringField()
     entity_one_type = mongoengine.IntField()
     entity_two_id = mongoengine.IntField()
-    entity_two_name = mongoengine.StringField()
     entity_two_type = mongoengine.IntField()
     genres = mongoengine.ListField(mongoengine.StringField)
-    is_trivial = mongoengine.BooleanField()
+    #is_trivial = mongoengine.BooleanField()
     release_id = mongoengine.IntField(null=True)
     role_name = mongoengine.StringField()
     styles = mongoengine.ListField(mongoengine.StringField)
@@ -52,18 +50,14 @@ class Relation(Model, mongoengine.Document):
 
     meta = {
         'indexes': [
-            '#entity_one_name',
-            '#entity_two_name',
             '#role_name',
+            ('entity_one_id', 'entity_one_type'),
+            ('entity_two_id', 'entity_two_type'),
+            ('entity_one_id', 'entity_one_type', 'role_name'),
+            ('entity_two_id', 'entity_two_type', 'role_name'),
             'role_name',
-            'category',
-            'entity_one_id',
-            'entity_one_type',
-            'entity_two_id',
-            'entity_two_type',
-            'release_id',
-            'subcategory',
-            'year',
+            #'release_id',
+            #'year',
             ]
         }
 
@@ -101,12 +95,10 @@ class Relation(Model, mongoengine.Document):
             genres = tuple(genres)
         genres = genres or None
         entity_one_id = document['entity_one_id']
-        entity_one_name = document['entity_one_name']
         entity_one_type = document['entity_one_type']
         entity_two_id = document['entity_two_id']
-        entity_two_name = document['entity_two_name']
         entity_two_type = document['entity_two_type']
-        is_trivial = document['is_trivial']
+        #is_trivial = document['is_trivial']
         release_id = document['release_id']
         role_name = document['role_name']
         styles = document['styles']
@@ -120,12 +112,10 @@ class Relation(Model, mongoengine.Document):
             country,
             genres,
             entity_one_id,
-            entity_one_name,
             entity_one_type,
             entity_two_id,
-            entity_two_name,
             entity_two_type,
-            is_trivial,
+            #is_trivial,
             release_id,
             role_name,
             styles,
@@ -183,10 +173,10 @@ class Relation(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        #cls.drop_collection()
+        cls.drop_collection()
         cls.bootstrap_pass_one()
         cls.bootstrap_pass_two()
-        cls.bootstrap_pass_three()
+        #cls.bootstrap_pass_three()
 
     @classmethod
     def bootstrap_pass_one(cls):
@@ -226,6 +216,19 @@ class Relation(Model, mongoengine.Document):
                 ))
             relations = cls.from_release(release)
             cls._bulk_insert(relations)
+
+    @classmethod
+    def count_roles(cls):
+        query = cls.objects.aggregate(
+            {'$match': {}},
+            {'$group': {'_id': '$role_name', 'total': {'$sum': 1}}},
+            )
+        result = {}
+        for item in query:
+            role = item['_id']
+            total = item['total']
+            result[role] = total
+        return result
 
     @classmethod
     def from_artist(cls, artist):
@@ -302,33 +305,30 @@ class Relation(Model, mongoengine.Document):
             if issubclass(entity_two.class_, (models.Label, models.LabelReference)):
                 entity_two_type = cls.EntityType.LABEL
             category, subcategory = cls._get_categories(role_name)
-            is_trivial = None
-            if (
-                entity_one_type == entity_two_type == cls.EntityType.ARTIST and
-                role_name not in ('Member Of', 'Alias')
-                ):
-                pass
-                #if entity_one.discogs_id == entity_two.discogs_id:
-                #    is_trivial = True
-                #if entity_one in entity_two.members:
-                #    is_trivial = True
-                #if entity_one.name in entity_two.aliases:
-                #    is_trivial = True
-                #if entity_two.name in entity_one.aliases:
-                #    is_trivial = True
+            #is_trivial = None
+            #if (
+            #    entity_one_type == entity_two_type == cls.EntityType.ARTIST and
+            #    role_name not in ('Member Of', 'Alias')
+            #    ):
+            #    if entity_one.discogs_id == entity_two.discogs_id:
+            #        is_trivial = True
+            #    if entity_one in entity_two.members:
+            #        is_trivial = True
+            #    if entity_one.name in entity_two.aliases:
+            #        is_trivial = True
+            #    if entity_two.name in entity_one.aliases:
+            #        is_trivial = True
             #relation = cls(
             relation = dict(
                 category=category,
                 country=country,
                 entity_one_id=entity_one.discogs_id,
-                entity_one_name=entity_one.name,
                 entity_one_type=entity_one_type,
                 entity_two_id=entity_two.discogs_id,
-                entity_two_name=entity_two.name,
                 entity_two_type=entity_two_type,
                 genres=genres,
                 styles=styles,
-                is_trivial=is_trivial,
+                #is_trivial=is_trivial,
                 release_id=release_id,
                 role_name=role_name,
                 subcategory=subcategory,

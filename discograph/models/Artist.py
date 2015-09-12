@@ -67,7 +67,9 @@ class Artist(Model, mongoengine.Document):
                 try:
                     with systemtools.Timer(verbose=False) as timer:
                         document = cls.from_element(element)
-                        document.save()
+                        cls.objects.insert(document, load_bulk=False)
+                        #document.save()
+                        #document.save(force_insert=True)
                     message = u'{} (Pass 1) {} [{}]: {}'.format(
                         cls.__name__.upper(),
                         document.discogs_id,

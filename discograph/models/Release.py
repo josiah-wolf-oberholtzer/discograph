@@ -25,11 +25,11 @@ class Release(Model, mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 
+    discogs_id = mongoengine.IntField(primary_key=True)
     artists = mongoengine.EmbeddedDocumentListField('ArtistCredit')
     companies = mongoengine.EmbeddedDocumentListField('CompanyCredit')
     country = mongoengine.StringField()
     #data_quality = mongoengine.StringField()
-    discogs_id = mongoengine.IntField(required=True, unique=True)
     extra_artists = mongoengine.EmbeddedDocumentListField('ArtistCredit')
     formats = mongoengine.EmbeddedDocumentListField('Format')
     genres = mongoengine.ListField(mongoengine.StringField())
@@ -72,14 +72,16 @@ class Release(Model, mongoengine.Document):
                 try:
                     with systemtools.Timer(verbose=False) as timer:
                         document = cls.from_element(element)
-                        document.save()
-                        message = u'{} (Pass 1) {} [{}]: {}'.format(
-                            cls.__name__.upper(),
-                            document.discogs_id,
-                            timer.elapsed_time,
-                            document.title,
-                            )
-                        print(message)
+                        cls.objects.insert(document, load_bulk=False)
+                        #document.save()
+                        #document.save(force_insert=True)
+                    message = u'{} (Pass 1) {} [{}]: {}'.format(
+                        cls.__name__.upper(),
+                        document.discogs_id,
+                        timer.elapsed_time,
+                        document.title,
+                        )
+                    print(message)
                 except mongoengine.errors.ValidationError:
                     traceback.print_exc()
 
@@ -102,14 +104,14 @@ class Release(Model, mongoengine.Document):
                 changed = document.resolve_references()
                 if changed:
                     document.save()
-                    message = u'{} (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
-                        cls.__name__.upper(),
-                        i,
-                        document.discogs_id,
-                        timer.elapsed_time,
-                        document.title,
-                        )
-                    print(message)
+            message = u'{} (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
+                cls.__name__.upper(),
+                i,
+                document.discogs_id,
+                timer.elapsed_time,
+                document.title,
+                )
+            print(message)
 
     def resolve_references(self, spuriously=False):
         from discograph import models

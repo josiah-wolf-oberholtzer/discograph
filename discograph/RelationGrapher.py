@@ -3,6 +3,7 @@ import collections
 import mongoengine
 import re
 import six
+from abjad.tools import systemtools
 from discograph import models
 
 
@@ -99,6 +100,9 @@ class RelationGrapher(object):
                     entity_key not in original_entities
                     ):
                     #print('skipping', entity_key)
+                    if 'Not On Label' in entity.name:
+                        #print('white label', entity_key)
+                        continue
                     no_query = True
                 neighborhood = self.get_neighborhood(
                     entity,
@@ -169,7 +173,9 @@ class RelationGrapher(object):
             neighborhood['size'] = len(tuple(generator))
         nodes = set()
         if not no_query:
-            links = cls.query_relations(entity, role_names=role_names)
+            with systemtools.Timer('Query time:'):
+                query = cls.query_relations_2(entity, role_names=role_names)
+                links = tuple(query.as_pymongo())
             processed_links = []
             for link in links:
                 try:
@@ -187,23 +193,9 @@ class RelationGrapher(object):
                     target_key = (entity_two_type, entity_two_id)
                     link['target'] = target_key
 
-                    if (
-                        entity_one_type == 'label' and
-                        'Not On Label' in link['entity_one_name']
-                        ):
-                        continue
-
-                    if (
-                        entity_two_type == 'label' and
-                        'Not On Label' in link['entity_two_name']
-                        ):
-                        continue
-
                     del(link['entity_one_id'])
-                    del(link['entity_one_name'])
                     del(link['entity_one_type'])
                     del(link['entity_two_id'])
-                    del(link['entity_two_name'])
                     del(link['entity_two_type'])
                     link['role'] = link['role_name']
                     del(link['role_name'])
@@ -274,6 +266,29 @@ class RelationGrapher(object):
         return network
 
     @classmethod
+    def query_relations_2(cls, entity, role_names=None):
+        if role_names is None:
+            role_names = (
+                'Alias',
+                'Member Of',
+                'Released On',
+                'Sublabel Of',
+                )
+        entity_type = models.Relation._model_to_entity_type[type(entity)]
+        q_l = mongoengine.Q(
+            entity_one_id=entity.discogs_id,
+            entity_one_type=entity_type,
+            role_name__in=role_names,
+            )
+        q_r = mongoengine.Q(
+            entity_two_id=entity.discogs_id,
+            entity_two_type=entity_type,
+            role_name__in=role_names,
+            )
+        query = models.Relation.objects(q_l | q_r)
+        return query
+
+    @classmethod
     def query_relations(cls, entity, role_names=None):
         if role_names is None:
             role_names = (
@@ -296,12 +311,18 @@ class RelationGrapher(object):
         query = models.Relation.objects(q_l | q_r)
         if role_names:
             query = query(role_name__in=role_names)
-        query = query.order_by(
-            'role_name',
-            'entity_one_id',
-            'entity_one_type',
-            'entity_two_id',
-            'entity_two_type',
-            )
-        query = query.exclude('id')
-        return tuple(query.as_pymongo())
+        query = query.hint([
+            ('entity_one_id', 1),
+            ('entity_one_type', 1),
+            ('entity_two_id', 1),
+            ('entity_two_type', 1),
+            ])
+        #query = query.order_by(
+        #    'role_name',
+        #    'entity_one_id',
+        #    'entity_one_type',
+        #    'entity_two_id',
+        #    'entity_two_type',
+        #    )
+        query = query.exclude('hash_id')
+        return query

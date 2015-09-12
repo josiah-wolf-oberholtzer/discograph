@@ -63,14 +63,16 @@ class Label(Model, mongoengine.Document):
                 try:
                     with systemtools.Timer(verbose=False) as timer:
                         document = cls.from_element(element)
-                        document.save()
-                        message = u'{} (Pass 1) {} [{}]: {}'.format(
-                            cls.__name__.upper(),
-                            document.discogs_id,
-                            timer.elapsed_time,
-                            document.name,
-                            )
-                        print(message)
+                        cls.objects.insert(document, load_bulk=False)
+                        #document.save()
+                        #document.save(force_insert=True)
+                    message = u'{} (Pass 1) {} [{}]: {}'.format(
+                        cls.__name__.upper(),
+                        document.discogs_id,
+                        timer.elapsed_time,
+                        document.name,
+                        )
+                    print(message)
                 except mongoengine.errors.ValidationError:
                     traceback.print_exc()
 
@@ -79,14 +81,24 @@ class Label(Model, mongoengine.Document):
         # Pass two.
         cls.ensure_indexes()
         query = cls.objects().no_cache().timeout(False)
-        for document in query:
+        for i, document in enumerate(query):
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references()
             if not changed:
+                message = u'{} [SKIPPED] (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
+                    cls.__name__.upper(),
+                    i,
+                    document.discogs_id,
+                    timer.elapsed_time,
+                    document.name,
+                    )
+                print(message)
                 continue
             document.save()
-            message = u'{} (Pass 2) {} [{}]: {}'.format(
+            assert not document.resolve_references()
+            message = u'{} (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
                 cls.__name__.upper(),
+                i,
                 document.discogs_id,
                 timer.elapsed_time,
                 document.name,
