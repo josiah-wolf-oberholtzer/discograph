@@ -173,7 +173,7 @@ class RelationGrapher(object):
             neighborhood['size'] = len(tuple(generator))
         nodes = set()
         if not no_query:
-            with systemtools.Timer('Query time:'):
+            with systemtools.Timer(exit_message='Query time:'):
                 query = cls.query_relations_2(entity, role_names=role_names)
                 links = tuple(query.as_pymongo())
             processed_links = []

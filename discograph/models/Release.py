@@ -57,8 +57,8 @@ class Release(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        cls.drop_collection()
-        cls.bootstrap_pass_one()
+        #cls.drop_collection()
+        #cls.bootstrap_pass_one()
         cls.bootstrap_pass_two()
 
     @classmethod
@@ -92,6 +92,7 @@ class Release(Model, mongoengine.Document):
         cls.ensure_indexes()
         models.Artist.ensure_indexes()
         models.Label.ensure_indexes()
+        label_corpus = models.Label.get_label_corpus()
         query = cls.objects().no_cache()
         query = query.only(
             'companies',
@@ -101,7 +102,8 @@ class Release(Model, mongoengine.Document):
             )
         for i, document in enumerate(query):
             with systemtools.Timer(verbose=False) as timer:
-                changed = document.resolve_references()
+                changed = document.resolve_references_no_query(
+                    label_corpus=label_corpus)
                 if changed:
                     document.save()
             message = u'{} (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
@@ -147,6 +149,26 @@ class Release(Model, mongoengine.Document):
                     label_credit.discogs_id = spurious_references[label_credit.name]
                 continue
             label_credit.discogs_id = found[0].discogs_id
+            changed = True
+        return changed
+
+    def resolve_references_no_query(self, label_corpus=None, spuriously=False):
+        changed = False
+        spurious_discogs_id = 0
+        spurious_references = {}
+        credits = []
+        credits.extend(self.companies)
+        credits.extend(self.labels)
+        for credit in credits:
+            if credit.name not in label_corpus:
+                if spuriously:
+                    if credit.name not in spurious_references:
+                        spurious_discogs_id -= 1
+                        spurious_references[credit.name] = spurious_discogs_id
+                    credit.discogs_id = spurious_references[credit.name]
+                    changed = True
+                continue
+            credit.discogs_id = label_corpus[credit.name]
             changed = True
         return changed
 

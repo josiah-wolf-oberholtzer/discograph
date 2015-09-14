@@ -83,7 +83,7 @@ class Label(Model, mongoengine.Document):
         query = cls.objects().no_cache().timeout(False)
         for i, document in enumerate(query):
             with systemtools.Timer(verbose=False) as timer:
-                changed = document.resolve_references()
+                changed = document.resolve_references_one_query()
             if not changed:
                 message = u'{} [SKIPPED] (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
                     cls.__name__.upper(),
@@ -95,7 +95,7 @@ class Label(Model, mongoengine.Document):
                 print(message)
                 continue
             document.save()
-            assert not document.resolve_references()
+            #assert not document.resolve_references()
             message = u'{} (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
                 cls.__name__.upper(),
                 i,
@@ -110,6 +110,16 @@ class Label(Model, mongoengine.Document):
         data = cls.tags_to_fields(element)
         document = cls(**data)
         return document
+
+    @classmethod
+    def get_label_corpus(cls):
+        query = cls.objects.only('discogs_id', 'name').all().as_pymongo()
+        labels = {}
+        for item in query:
+            if item['name'] in labels:
+                print(item['name'])
+            labels[item['name']] = item['_id']
+        return labels
 
     def resolve_references(self):
         changed = False

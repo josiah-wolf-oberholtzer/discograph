@@ -70,7 +70,7 @@ def route__api__cluster(artist_id):
         entities=[artist],
         cache=cache,
         degree=12,
-        max_nodes=150,
+        max_nodes=100,
         role_names=[
             'Alias',
             'Member Of',
@@ -99,6 +99,9 @@ def route__api__search(search_string):
         return jsonify(data)
     #print('CACHE MISS:', cache_key)
     data = discograph.models.Artist.search_text(search_string, limit=50)
+    #query = discograph.models.Artist.objects(name__istartswith=search_string)
+    #query = query.only('discogs_id', 'name').limit(50)
+    #data = list(query.as_pymongo())
     data.sort(key=lambda x: Levenshtein.distance(x['name'], search_string))
     print(search_string)
     for datum in data:

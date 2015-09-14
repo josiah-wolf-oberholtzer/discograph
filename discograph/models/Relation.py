@@ -50,14 +50,16 @@ class Relation(Model, mongoengine.Document):
 
     meta = {
         'indexes': [
-            '#role_name',
-            ('entity_one_id', 'entity_one_type'),
-            ('entity_two_id', 'entity_two_type'),
-            ('entity_one_id', 'entity_one_type', 'role_name'),
-            ('entity_two_id', 'entity_two_type', 'role_name'),
-            'role_name',
-            #'release_id',
-            #'year',
+            (
+                'entity_one_id',
+                'entity_one_type',
+                'role_name',
+                ),
+            (
+                'entity_two_id',
+                'entity_two_type',
+                'role_name',
+                ),
             ]
         }
 
@@ -173,10 +175,10 @@ class Relation(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        cls.drop_collection()
-        cls.bootstrap_pass_one()
-        cls.bootstrap_pass_two()
-        #cls.bootstrap_pass_three()
+        #cls.drop_collection()
+        #cls.bootstrap_pass_one()
+        #cls.bootstrap_pass_two()
+        cls.bootstrap_pass_three()
 
     @classmethod
     def bootstrap_pass_one(cls):
