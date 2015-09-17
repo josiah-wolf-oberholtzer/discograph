@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import Levenshtein
+import abjad
 import discograph
 import mongoengine
 import random
@@ -80,7 +81,8 @@ def route__api__cluster(artist_id):
             'Remix',
             ],
         )
-    data = relation_grapher.get_network()
+    with abjad.systemtools.Timer(exit_message='Network query time:'):
+        data = relation_grapher.get_network()
     cache.set(cache_key, data)
     return jsonify(data)
 
