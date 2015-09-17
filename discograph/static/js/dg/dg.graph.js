@@ -148,7 +148,7 @@ var dg = (function(dg){
             ]
         var linkEnter = linkEnter.append("g")
             .attr("class", function(d) { return "link link-" + d.key; });
-        linkEnter.append("g:path")
+        linkEnter.append("path")
             .attr("class", "inner")
             .attr("marker-end", function(d) {
                 if (d.role == "Alias") {
@@ -177,9 +177,8 @@ var dg = (function(dg){
                 .duration(500)
                 .style("stroke-width", 1);
         });
-        linkEnter.append("g:path")
+        linkEnter.append("path")
             .attr("class", "outer")
-            //.attr("filter", "url(#blur)")
             .append("title").text(function(d) { 
                 var source = d.nodes[0].name,
                     role = d.role,
@@ -404,8 +403,20 @@ var dg = (function(dg){
             d.x += dx;
             d.y += dy;
         });
-        dg.graph.linkSelection.select(".inner").attr("d", spline);
-        dg.graph.linkSelection.select(".outer").attr("d", spline);
+        dg.graph.linkSelection.select(".inner")
+            .attr("d", spline)
+            .attr("x1", function(d) { return d.nodes[0].x; })
+            .attr("y1", function(d) { return d.nodes[0].y; })
+            .attr("x2", function(d) { return d.nodes[2].x; })
+            .attr("y2", function(d) { return d.nodes[2].y; });
+
+        dg.graph.linkSelection.select(".outer")
+            .attr("d", spline)
+            .attr("x1", function(d) { return d.nodes[0].x; })
+            .attr("y1", function(d) { return d.nodes[0].y; })
+            .attr("x2", function(d) { return d.nodes[2].x; })
+            .attr("y2", function(d) { return d.nodes[2].y; });
+
         dg.graph.haloSelection.attr("transform", translate);
         dg.graph.nodeSelection.attr("transform", translate);
         dg.graph.textSelection.attr("transform", translate);
