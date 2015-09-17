@@ -154,10 +154,10 @@ class RelationGrapher(object):
         if not no_query and cache is not None:
             neighborhood = cache.get(key)
             if neighborhood is not None:
-                print('NEIGHBORHOOD CACHE HIT!', key)
+                print('    NEIGHBORHOOD CACHE HIT!', entity.discogs_id)
                 return neighborhood
             else:
-                print('NEIGHBORHOOD CACHE MISS!', key)
+                print('    NEIGHBORHOOD CACHE MISS!', entity.discogs_id)
         neighborhood = {
             'id': entity.discogs_id,
             'type': type(entity).__name__.lower(),
@@ -173,8 +173,8 @@ class RelationGrapher(object):
             neighborhood['size'] = len(tuple(generator))
         nodes = set()
         if not no_query:
-            with systemtools.Timer(exit_message='Query time:'):
-                query = cls.query_relations_2(entity, role_names=role_names)
+            with systemtools.Timer(exit_message='    Neighborhood query time:'):
+                query = cls.query_relations_3(entity, role_names=role_names)
                 links = tuple(query.as_pymongo())
             processed_links = []
             for link in links:
@@ -264,6 +264,30 @@ class RelationGrapher(object):
             'links': links,
             }
         return network
+
+    @classmethod
+    def query_relations_3(cls, entity, role_names=None):
+        if role_names is None:
+            role_names = (
+                'Alias',
+                'Member Of',
+                'Released On',
+                'Sublabel Of',
+                )
+        entity_type = models.Relation._model_to_entity_type[type(entity)]
+        query = models.Relation.objects(
+            entity_one_id=entity.discogs_id,
+            entity_one_type=entity_type,
+            role_name__in=role_names,
+            )
+        indexes = [
+            [('entity_one_id', 1), ('entity_one_type', 1), ('role_name', 1)],
+            [('entity_one_type', 1), ('entity_one_id', 1), ('role_name', 1)],
+            [('role_name', 1), ('entity_one_type', 1), ('entity_one_id', 1)],
+            [('role_name', 1), ('entity_one_id', 1)],
+            ]
+        query = query.hint(indexes[3])
+        return query
 
     @classmethod
     def query_relations_2(cls, entity, role_names=None):
