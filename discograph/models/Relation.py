@@ -1,6 +1,8 @@
+# -*- encoding: utf-8 -*-
 import collections
 import itertools
 import mongoengine
+import os
 import pprint
 import pymongo.errors
 import pymongo.operations
@@ -50,16 +52,19 @@ class Relation(Model, mongoengine.Document):
 
     meta = {
         'indexes': [
-            (
-                'entity_one_id',
-                'entity_one_type',
-                'role_name',
-                ),
-            (
-                'entity_two_id',
-                'entity_two_type',
-                'role_name',
-                ),
+
+            ('entity_one_type', 'entity_one_id', 'role_name'),
+            ('entity_two_type', 'entity_two_id', 'role_name'),
+
+            ('role_name', 'entity_one_type', 'entity_one_id'),
+            ('role_name', 'entity_two_type', 'entity_two_id'),
+
+            ('role_name', 'entity_one_id'),
+            ('role_name', 'entity_two_id'),
+
+            ('entity_one_id', 'entity_one_type', 'role_name'),
+            ('entity_two_id', 'entity_two_type', 'role_name'),
+
             ]
         }
 
@@ -231,6 +236,53 @@ class Relation(Model, mongoengine.Document):
             total = item['total']
             result[role] = total
         return result
+
+    @classmethod
+    def dump_to_csv(cls, file_path=None):
+        import discograph
+        if file_path is None:
+            file_path = os.path.join(
+                discograph.__path__[0],
+                'data',
+                '{}.csv'.format(cls.__name__.lower()),
+                )
+        query = cls.objects().no_cache().timeout(False)
+        count = query.count()
+        file_pointer = open(file_path, 'w')
+        progress_indicator = systemtools.ProgressIndicator(
+            message='Processing', total=count)
+        with file_pointer, progress_indicator:
+            line = ','.join([
+                'id',
+                'entity_one_id',
+                'entity_one_type',
+                'entity_two_id',
+                'entity_two_type',
+                'release_id',
+                'role_name',
+                'year',
+                ]) + '\n'
+            file_pointer.write(line)
+            for i, document in enumerate(query):
+                data = [
+                    i,
+                    document.entity_one_id,
+                    document.entity_one_type,
+                    document.entity_two_id,
+                    document.entity_two_type,
+                    ]
+                if document.release_id:
+                    data.append(document.release_id)
+                else:
+                    data.append('')
+                data.append('"{}"'.format(document.role_name))
+                if document.year:
+                    data.append(document.year)
+                else:
+                    data.append('')
+                line = ','.join(str(_) for _ in data) + '\n'
+                file_pointer.write(line)
+                progress_indicator.advance()
 
     @classmethod
     def from_artist(cls, artist):

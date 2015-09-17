@@ -1,6 +1,8 @@
+# -*- encoding: utf-8 -*-
 from __future__ import print_function
 import gzip
 import mongoengine
+import os
 import traceback
 from abjad.tools import systemtools
 from discograph import Bootstrapper
@@ -104,6 +106,31 @@ class Label(Model, mongoengine.Document):
                 document.name,
                 )
             print(message)
+
+    @classmethod
+    def dump_to_csv(cls, file_path=None):
+        import discograph
+        if file_path is None:
+            file_path = os.path.join(
+                discograph.__path__[0],
+                'data',
+                '{}.csv'.format(cls.__name__.lower()),
+                )
+        query = cls.objects().no_cache().timeout(False)
+        count = query.count()
+        file_pointer = open(file_path, 'w')
+        progress_indicator = systemtools.ProgressIndicator(
+            message='Processing', total=count)
+        with file_pointer, progress_indicator:
+            line = 'id,name\n'
+            file_pointer.write(line)
+            for document in query:
+                line = '{},"{}"\n'.format(
+                    document.discogs_id,
+                    document.name.replace('"', '\"'),
+                    )
+                file_pointer.write(line)
+                progress_indicator.advance()
 
     @classmethod
     def from_element(cls, element):
