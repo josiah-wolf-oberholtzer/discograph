@@ -11,8 +11,8 @@ class SQLRelation(SQLModel):
     entity_one_type = peewee.IntegerField()
     entity_two_id = peewee.IntegerField()
     entity_two_type = peewee.IntegerField()
-    release = peewee.IntegerField(db_column='release_id', null=True)
-    role_name = peewee.CharField(null=True)
+    release_id = peewee.IntegerField(null=True)
+    role_name = peewee.CharField()
     year = peewee.IntegerField(null=True)
 
     ### PEEWEE META ###

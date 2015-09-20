@@ -30,7 +30,7 @@ class SQLModel(peewee.Model):
 
     ### PEEWEE FIELDS
 
-    random = peewee.FloatField()
+    random = peewee.FloatField(index=True)
 
     ### PEEWEE META
 
@@ -70,8 +70,6 @@ class SQLModel(peewee.Model):
     ### PUBLIC METHODS ###
 
     @classmethod
-    def randomize(cls):
-        for obj in cls.select():
-            obj.random = random.random()
-            obj.save()
-            print(obj)
+    def get_random(cls):
+        n = random.random()
+        return cls.select().where(cls.random > n).order_by(cls.random).get()

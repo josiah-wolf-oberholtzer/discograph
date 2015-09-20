@@ -293,21 +293,28 @@ class Relation(Model, mongoengine.Document):
         discograph.SQLRelation.create_table()
         query = discograph.Relation.objects().no_cache().timeout(False)
         count = query.count()
-        progress_indicator = systemtools.ProgressIndicator(
-            message='Processing', total=count)
-        with progress_indicator:
-            for i, mongo_relation in enumerate(query):
-                discograph.SQLRelation.insert(
-                    entity_one_id=mongo_relation.entity_one_id,
-                    entity_one_type=mongo_relation.entity_one_type,
-                    entity_two_id=mongo_relation.entity_two_id,
-                    entity_two_type=mongo_relation.entity_two_type,
-                    year=mongo_relation.year,
-                    release_id=mongo_relation.release_id,
-                    role_name=mongo_relation.role_name,
-                    random=random.random(),
-                    ).execute()
-                progress_indicator.advance()
+        rows = []
+        for i, mongo_document in enumerate(query, 1):
+            rows.append(dict(
+                id=i,
+                entity_one_id=mongo_document.entity_one_id,
+                entity_one_type=mongo_document.entity_one_type,
+                entity_two_id=mongo_document.entity_two_id,
+                entity_two_type=mongo_document.entity_two_type,
+                year=mongo_document.year,
+                release_id=mongo_document.release_id,
+                role_name=mongo_document.role_name,
+                random=random.random(),
+                ))
+            if len(rows) == 500:
+                discograph.SQLRelation.insert_many(rows).execute()
+                rows = []
+                print('Processing... {} of {} [{:.3f}%]'.format(
+                    i, count, (float(i) / count) * 100))
+        if rows:
+            discograph.SQLRelation.insert_many(rows).execute()
+            print('Processing... {} of {} [{:.3f}%]'.format(
+                i, count, (float(i) / count) * 100))
 
     @classmethod
     def from_artist(cls, artist):

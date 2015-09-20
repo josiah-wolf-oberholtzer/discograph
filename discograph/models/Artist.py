@@ -151,17 +151,23 @@ class Artist(Model, mongoengine.Document):
         query = discograph.Artist.objects().no_cache().timeout(False)
         query = query.only('discogs_id', 'name')
         count = query.count()
-        progress_indicator = systemtools.ProgressIndicator(
-            message='Processing', total=count)
-        with progress_indicator:
-            for mongo_artist in query:
-                if mongo_artist.discogs_id and mongo_artist.name:
-                    discograph.SQLArtist.insert(
-                        id=mongo_artist.discogs_id,
-                        name=mongo_artist.name,
-                        random=random.random(),
-                        ).execute()
-                progress_indicator.advance()
+        rows = []
+        for i, mongo_document in enumerate(query, 1):
+            if mongo_document.discogs_id and mongo_document.name:
+                rows.append(dict(
+                    id=mongo_document.discogs_id,
+                    name=mongo_document.name,
+                    random=random.random(),
+                    ))
+            if len(rows) == 100:
+                discograph.SQLArtist.insert_many(rows).execute()
+                rows = []
+                print('Processing... {} of {} [{:.3f}%]'.format(
+                    i, count, (float(i) / count) * 100))
+        if rows:
+            discograph.SQLArtist.insert_many(rows).execute()
+            print('Processing... {} of {} [{:.3f}%]'.format(
+                i, count, (float(i) / count) * 100))
 
     @classmethod
     def from_element(cls, element):
