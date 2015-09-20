@@ -4,10 +4,17 @@ from discograph.models.SQLModel import SQLModel
 
 
 class SQLLabel(SQLModel):
+
+    ### PEEWEE FIELDS ###
+
     name = peewee.CharField(index=True, null=True)
+
+    ### PEEWEE META ###
 
     class Meta:
         db_table = 'label'
+
+    ### PUBLIC METHODS ###
 
     def get_relations(self, role_names=None):
         from discograph.models.SQLRelation import SQLRelation

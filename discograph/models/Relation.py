@@ -6,6 +6,7 @@ import os
 import pprint
 import pymongo.errors
 import pymongo.operations
+import random
 from abjad.tools import datastructuretools
 from abjad.tools import systemtools
 from discograph.models.Model import Model
@@ -283,6 +284,29 @@ class Relation(Model, mongoengine.Document):
                 data.append(document.get('year', None) or '')
                 line = ';'.join(str(_) for _ in data) + '\n'
                 file_pointer.write(line)
+                progress_indicator.advance()
+
+    @staticmethod
+    def dump_to_sqlite():
+        import discograph
+        discograph.SQLRelation.drop_table(fail_silently=True)
+        discograph.SQLRelation.create_table()
+        query = discograph.Relation.objects().no_cache().timeout(False)
+        count = query.count()
+        progress_indicator = systemtools.ProgressIndicator(
+            message='Processing', total=count)
+        with progress_indicator:
+            for i, mongo_relation in enumerate(query):
+                discograph.SQLRelation.insert(
+                    entity_one_id=mongo_relation.entity_one_id,
+                    entity_one_type=mongo_relation.entity_one_type,
+                    entity_two_id=mongo_relation.entity_two_id,
+                    entity_two_type=mongo_relation.entity_two_type,
+                    year=mongo_relation.year,
+                    release_id=mongo_relation.release_id,
+                    role_name=mongo_relation.role_name,
+                    random=random.random(),
+                    ).execute()
                 progress_indicator.advance()
 
     @classmethod

@@ -1,26 +1,41 @@
+# -*- encoding: utf-8 -*-
 import discograph
 import os
 import peewee
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser
+import random
+#try:
+#    from configparser import ConfigParser
+#except ImportError:
+#    from ConfigParser import ConfigParser
 from abjad.tools import systemtools
 
 
-config_path = os.path.join(discograph.__path__[0], 'discograph.cfg')
-config = ConfigParser()
-config.read(config_path)
+#config_path = os.path.join(discograph.__path__[0], 'discograph.cfg')
+#config = ConfigParser()
+#config.read(config_path)
+#database = peewee.MySQLDatabase(
+#    'discograph',
+#    user=config.get('mysql', 'username'),
+#    password=config.get('mysql', 'password'),
+#    )
+database_path = os.path.join(
+    discograph.__path__[0],
+    'data',
+    'discograph.sqlite',
+    )
+database = peewee.SqliteDatabase(database_path, journal_mode='WAL')
 
 
 class SQLModel(peewee.Model):
 
+    ### PEEWEE FIELDS
+
+    random = peewee.FloatField()
+
+    ### PEEWEE META
+
     class Meta:
-        database = peewee.MySQLDatabase(
-            'discograph',
-            user=config.get('mysql', 'username'),
-            password=config.get('mysql', 'password'),
-            )
+        database = database
 
     ### SPECIAL METHODS ###
 
@@ -51,3 +66,12 @@ class SQLModel(peewee.Model):
     @property
     def _repr_specification(self):
         return self._storage_format_specification
+
+    ### PUBLIC METHODS ###
+
+    @classmethod
+    def randomize(cls):
+        for obj in cls.select():
+            obj.random = random.random()
+            obj.save()
+            print(obj)

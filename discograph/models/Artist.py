@@ -2,6 +2,7 @@ from __future__ import print_function
 import gzip
 import mongoengine
 import os
+import random
 import traceback
 from abjad.tools import systemtools
 from discograph import Bootstrapper
@@ -140,6 +141,26 @@ class Artist(Model, mongoengine.Document):
                     name = name.replace('"', r'\"')
                     line = '{};"{}"\n'.format(discogs_id, name)
                     file_pointer.write(line)
+                progress_indicator.advance()
+
+    @staticmethod
+    def dump_to_sqlite():
+        import discograph
+        discograph.SQLArtist.drop_table(fail_silently=True)
+        discograph.SQLArtist.create_table()
+        query = discograph.Artist.objects().no_cache().timeout(False)
+        query = query.only('discogs_id', 'name')
+        count = query.count()
+        progress_indicator = systemtools.ProgressIndicator(
+            message='Processing', total=count)
+        with progress_indicator:
+            for mongo_artist in query:
+                if mongo_artist.discogs_id and mongo_artist.name:
+                    discograph.SQLArtist.insert(
+                        id=mongo_artist.discogs_id,
+                        name=mongo_artist.name,
+                        random=random.random(),
+                        ).execute()
                 progress_indicator.advance()
 
     @classmethod

@@ -3,6 +3,7 @@ from __future__ import print_function
 import gzip
 import mongoengine
 import os
+import random
 import traceback
 from abjad.tools import systemtools
 from discograph import Bootstrapper
@@ -131,6 +132,26 @@ class Label(Model, mongoengine.Document):
                     name = name.replace('"', r'\"')
                     line = '{};"{}"\n'.format(discogs_id, name)
                     file_pointer.write(line)
+                progress_indicator.advance()
+
+    @staticmethod
+    def dump_to_sqlite():
+        import discograph
+        discograph.SQLLabel.drop_table(fail_silently=True)
+        discograph.SQLLabel.create_table()
+        query = discograph.Label.objects().no_cache().timeout(False)
+        query = query.only('discogs_id', 'name')
+        count = query.count()
+        progress_indicator = systemtools.ProgressIndicator(
+            message='Processing', total=count)
+        with progress_indicator:
+            for mongo_label in query:
+                if mongo_label.discogs_id and mongo_label.name:
+                    discograph.SQLLabel.insert(
+                        id=mongo_label.discogs_id,
+                        name=mongo_label.name,
+                        random=random.random(),
+                        ).execute()
                 progress_indicator.advance()
 
     @classmethod

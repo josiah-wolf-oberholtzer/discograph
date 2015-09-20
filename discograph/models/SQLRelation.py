@@ -5,8 +5,7 @@ from discograph.models.SQLModel import SQLModel
 
 class SQLRelation(SQLModel):
 
-    class Meta:
-        db_table = 'relation'
+    ### PEEWEE FIELDS ###
 
     entity_one_id = peewee.IntegerField()
     entity_one_type = peewee.IntegerField()
@@ -15,6 +14,13 @@ class SQLRelation(SQLModel):
     release = peewee.IntegerField(db_column='release_id', null=True)
     role_name = peewee.CharField(null=True)
     year = peewee.IntegerField(null=True)
+
+    ### PEEWEE META ###
+
+    class Meta:
+        db_table = 'relation'
+
+    ### PUBLIC METHODS ###
 
     @classmethod
     def search(cls, entity_id, entity_type=1, role_names=None, query_only=False):
