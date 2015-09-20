@@ -17,7 +17,7 @@ class SQLRelation(SQLModel):
     year = peewee.IntegerField(null=True)
 
     @classmethod
-    def search(cls, entity_id, entity_type=1, role_names=None):
+    def search(cls, entity_id, entity_type=1, role_names=None, query_only=False):
         if not role_names:
             role_names = [
                 'Alias',
@@ -36,4 +36,24 @@ class SQLRelation(SQLModel):
                 (cls.role_name.in_(role_names))
                 )
             )
-        return query
+        if query_only:
+            return query
+        return list(query)
+
+    def get_entity_one(self):
+        from discograph.models.SQLArtist import SQLArtist
+        from discograph.models.SQLLabel import SQLLabel
+        entity_id = self.entity_one_id
+        entity_type = self.entity_one_type
+        if entity_type == 1:
+            return SQLArtist.from_id(entity_id)
+        return SQLLabel.from_id(entity_id)
+
+    def get_entity_two(self):
+        from discograph.models.SQLArtist import SQLArtist
+        from discograph.models.SQLLabel import SQLLabel
+        entity_id = self.entity_two_id
+        entity_type = self.entity_two_type
+        if entity_type == 1:
+            return SQLArtist.from_id(entity_id)
+        return SQLLabel.from_id(entity_id)
