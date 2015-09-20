@@ -19,6 +19,10 @@ class SQLRelation(SQLModel):
 
     class Meta:
         db_table = 'relation'
+        indexes = (
+            (('entity_one_id', 'entity_one_type', 'role_name', 'year'), False),
+            (('entity_two_id', 'entity_two_type', 'role_name', 'year'), False),
+            )
 
     ### PUBLIC METHODS ###
 
