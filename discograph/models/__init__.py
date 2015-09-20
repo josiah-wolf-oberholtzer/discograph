@@ -13,3 +13,6 @@ from discograph.models.Master import Master
 from discograph.models.Relation import Relation
 from discograph.models.Release import Release
 from discograph.models.Track import Track
+from discograph.models.SQLArtist import SQLArtist
+from discograph.models.SQLLabel import SQLLabel
+from discograph.models.SQLRelation import SQLRelation
