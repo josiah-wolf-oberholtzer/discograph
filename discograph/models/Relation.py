@@ -246,41 +246,42 @@ class Relation(Model, mongoengine.Document):
                 'data',
                 '{}.csv'.format(cls.__name__.lower()),
                 )
-        query = cls.objects().no_cache().timeout(False)
-        count = query.count()
+        count = cls.objects.count()
+        query = cls._get_collection().find(no_cursor_timeout=True)
         file_pointer = open(file_path, 'w')
         progress_indicator = systemtools.ProgressIndicator(
             message='Processing', total=count)
         with file_pointer, progress_indicator:
-            line = ','.join([
-                'id',
-                'entity_one_id',
-                'entity_one_type',
-                'entity_two_id',
-                'entity_two_type',
-                'release_id',
-                'role_name',
-                'year',
-                ]) + '\n'
-            file_pointer.write(line)
-            for i, document in enumerate(query):
+            #line = ','.join([
+            #    'id',
+            #    'entity_one_id',
+            #    'entity_one_type',
+            #    'entity_two_id',
+            #    'entity_two_type',
+            #    'release_id',
+            #    'role_name',
+            #    'year',
+            #    ]) + '\n'
+            #file_pointer.write(line)
+            iterator = iter(query)
+            for i in range(count):
+                try:
+                    document = next(iterator)
+                except Exception:
+                    print('ERROR:', i)
+                    print()
+                    continue
                 data = [
                     i,
-                    document.entity_one_id,
-                    document.entity_one_type,
-                    document.entity_two_id,
-                    document.entity_two_type,
+                    document['entity_one_id'],
+                    document['entity_one_type'],
+                    document['entity_two_id'],
+                    document['entity_two_type'],
                     ]
-                if document.release_id:
-                    data.append(document.release_id)
-                else:
-                    data.append('')
-                data.append('"{}"'.format(document.role_name))
-                if document.year:
-                    data.append(document.year)
-                else:
-                    data.append('')
-                line = ','.join(str(_) for _ in data) + '\n'
+                data.append(document.get('release_id', None) or '')
+                data.append('"{}"'.format(document['role_name']))
+                data.append(document.get('year', None) or '')
+                line = ';'.join(str(_) for _ in data) + '\n'
                 file_pointer.write(line)
                 progress_indicator.advance()
 

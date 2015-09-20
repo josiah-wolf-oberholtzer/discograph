@@ -131,14 +131,14 @@ class Artist(Model, mongoengine.Document):
         progress_indicator = systemtools.ProgressIndicator(
             message='Processing', total=count)
         with file_pointer, progress_indicator:
-            line = 'id,name\n'
+            line = 'id;name\n'
             file_pointer.write(line)
             for document in query:
                 discogs_id = document.discogs_id
                 name = document.name
                 if discogs_id and name:
-                    name = name.replace('"', '\"')
-                    line = '{},"{}"\n'.format(discogs_id, name)
+                    name = name.replace('"', r'\"')
+                    line = '{};"{}"\n'.format(discogs_id, name)
                     file_pointer.write(line)
                 progress_indicator.advance()
 
