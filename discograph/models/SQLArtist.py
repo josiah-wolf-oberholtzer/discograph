@@ -7,7 +7,7 @@ class SQLArtist(SQLModel):
 
     ### PEEWEE FIELDS ###
 
-    name = peewee.CharField(index=True, null=True)
+    name = peewee.TextField(index=True, null=True)
 
     ### PEEWEE META ###
 

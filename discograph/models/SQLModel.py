@@ -4,6 +4,7 @@ import os
 import peewee
 import random
 from abjad.tools import systemtools
+from playhouse import sqlite_ext
 
 
 database_path = os.path.join(
@@ -11,7 +12,10 @@ database_path = os.path.join(
     'data',
     'discograph.sqlite',
     )
-database = peewee.SqliteDatabase(database_path, journal_mode='WAL')
+database = sqlite_ext.SqliteExtDatabase(
+    database_path,
+    journal_mode='WAL',
+    )
 
 
 class SQLModel(peewee.Model):

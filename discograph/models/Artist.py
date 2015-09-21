@@ -146,8 +146,13 @@ class Artist(Model, mongoengine.Document):
     @staticmethod
     def dump_to_sqlite():
         import discograph
-        discograph.SQLArtist.drop_table(fail_silently=True)
+        discograph.SQLFTSArtist.drop_table(True)
+        discograph.SQLArtist.drop_table(True)
         discograph.SQLArtist.create_table()
+        discograph.SQLFTSArtist.create_table(
+            content=discograph.SQLArtist,
+            tokenize='porter',
+            )
         query = discograph.Artist.objects().no_cache().timeout(False)
         query = query.only('discogs_id', 'name')
         count = query.count()
@@ -164,10 +169,14 @@ class Artist(Model, mongoengine.Document):
                 rows = []
                 print('Processing... {} of {} [{:.3f}%]'.format(
                     i, count, (float(i) / count) * 100))
+            if 10000 < i:
+                break
         if rows:
             discograph.SQLArtist.insert_many(rows).execute()
             print('Processing... {} of {} [{:.3f}%]'.format(
                 i, count, (float(i) / count) * 100))
+        discograph.SQLFTSArtist.rebuild()
+        discograph.SQLFTSArtist.optimize()
 
     @classmethod
     def from_element(cls, element):

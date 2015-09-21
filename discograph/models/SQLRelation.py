@@ -29,26 +29,64 @@ class SQLRelation(SQLModel):
     @classmethod
     def search(cls, entity_id, entity_type=1, role_names=None, query_only=False):
         if not role_names:
-            role_names = [
-                'Alias',
-                'Member Of',
-                'Released On',
-                'Sublabel Of',
-                ]
-        query = cls.select().where(
-            (
-                (cls.entity_one_id == entity_id) &
-                (cls.entity_one_type == entity_type) &
-                (cls.role_name.in_(role_names))
-                ) | (
-                (cls.entity_two_id == entity_id) &
-                (cls.entity_two_type == entity_type) &
-                (cls.role_name.in_(role_names))
+            query = cls.select().where(
+                (
+                    (cls.entity_one_id == entity_id) &
+                    (cls.entity_one_type == entity_type)
+                    ) | (
+                    (cls.entity_two_id == entity_id) &
+                    (cls.entity_two_type == entity_type)
+                    )
                 )
-            )
+        else:
+            query = cls.select().where(
+                (
+                    (cls.entity_one_id == entity_id) &
+                    (cls.entity_one_type == entity_type) &
+                    (cls.role_name.in_(role_names))
+                    ) | (
+                    (cls.entity_two_id == entity_id) &
+                    (cls.entity_two_type == entity_type) &
+                    (cls.role_name.in_(role_names))
+                    )
+                )
         if query_only:
             return query
         return list(query)
+
+    @classmethod
+    def search_multi(cls, entities, role_names=None, query_only=False):
+        artist_ids = []
+        label_ids = []
+        for entity_type, entity_id in entities:
+            if entity_type == 1:
+                artist_ids.append(entity_id)
+            else:
+                label_ids.append(entity_id)
+        artist_where_clause = (
+            (cls.entity_one_type == 1) &
+            (cls.entity_one_id.in_(artist_ids))
+            ) | (
+            (cls.entity_two_type == 1) &
+            (cls.entity_two_id.in_(artist_ids))
+            )
+        if role_names:
+            artist_where_clause &= (cls.role_name.in_(role_names))
+        artist_query = cls.select().where(artist_where_clause)
+        label_where_clause = (
+            (cls.entity_one_type == 1) &
+            (cls.entity_one_id.in_(label_ids))
+            ) | (
+            (cls.entity_two_type == 1) &
+            (cls.entity_two_id.in_(label_ids))
+            )
+        if role_names:
+            label_where_clause &= (cls.role_name.in_(role_names))
+        label_query = cls.select().where(label_where_clause)
+        if query_only:
+            return artist_query, label_query
+        return list(_._data for _ in artist_query) + \
+            list(_._data for _ in label_query)
 
     def get_entity_one(self):
         from discograph.models.SQLArtist import SQLArtist
