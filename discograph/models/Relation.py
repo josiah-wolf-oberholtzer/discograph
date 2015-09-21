@@ -306,7 +306,7 @@ class Relation(Model, mongoengine.Document):
                 role_name=mongo_document.role_name,
                 random=random.random(),
                 ))
-            if len(rows) == 500:
+            if len(rows) == 100:
                 discograph.SQLRelation.insert_many(rows).execute()
                 rows = []
                 print('Processing... {} of {} [{:.3f}%]'.format(
