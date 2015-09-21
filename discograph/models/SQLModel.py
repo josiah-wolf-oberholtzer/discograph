@@ -3,21 +3,9 @@ import discograph
 import os
 import peewee
 import random
-#try:
-#    from configparser import ConfigParser
-#except ImportError:
-#    from ConfigParser import ConfigParser
 from abjad.tools import systemtools
 
 
-#config_path = os.path.join(discograph.__path__[0], 'discograph.cfg')
-#config = ConfigParser()
-#config.read(config_path)
-#database = peewee.MySQLDatabase(
-#    'discograph',
-#    user=config.get('mysql', 'username'),
-#    password=config.get('mysql', 'password'),
-#    )
 database_path = os.path.join(
     discograph.__path__[0],
     'data',
