@@ -37,7 +37,8 @@ class RelationGrapher(object):
             max_nodes = int(max_nodes)
             assert 0 < max_nodes
         self.max_nodes = max_nodes
-        if role_names is not None:
+        role_names = role_names or None
+        if role_names:
             if isinstance(role_names, six.string_types):
                 role_names = (role_names,)
             elif not isinstance(role_names, collections.Iterable):
@@ -45,13 +46,6 @@ class RelationGrapher(object):
             role_names = tuple(role_names)
             assert all(_ in models.ArtistRole._available_credit_roles
                 for _ in role_names)
-        else:
-            role_names = (
-                'Alias',
-                'Member Of',
-                'Released On',
-                'Sublabel Of',
-                )
         self.role_names = role_names
 
     def can_continue_searching(self, distance, entities_visited):
@@ -174,7 +168,7 @@ class RelationGrapher(object):
         nodes = set()
         if not no_query:
             with systemtools.Timer(exit_message='    Neighborhood query time:'):
-                query = cls.query_relations_3(entity, role_names=role_names)
+                query = cls.query_relations(entity, role_names=role_names)
                 links = tuple(query.as_pymongo())
             processed_links = []
             for link in links:
@@ -266,87 +260,27 @@ class RelationGrapher(object):
         return network
 
     @classmethod
-    def query_relations_3(cls, entity, role_names=None):
-        if role_names is None:
-            role_names = (
-                'Alias',
-                'Member Of',
-                'Released On',
-                'Sublabel Of',
-                )
-        entity_type = models.Relation._model_to_entity_type[type(entity)]
-        query = models.Relation.objects(
-            entity_one_id=entity.discogs_id,
-            entity_one_type=entity_type,
-            role_name__in=role_names,
-            )
-        indexes = [
-            [('entity_one_id', 1), ('entity_one_type', 1), ('role_name', 1)],
-            [('entity_one_type', 1), ('entity_one_id', 1), ('role_name', 1)],
-            [('role_name', 1), ('entity_one_type', 1), ('entity_one_id', 1)],
-            [('role_name', 1), ('entity_one_id', 1)],
-            ]
-        query = query.hint(indexes[3])
-        return query
-
-    @classmethod
-    def query_relations_2(cls, entity, role_names=None):
-        if role_names is None:
-            role_names = (
-                'Alias',
-                'Member Of',
-                'Released On',
-                'Sublabel Of',
-                )
-        entity_type = models.Relation._model_to_entity_type[type(entity)]
-        q_l = mongoengine.Q(
-            entity_one_id=entity.discogs_id,
-            entity_one_type=entity_type,
-            role_name__in=role_names,
-            )
-        q_r = mongoengine.Q(
-            entity_two_id=entity.discogs_id,
-            entity_two_type=entity_type,
-            role_name__in=role_names,
-            )
-        query = models.Relation.objects(q_l | q_r)
-        return query
-
-    @classmethod
     def query_relations(cls, entity, role_names=None):
-        if role_names is None:
-            role_names = (
-                'Alias',
-                'Member Of',
-                'Released On',
-                'Sublabel Of',
-                )
         entity_type = models.Relation._model_to_entity_type[type(entity)]
-        q_l = mongoengine.Q(
-            entity_one_id=entity.discogs_id,
-            entity_one_type=entity_type,
-            entity_two_id__ne=None,
-            )
-        q_r = mongoengine.Q(
-            entity_one_id__ne=None,
-            entity_two_id=entity.discogs_id,
-            entity_two_type=entity_type,
-            )
-        query = models.Relation.objects(q_l | q_r)
         if role_names:
-            query = query(role_name__in=role_names)
-        query = query.hint([
-            ('entity_one_id', 1),
-            ('entity_one_type', 1),
-            ('entity_two_id', 1),
-            ('entity_two_type', 1),
-            ])
-        #query = query.order_by(
-        #    'role_name',
-        #    'entity_one_id',
-        #    'entity_one_type',
-        #    'entity_two_id',
-        #    'entity_two_type',
-        #    )
-        query = query.exclude('hash_id')
+            q_l = mongoengine.Q(
+                entity_one_id=entity.discogs_id,
+                entity_one_type=entity_type,
+                role_name__in=role_names,
+                )
+            q_r = mongoengine.Q(
+                entity_two_id=entity.discogs_id,
+                entity_two_type=entity_type,
+                role_name__in=role_names,
+                )
+        else:
+            q_l = mongoengine.Q(
+                entity_one_id=entity.discogs_id,
+                entity_one_type=entity_type,
+                )
+            q_r = mongoengine.Q(
+                entity_two_id=entity.discogs_id,
+                entity_two_type=entity_type,
+                )
+        query = models.Relation.objects(q_l | q_r)
         return query
