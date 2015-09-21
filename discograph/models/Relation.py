@@ -35,17 +35,16 @@ class Relation(Model, mongoengine.Document):
     ### MONGOENGINE FIELDS ###
 
     hash_id = mongoengine.IntField(primary_key=True)
-    category = mongoengine.IntField()
-    country = mongoengine.StringField()
+    category = mongoengine.IntField(null=True)
+    country = mongoengine.StringField(null=True)
     entity_one_id = mongoengine.IntField()
     entity_one_type = mongoengine.IntField()
     entity_two_id = mongoengine.IntField()
     entity_two_type = mongoengine.IntField()
-    genres = mongoengine.ListField(mongoengine.StringField)
-    #is_trivial = mongoengine.BooleanField()
+    genres = mongoengine.ListField(mongoengine.StringField, null=True)
     release_id = mongoengine.IntField(null=True)
     role_name = mongoengine.StringField()
-    styles = mongoengine.ListField(mongoengine.StringField)
+    styles = mongoengine.ListField(mongoengine.StringField, null=True)
     subcategory = mongoengine.IntField(null=True)
     year = mongoengine.IntField(null=True)
 
@@ -291,19 +290,19 @@ class Relation(Model, mongoengine.Document):
         import discograph
         discograph.SQLRelation.drop_table(fail_silently=True)
         discograph.SQLRelation.create_table()
-        query = discograph.Relation.objects().no_cache().timeout(False)
-        count = query.count()
+        count = discograph.Relation.objects.count()
+        query = discograph.Relation._get_collection().find()
         rows = []
         for i, mongo_document in enumerate(query, 1):
             rows.append(dict(
                 id=i,
-                entity_one_id=mongo_document.entity_one_id,
-                entity_one_type=mongo_document.entity_one_type,
-                entity_two_id=mongo_document.entity_two_id,
-                entity_two_type=mongo_document.entity_two_type,
-                year=mongo_document.year,
-                release_id=mongo_document.release_id,
-                role_name=mongo_document.role_name,
+                entity_one_id=mongo_document.get('entity_one_id'),
+                entity_one_type=mongo_document.get('entity_one_type'),
+                entity_two_id=mongo_document.get('entity_two_id'),
+                entity_two_type=mongo_document.get('entity_two_type'),
+                year=mongo_document.get('year'),
+                release_id=mongo_document.get('release_id'),
+                role_name=mongo_document.get('role_name'),
                 random=random.random(),
                 ))
             if len(rows) == 100:
