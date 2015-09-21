@@ -89,14 +89,17 @@ urlify_pattern = re.compile(r"\s+", re.MULTILINE)
 
 @app.route('/api/search/<search_string>', methods=['GET'])
 def route__api__search(search_string):
-    data = discograph.models.Artist.search_text(search_string, limit=50)
-    data.sort(key=lambda x: Levenshtein.distance(x['name'], search_string))
     print(search_string)
-    for datum in data:
-        datum['key'] = 'artist-{}'.format(datum['_id'])
-        del(datum['_id'])
-        print(datum)
-    data = {'results': data}
+    result = discograph.SQLFTSArtist.search_bm25(search_string)
+    data = []
+    for sql_fts_artist in result:
+        datum = dict(
+            key='artist-{}'.format(sql_fts_artist.id),
+            name=sql_fts_artist.name,
+            )
+        data.append(datum)
+        print('    {}'.format(datum))
+    data = {'results': tuple(data)}
     return jsonify(data)
 
 
