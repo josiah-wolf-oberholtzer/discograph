@@ -39,13 +39,15 @@ def route__random():
 
 @app.route('/artist/<int:artist_id>', methods=['GET'])
 def route__artist_id(artist_id):
-    try:
-        artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
-    except:
+    query = discograph.SQLArtist.select()
+    query = query.where(discograph.SQLArtist.id == artist_id)
+    result = list(query)
+    if not result:
         abort(404)
+    artist = result[0]
     return render_template(
         'index.html',
-        key='artist-{}'.format(artist.discogs_id),
+        key='artist-{}'.format(artist.id),
         title='discoGraph: {}'.format(artist.name),
         )
 
@@ -59,8 +61,17 @@ def route__api__cluster(artist_id):
     role_names = [
         'Alias',
         'Member Of',
-        'Producer',
-        'Remix',
+        #'Producer',
+        #'Remix',
+        #'Guitar',
+        #'Bass Guitar',
+        #'Rhythm Guitar',
+        #'Electric Guitar',
+        #'Lead Guitar',
+        #'Drums',
+        #'Vocals',
+        #'Lead Vocals',
+        #'Backing Vocals',
         ]
     relation_grapher = discograph.RelationGrapher(
         entities=[artist],
