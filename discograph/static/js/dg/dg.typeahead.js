@@ -25,7 +25,7 @@ var dg = (function(dg){
             {
                 hint: true, 
                 highlight: true,
-                minLength: 1,
+                minLength: 2,
             }, {
                 name: "results",
                 display: "name",

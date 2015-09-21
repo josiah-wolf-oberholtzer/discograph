@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-import Levenshtein
 import abjad
 import discograph
 import mongoengine
@@ -61,8 +60,7 @@ def route__api__cluster(artist_id):
     role_names = [
         'Alias',
         'Member Of',
-        #'Producer',
-        #'Remix',
+        'Producer',
         #'Guitar',
         #'Bass Guitar',
         #'Rhythm Guitar',
@@ -90,9 +88,9 @@ urlify_pattern = re.compile(r"\s+", re.MULTILINE)
 @app.route('/api/search/<search_string>', methods=['GET'])
 def route__api__search(search_string):
     print(search_string)
-    result = discograph.SQLFTSArtist.search_bm25(search_string)
+    query = discograph.SQLFTSArtist.search_bm25(search_string).limit(10)
     data = []
-    for sql_fts_artist in result:
+    for sql_fts_artist in query:
         datum = dict(
             key='artist-{}'.format(sql_fts_artist.id),
             name=sql_fts_artist.name,
