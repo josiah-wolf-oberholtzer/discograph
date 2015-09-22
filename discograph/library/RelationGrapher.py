@@ -422,10 +422,10 @@ class RelationGrapher(object):
             else:
                 label_ids.append(entity_id)
         artists = SQLArtist.select().where(SQLArtist.id.in_(artist_ids))
-        labels = SQLLabel.select().where(SQLLabel.id.in_(artist_ids))
+        labels = SQLLabel.select().where(SQLLabel.id.in_(label_ids))
         for artist in artists:
             nodes[(1, artist.id)]['name'] = artist.name
         for label in labels:
-            nodes[(1, label.id)]['name'] = label.name
+            nodes[(2, label.id)]['name'] = label.name
 
         return nodes, links
