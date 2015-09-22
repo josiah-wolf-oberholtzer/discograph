@@ -187,12 +187,26 @@ class RelationGrapher(object):
                     target_key = (entity_two_type, entity_two_id)
                     link['target'] = target_key
 
+                    link['role'] = link['role_name']
+
+                    del(link['_id'])
+                    del(link['category'])
+                    del(link['country'])
                     del(link['entity_one_id'])
                     del(link['entity_one_type'])
                     del(link['entity_two_id'])
                     del(link['entity_two_type'])
-                    link['role'] = link['role_name']
                     del(link['role_name'])
+                    del(link['subcategory'])
+
+                    if link.get('genres') is None:
+                        del(link['genres'])
+                    if link.get('styles') is None:
+                        del(link['styles'])
+                    if link.get('release_id') is None:
+                        del(link['release_id'])
+                    if link.get('year') is None:
+                        del(link['year'])
 
                     nodes.update((source_key, target_key))
                     processed_links.append(link)
