@@ -15,6 +15,7 @@ urlify_pattern = re.compile(r"\s+", re.MULTILINE)
 
 app = Flask(__name__)
 cache = MemcachedCache(['127.0.0.1:11211'])
+print('Clearing memcached.')
 cache.clear()
 
 
@@ -82,13 +83,14 @@ def route__api__cluster(artist_id):
         ]
     relation_grapher = discograph.RelationGrapher(
         center_entity=artist,
-        degree=2,
+        degree=12,
         max_nodes=100,
+        max_links=200,
         role_names=role_names,
         )
     with abjad.systemtools.Timer(exit_message='Network query time:'):
         data = relation_grapher.get_network_2()
-    cache.set(cache_key, data)
+    cache.set(cache_key, data, timeout=60 * 60)
     return jsonify(data)
 
 
@@ -110,7 +112,7 @@ def route__api__search(search_string):
         data.append(datum)
         print('    {}'.format(datum))
     data = {'results': tuple(data)}
-    cache.set(cache_key, data)
+    cache.set(cache_key, data, timeout=60 * 60)
     return jsonify(data)
 
 
