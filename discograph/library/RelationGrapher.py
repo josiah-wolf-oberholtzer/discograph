@@ -69,15 +69,11 @@ class RelationGrapher(object):
         for distance in range(self.degree + 1):
             current_entities_to_visit = sorted(entities_to_visit)
             entities_to_visit.clear()
-            #print('ROUND', distance, current_entities_to_visit)
-            #print(current_entities_to_visit)
             while current_entities_to_visit:
                 if not self.can_continue_searching(distance, entities_visited):
-                    #print('DONE', len(entities_visited))
                     return entities_visited
                 entity_key = current_entities_to_visit.pop()
                 if entity_key in entities_visited:
-                    #print('already visited', entity_key)
                     continue
                 entity_type, entity_id = entity_key
                 if entity_type == 'artist':
@@ -97,9 +93,7 @@ class RelationGrapher(object):
                     entity_type == 'label' and
                     entity_key not in original_entities
                     ):
-                    #print('skipping', entity_key)
                     if 'Not On Label' in entity.name:
-                        #print('white label', entity_key)
                         continue
                     no_query = True
                 neighborhood = self.get_neighborhood(
@@ -111,7 +105,6 @@ class RelationGrapher(object):
                 neighborhood['distance'] = distance
                 entities_visited[entity_key] = neighborhood
                 entities_to_visit.update(neighborhood['nodes'])
-        #print('DONE', len(entities_visited))
         return entities_visited
 
     @classmethod
@@ -226,7 +219,6 @@ class RelationGrapher(object):
                     nodes.update((source_key, target_key))
                     processed_links.append(link)
                 except Exception as e:
-                    #print(link)
                     raise e
             neighborhood['nodes'] = tuple(sorted(nodes))
             neighborhood['links'] = tuple(processed_links)
@@ -398,6 +390,7 @@ class RelationGrapher(object):
             entity_keys_to_visit.clear()
             relations = []
             for i in range(0, len(current_entity_keys_to_visit), entity_query_cap):
+                # Split into multiple queries to avoid variable maximum.
                 entity_key_slice = current_entity_keys_to_visit[i:i + entity_query_cap]
                 relations.extend(SQLRelation.search_multi(
                     entity_key_slice,
@@ -416,7 +409,6 @@ class RelationGrapher(object):
                     nodes[e1k]['aliases'].add(e2k[1])
                     nodes[e2k]['aliases'].add(e1k[1])
                 elif relation['role_name'] in ('Member Of', 'Sublabel Of'):
-                    #print(relation)
                     nodes[e2k]['members'].add(e1k[1])
                 if relation['role_name'] not in original_role_names:
                     continue
@@ -437,8 +429,20 @@ class RelationGrapher(object):
                 artist_ids.append(entity_id)
             else:
                 label_ids.append(entity_id)
-        artists = SQLArtist.select().where(SQLArtist.id.in_(artist_ids))
-        labels = SQLLabel.select().where(SQLLabel.id.in_(label_ids))
+        artists = []
+        for i in range(0, len(artist_ids), 999):
+            query = (SQLArtist
+                .select()
+                .where(SQLArtist.id.in_(artist_ids[i:i + 999]))
+                )
+            artists.extend(query)
+        labels = []
+        for i in range(0, len(artist_ids), 999):
+            query = (SQLLabel
+                .select()
+                .where(SQLLabel.id.in_(label_ids[i:i + 999]))
+                )
+            labels.extend(query)
         for artist in artists:
             nodes[(1, artist.id)]['name'] = artist.name
         for label in labels:
@@ -447,7 +451,6 @@ class RelationGrapher(object):
         # Prune unvisited nodes and links.
         for key in entity_keys_to_visit:
             node = nodes.pop(key)
-            #print(node['key'], node['name'])
             for link_key in node['links']:
                 link = links[link_key]
                 source_key = link['source']
@@ -488,13 +491,19 @@ class RelationGrapher(object):
         links = tuple(sorted(links.values(),
             key=lambda x: (x['source'], x['role'], x['target'])))
         for link in links:
-            link['source'] = '{}-{}'.format(*link['source'])
-            link['target'] = '{}-{}'.format(*link['target'])
+            if link['source'][0] == 1:
+                link['source'] = 'artist-{}'.format(link['source'][1])
+            else:
+                link['source'] = 'label-{}'.format(link['source'][1])
+            if link['target'][0] == 1:
+                link['target'] = 'artist-{}'.format(link['target'][1])
+            else:
+                link['target'] = 'label-{}'.format(link['target'][1])
         nodes = tuple(sorted(nodes.values(), key=lambda x: (x['type'], x['id'])))
-        center = '{}-{}'.format(
-            type(self.center_entity).__name__.lower(),
-            self.center_entity.discogs_id,
-            )
+        if type(self.center_entity) in (Artist, SQLArtist):
+            center = 'artist-{}'.format(self.center_entity.discogs_id)
+        else:
+            center = 'label-{}'.format(self.center_entity.discogs_id)
         network = {
             'center': center,
             'nodes': nodes,
