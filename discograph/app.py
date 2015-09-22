@@ -31,7 +31,7 @@ def route__index():
 
 @app.route('/random')
 def route__random():
-    artist = discograph.models.SQLArtist.get_random()
+    artist = discograph.library.SQLArtist.get_random()
     artist_id = artist.id
     return redirect('/artist/{}'.format(artist_id), code=302)
 
@@ -54,7 +54,7 @@ def route__artist_id(artist_id):
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
 def route__api__cluster(artist_id):
     try:
-        artist = discograph.models.Artist.objects.get(discogs_id=artist_id)
+        artist = discograph.library.Artist.objects.get(discogs_id=artist_id)
     except:
         abort(404)
     role_names = [

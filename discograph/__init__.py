@@ -1,4 +1,4 @@
-from discograph.models import *
+from discograph.library import *
 from discograph.app import app
 
 
