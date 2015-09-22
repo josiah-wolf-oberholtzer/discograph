@@ -8,6 +8,8 @@ from discograph.library.Artist import Artist
 from discograph.library.ArtistRole import ArtistRole
 from discograph.library.Label import Label
 from discograph.library.Relation import Relation
+from discograph.library.SQLArtist import SQLArtist
+from discograph.library.SQLLabel import SQLLabel
 from discograph.library.SQLRelation import SQLRelation
 
 
@@ -245,25 +247,29 @@ class RelationGrapher(object):
         link['role'] = link['role_name']
         link['key'] = self.get_link_key(link)
 
-        del(link['_id'])
-        del(link['category'])
-        del(link['country'])
-        del(link['entity_one_id'])
-        del(link['entity_one_type'])
-        del(link['entity_two_id'])
-        del(link['entity_two_type'])
-        del(link['role_name'])
-        del(link['subcategory'])
+        if '_id' in link: del(link['_id'])
+        if 'country' in link: del(link['country'])
+        if 'entity_one_id' in link: del(link['entity_one_id'])
+        if 'entity_one_type' in link: del(link['entity_one_type'])
+        if 'entity_two_id' in link: del(link['entity_two_id'])
+        if 'entity_two_type' in link: del(link['entity_two_type'])
+        if 'id' in link: del(link['id'])
+        if 'role_name' in link: del(link['role_name'])
 
-        if link.get('genres') is None:
+        if 'category' in link and not link.get('category'):
+            del(link['category'])
+        if 'subcategory' in link and not link.get('subcategory'):
+            del(link['subcategory'])
+        if 'genres' in link and not link.get('genres'):
             del(link['genres'])
-        if link.get('styles') is None:
-            del(link['styles'])
-        if link.get('release_id') is None:
+        if 'random' in link:
+            del(link['random'])
+        if 'release_id' in link and not link.get('release_id'):
             del(link['release_id'])
-        if link.get('year') is None:
+        if 'styles' in link and not link.get('styles'):
+            del(link['styles'])
+        if 'year' in link and not link.get('year'):
             del(link['year'])
-
 
         return link
 
@@ -345,8 +351,19 @@ class RelationGrapher(object):
         return query
 
     def collect_entities_2(self, role_names=None):
+        def entity_key_to_node(entity_key, distance):
+            node = dict(distance=distance, missing=0, size=0, aliases=set())
+            node['id'] = entity_key[1]
+            if entity_key[0] == 1:
+                node['type'] = 'artist'
+            else:
+                node['type'] = 'label'
+            node['key'] = '{}-{}'.format(node['type'], node['id'])
+            node['links'] = set()
+            return node
+
         original_role_names = role_names or ()
-        provisional_role_names = set(role_names)
+        provisional_role_names = set(original_role_names)
         provisional_role_names.update(['Alias', 'Member Of'])
         provisional_role_names = sorted(provisional_role_names)
         if type(self.center_entity).__name__.endswith('Artist'):
@@ -356,34 +373,59 @@ class RelationGrapher(object):
 
         links = dict()
         nodes = dict()
-        entities_to_visit = set([initial_key])
+        entity_keys_to_visit = set([initial_key])
 
         for distance in range(self.degree + 1):
-            current_entities_to_visit = list(entities_to_visit)
-            for entity in current_entities_to_visit:
-                nodes.setdefault(entity, dict(distance=distance, size=0, aliases=set()))
-            entities_to_visit.clear()
+            current_entity_keys_to_visit = list(entity_keys_to_visit)
+            for key in current_entity_keys_to_visit:
+                nodes.setdefault(key, entity_key_to_node(key, distance))
+            entity_keys_to_visit.clear()
             relations = SQLRelation.search_multi(
-                current_entities_to_visit,
+                current_entity_keys_to_visit,
                 role_names=provisional_role_names,
                 )
             for relation in relations:
                 e1k = (relation['entity_one_type'], relation['entity_one_id'])
                 e2k = (relation['entity_two_type'], relation['entity_two_id'])
                 if e1k not in nodes:
-                    entities_to_visit.add(e1k)
-                nodes.setdefault(e1k, dict(distance=distance + 1, size=0, aliases=set()))
-                nodes.setdefault(e2k, dict(distance=distance + 1, size=0, aliases=set()))
+                    entity_keys_to_visit.add(e1k)
+                    nodes[e1k] = entity_key_to_node(e1k, distance + 1)
                 if e2k not in nodes:
-                    entities_to_visit.add(e2k)
+                    entity_keys_to_visit.add(e2k)
+                    nodes[e2k] = entity_key_to_node(e2k, distance + 1)
                 if relation['role_name'] == 'Alias':
                     nodes[e1k]['aliases'].add(e2k)
                     nodes[e2k]['aliases'].add(e1k)
                 elif relation['role_name'] in ('Member Of', 'Sublabel Of'):
                     nodes[e2k]['size'] += 1
-                if relation not in original_role_names:
+                if relation['role_name'] not in original_role_names:
                     continue
                 link = self.relation_to_link(relation)
                 links[link['key']] = link
+                nodes[e1k]['links'].add(link['key'])
+                nodes[e2k]['links'].add(link['key'])
+
+        # Prune unvisited nodes and links.
+        for key in entity_keys_to_visit:
+            node = nodes.pop(key)
+            for link_key in node['links']:
+                link = links[link_key]
+
+        # Prune links via threshold.
+
+        # Query node names.
+        artist_ids = []
+        label_ids = []
+        for entity_type, entity_id in nodes.keys():
+            if entity_type == 1:
+                artist_ids.append(entity_id)
+            else:
+                label_ids.append(entity_id)
+        artists = SQLArtist.select().where(SQLArtist.id.in_(artist_ids))
+        labels = SQLLabel.select().where(SQLLabel.id.in_(artist_ids))
+        for artist in artists:
+            nodes[(1, artist.id)]['name'] = artist.name
+        for label in labels:
+            nodes[(1, label.id)]['name'] = label.name
 
         return nodes, links
