@@ -1,10 +1,9 @@
-import mongoengine
-from discograph.Bootstrapper import Bootstrapper
 from discograph.models import *
 from discograph.app import app
 
 
 def connect():
+    import mongoengine
     return mongoengine.connect('discograph')
 
 

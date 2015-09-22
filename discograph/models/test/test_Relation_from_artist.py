@@ -2,7 +2,7 @@
 import mongoengine
 import unittest
 from abjad.tools import stringtools
-from discograph import Bootstrapper
+from discograph.models.Bootstrapper import Bootstrapper
 from discograph import models
 
 

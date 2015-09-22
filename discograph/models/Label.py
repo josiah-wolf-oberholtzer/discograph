@@ -6,7 +6,7 @@ import os
 import random
 import traceback
 from abjad.tools import systemtools
-from discograph import Bootstrapper
+from discograph.models.Bootstrapper import Bootstrapper
 from discograph.models.LabelReference import LabelReference
 from discograph.models.Model import Model
 

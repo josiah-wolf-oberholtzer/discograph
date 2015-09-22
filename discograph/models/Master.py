@@ -31,7 +31,7 @@ class Master(Model, mongoengine.Document):
 
     @classmethod
     def bootstrap(cls):
-        from discograph import Bootstrapper
+        from discograph.models.Bootstrapper import Bootstrapper
         cls.drop_collection()
         masters_xml_path = Bootstrapper.masters_xml_path
         with gzip.GzipFile(masters_xml_path, 'r') as file_pointer:

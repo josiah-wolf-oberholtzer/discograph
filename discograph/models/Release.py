@@ -5,7 +5,7 @@ import mongoengine
 import re
 import traceback
 from abjad.tools import systemtools
-from discograph import Bootstrapper
+from discograph.models.Bootstrapper import Bootstrapper
 from discograph.models.ArtistCredit import ArtistCredit
 from discograph.models.CompanyCredit import CompanyCredit
 from discograph.models.Format import Format

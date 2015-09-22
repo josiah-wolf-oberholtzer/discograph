@@ -1,5 +1,5 @@
 import mongoengine
-from discograph import Bootstrapper
+from discograph.models.Bootstrapper import Bootstrapper
 from discograph.models.ArtistRole import ArtistRole
 from discograph.models.Model import Model
 
