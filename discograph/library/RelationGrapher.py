@@ -8,6 +8,7 @@ from discograph.library.Artist import Artist
 from discograph.library.ArtistRole import ArtistRole
 from discograph.library.Label import Label
 from discograph.library.Relation import Relation
+from discograph.library.SQLRelation import SQLRelation
 
 
 class RelationGrapher(object):
@@ -174,6 +175,7 @@ class RelationGrapher(object):
             processed_links = []
             for link in links:
                 try:
+
                     entity_one_id = link['entity_one_id']
                     entity_one_type = link['entity_one_type']
                     entity_one_type = Relation.EntityType(entity_one_type)
@@ -222,6 +224,48 @@ class RelationGrapher(object):
         if not no_query and cache is not None:
             cache.set(key, neighborhood)
         return neighborhood
+
+    def relation_to_link(self, relation):
+        link = relation.copy()
+
+        entity_one_id = link['entity_one_id']
+        entity_one_type = link['entity_one_type']
+        entity_one_type = Relation.EntityType(entity_one_type)
+        entity_one_type = entity_one_type.name.lower()
+        source_key = (entity_one_type, entity_one_id)
+        link['source'] = source_key
+
+        entity_two_id = link['entity_two_id']
+        entity_two_type = link['entity_two_type']
+        entity_two_type = Relation.EntityType(entity_two_type)
+        entity_two_type = entity_two_type.name.lower()
+        target_key = (entity_two_type, entity_two_id)
+        link['target'] = target_key
+
+        link['role'] = link['role_name']
+        link['key'] = self.get_link_key(link)
+
+        del(link['_id'])
+        del(link['category'])
+        del(link['country'])
+        del(link['entity_one_id'])
+        del(link['entity_one_type'])
+        del(link['entity_two_id'])
+        del(link['entity_two_type'])
+        del(link['role_name'])
+        del(link['subcategory'])
+
+        if link.get('genres') is None:
+            del(link['genres'])
+        if link.get('styles') is None:
+            del(link['styles'])
+        if link.get('release_id') is None:
+            del(link['release_id'])
+        if link.get('year') is None:
+            del(link['year'])
+
+
+        return link
 
     def get_network(self):
         entities = self.collect_entities()
@@ -299,3 +343,47 @@ class RelationGrapher(object):
                 )
         query = Relation.objects(q_l | q_r)
         return query
+
+    def collect_entities_2(self, role_names=None):
+        original_role_names = role_names or ()
+        provisional_role_names = set(role_names)
+        provisional_role_names.update(['Alias', 'Member Of'])
+        provisional_role_names = sorted(provisional_role_names)
+        if type(self.center_entity).__name__.endswith('Artist'):
+            initial_key = (1, self.center_entity.discogs_id)
+        else:
+            initial_key = (2, self.center_entity.discogs_id)
+
+        links = dict()
+        nodes = dict()
+        entities_to_visit = set([initial_key])
+
+        for distance in range(self.degree + 1):
+            current_entities_to_visit = list(entities_to_visit)
+            for entity in current_entities_to_visit:
+                nodes.setdefault(entity, dict(distance=distance, size=0, aliases=set()))
+            entities_to_visit.clear()
+            relations = SQLRelation.search_multi(
+                current_entities_to_visit,
+                role_names=provisional_role_names,
+                )
+            for relation in relations:
+                e1k = (relation['entity_one_type'], relation['entity_one_id'])
+                e2k = (relation['entity_two_type'], relation['entity_two_id'])
+                if e1k not in nodes:
+                    entities_to_visit.add(e1k)
+                nodes.setdefault(e1k, dict(distance=distance + 1, size=0, aliases=set()))
+                nodes.setdefault(e2k, dict(distance=distance + 1, size=0, aliases=set()))
+                if e2k not in nodes:
+                    entities_to_visit.add(e2k)
+                if relation['role_name'] == 'Alias':
+                    nodes[e1k]['aliases'].add(e2k)
+                    nodes[e2k]['aliases'].add(e1k)
+                elif relation['role_name'] in ('Member Of', 'Sublabel Of'):
+                    nodes[e2k]['size'] += 1
+                if relation not in original_role_names:
+                    continue
+                link = self.relation_to_link(relation)
+                links[link['key']] = link
+
+        return nodes, links

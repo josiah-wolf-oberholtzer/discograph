@@ -35,3 +35,9 @@ class SQLArtist(SQLModel):
     @classmethod
     def search_by_name(cls, name):
         return list(cls.select().where(cls.name % '*{}*'.format(name)))
+
+    ### PUBLIC PROPERTIES ###
+
+    @property
+    def discogs_id(self):
+        return self.id
