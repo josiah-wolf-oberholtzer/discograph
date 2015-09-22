@@ -371,20 +371,21 @@ class RelationGrapher(object):
         node['links'] = set()
         return node
 
-    def collect_entities_2(self, role_names=None):
+    def collect_entities_2(self):
 
-        original_role_names = role_names or ()
+        original_role_names = self.role_names or ()
         provisional_role_names = set(original_role_names)
         provisional_role_names.update(['Alias', 'Member Of'])
         provisional_role_names = sorted(provisional_role_names)
+
         if type(self.center_entity).__name__.endswith('Artist'):
             initial_key = (1, self.center_entity.discogs_id)
         else:
             initial_key = (2, self.center_entity.discogs_id)
+        entity_keys_to_visit = set([initial_key])
 
         links = dict()
         nodes = dict()
-        entity_keys_to_visit = set([initial_key])
 
         for distance in range(self.degree + 1):
             current_entity_keys_to_visit = list(entity_keys_to_visit)
@@ -405,8 +406,8 @@ class RelationGrapher(object):
                     entity_keys_to_visit.add(e2k)
                     nodes[e2k] = self.entity_key_to_node(e2k, distance + 1)
                 if relation['role_name'] == 'Alias':
-                    nodes[e1k]['aliases'].add(e2k)
-                    nodes[e2k]['aliases'].add(e1k)
+                    nodes[e1k]['aliases'].add(e2k[1])
+                    nodes[e2k]['aliases'].add(e1k[1])
                 elif relation['role_name'] in ('Member Of', 'Sublabel Of'):
                     #print(relation)
                     nodes[e2k]['members'].add(e1k[1])
@@ -450,6 +451,42 @@ class RelationGrapher(object):
                     target_node['links'].remove(link_key)
                 del(links[link_key])
 
-        # Prune links via threshold.
-
         return nodes, links
+
+    def get_network_2(self):
+        nodes, links = self.collect_entities_2()
+        cluster_count = 0
+        cluster_map = {}
+        for node in nodes.values():
+            cluster = None
+            if node['aliases']:
+                if node['id'] not in cluster_map:
+                    cluster_count += 1
+                    cluster_map[node['id']] = cluster_count
+                    for alias_id in node['aliases']:
+                        cluster_map[alias_id] = cluster_count
+                cluster = cluster_map[node['id']]
+            if not node['aliases']:
+                del(node['aliases'])
+            else:
+                node['aliases'] = tuple(sorted(node['aliases']))
+            if cluster is not None:
+                node['cluster'] = cluster
+            node['size'] = len(node.pop('members'))
+            node['links'] = tuple(sorted(node['links']))
+        links = tuple(sorted(links.values(),
+            key=lambda x: (x['source'], x['role'], x['target'])))
+        for link in links:
+            link['source'] = '{}-{}'.format(*link['source'])
+            link['target'] = '{}-{}'.format(*link['target'])
+        nodes = tuple(sorted(nodes.values(), key=lambda x: (x['type'], x['id'])))
+        center = '{}-{}'.format(
+            type(self.center_entity).__name__.lower(),
+            self.center_entity.discogs_id,
+            )
+        network = {
+            'center': center,
+            'nodes': nodes,
+            'links': links,
+            }
+        return network
