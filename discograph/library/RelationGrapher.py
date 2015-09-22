@@ -414,6 +414,10 @@ class RelationGrapher(object):
                 if relation['role_name'] not in original_role_names:
                     continue
                 link = self.relation_to_link(relation)
+                link['distance'] = min(
+                    nodes[e1k]['distance'],
+                    nodes[e2k]['distance'],
+                    )
                 links[link['key']] = link
                 nodes[e1k]['links'].add(link['key'])
                 nodes[e2k]['links'].add(link['key'])

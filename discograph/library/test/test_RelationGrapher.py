@@ -23,7 +23,7 @@ class Test(unittest.TestCase):
 
         assert nodes == {
             (1, 32550): {
-                'aliases': {(1, 2561672)},
+                'aliases': {2561672},
                 'distance': 1,
                 'id': 32550,
                 'key': 'artist-32550',
@@ -63,7 +63,7 @@ class Test(unittest.TestCase):
                 'type': 'artist',
                 },
             (1, 2561672): {
-                'aliases': {(1, 32550)},
+                'aliases': {32550},
                 'distance': 1,
                 'id': 2561672,
                 'key': 'artist-2561672',
@@ -88,18 +88,21 @@ class Test(unittest.TestCase):
 
         assert links == {
             'artist-152882-member-of-artist-2561672': {
+                'distance': 0,
                 'key': 'artist-152882-member-of-artist-2561672',
                 'role': 'Member Of',
                 'source': (1, 152882),
                 'target': (1, 2561672),
                 },
             'artist-152882-member-of-artist-32550': {
+                'distance': 0,
                 'key': 'artist-152882-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 152882),
                 'target': (1, 32550),
                 },
             'artist-32550-alias-artist-2561672': {
+                'distance': 1,
                 'key': 'artist-32550-alias-artist-2561672',
                 'role': 'Alias',
                 'source': (1, 32550),
@@ -131,7 +134,7 @@ class Test(unittest.TestCase):
                 'members': set(),
                 'type': 'artist'},
             (1, 32550): {
-                'aliases': {(1, 2561672)},
+                'aliases': {2561672},
                 'distance': 1,
                 'id': 32550,
                 'key': 'artist-32550',
@@ -179,7 +182,7 @@ class Test(unittest.TestCase):
                 'name': 'Jesse Johnson',
                 'type': 'artist'},
             (1, 53261): {
-                'aliases': {(1, 242702)},
+                'aliases': {242702},
                 'distance': 2,
                 'id': 53261,
                 'key': 'artist-53261',
@@ -243,7 +246,7 @@ class Test(unittest.TestCase):
                 'name': 'Morris Day',
                 'type': 'artist'},
             (1, 241356): {
-                'aliases': {(1, 55448)},
+                'aliases': {55448},
                 'distance': 2,
                 'id': 241356,
                 'key': 'artist-241356',
@@ -293,7 +296,7 @@ class Test(unittest.TestCase):
                 'name': 'Jerry Hubbard',
                 'type': 'artist'},
             (1, 2561672): {
-                'aliases': {(1, 32550)},
+                'aliases': {32550},
                 'distance': 1,
                 'id': 2561672,
                 'key': 'artist-2561672',
@@ -323,96 +326,115 @@ class Test(unittest.TestCase):
 
         assert links == {
             'artist-100600-member-of-artist-2561672': {
+                'distance': 1,
                 'key': 'artist-100600-member-of-artist-2561672',
                 'role': 'Member Of',
                 'source': (1, 100600),
                 'target': (1, 2561672)},
             'artist-100600-member-of-artist-32550': {
+                'distance': 1,
                 'key': 'artist-100600-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 100600),
                 'target': (1, 32550)},
             'artist-113965-member-of-artist-2561672': {
+                'distance': 1,
                 'key': 'artist-113965-member-of-artist-2561672',
                 'role': 'Member Of',
                 'source': (1, 113965),
                 'target': (1, 2561672)},
             'artist-113965-member-of-artist-32550': {
+                'distance': 1,
                 'key': 'artist-113965-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 113965),
                 'target': (1, 32550)},
             'artist-152882-member-of-artist-2561672': {
+                'distance': 0,
                 'key': 'artist-152882-member-of-artist-2561672',
                 'role': 'Member Of',
                 'source': (1, 152882),
                 'target': (1, 2561672)},
             'artist-152882-member-of-artist-32550': {
+                'distance': 0,
                 'key': 'artist-152882-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 152882),
                 'target': (1, 32550)},
             'artist-23446-member-of-artist-32550': {
+                'distance': 1,
                 'key': 'artist-23446-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 23446),
                 'target': (1, 32550)},
             'artist-241356-member-of-artist-2561672': {
+                'distance': 1,
                 'key': 'artist-241356-member-of-artist-2561672',
                 'role': 'Member Of',
                 'source': (1, 241356),
                 'target': (1, 2561672)},
             'artist-241356-member-of-artist-32550': {
+                'distance': 1,
                 'key': 'artist-241356-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 241356),
                 'target': (1, 32550)},
             'artist-32550-alias-artist-2561672': {
+                'distance': 1,
                 'key': 'artist-32550-alias-artist-2561672',
                 'role': 'Alias',
                 'source': (1, 32550),
                 'target': (1, 2561672)},
             'artist-354129-member-of-artist-2561672': {
+                'distance': 1,
                 'key': 'artist-354129-member-of-artist-2561672',
                 'role': 'Member Of',
                 'source': (1, 354129),
                 'target': (1, 2561672)},
             'artist-354129-member-of-artist-32550': {
+                'distance': 1,
                 'key': 'artist-354129-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 354129),
                 'target': (1, 32550)},
             'artist-37806-member-of-artist-2561672': {
+                'distance': 1,
                 'key': 'artist-37806-member-of-artist-2561672',
                 'role': 'Member Of',
                 'source': (1, 37806),
                 'target': (1, 2561672)},
             'artist-37806-member-of-artist-32550': {
+                'distance': 1,
                 'key': 'artist-37806-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 37806),
                 'target': (1, 32550)},
             'artist-409502-member-of-artist-32550': {
+                'distance': 1,
                 'key': 'artist-409502-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 409502),
                 'target': (1, 32550)},
             'artist-453969-member-of-artist-32550': {
+                'distance': 1,
                 'key': 'artist-453969-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 453969),
                 'target': (1, 32550)},
             'artist-53261-member-of-artist-32550': {
+                'distance': 1,
                 'key': 'artist-53261-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 53261),
                 'target': (1, 32550)},
             'artist-55449-member-of-artist-2561672': {
+                'distance': 1,
                 'key': 'artist-55449-member-of-artist-2561672',
                 'role': 'Member Of',
                 'source': (1, 55449),
                 'target': (1, 2561672)},
             'artist-55449-member-of-artist-32550': {
+                'distance': 1,
                 'key': 'artist-55449-member-of-artist-32550',
                 'role': 'Member Of',
                 'source': (1, 55449),
