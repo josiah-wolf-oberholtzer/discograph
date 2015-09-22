@@ -29,7 +29,7 @@ class RelationGrapher(object):
         max_nodes=None,
         role_names=None,
         ):
-        prototype = (Artist, Label)
+        prototype = (Artist, Label, SQLArtist, SQLLabel)
         assert isinstance(center_entity, prototype)
         self.center_entity = center_entity
         degree = int(degree)
@@ -387,15 +387,22 @@ class RelationGrapher(object):
         links = dict()
         nodes = dict()
 
+        entity_query_cap = 999
+        entity_query_cap -= (1 + len(provisional_role_names)) * 2
+        entity_query_cap //= 2
+
         for distance in range(self.degree + 1):
             current_entity_keys_to_visit = list(entity_keys_to_visit)
             for key in current_entity_keys_to_visit:
                 nodes.setdefault(key, self.entity_key_to_node(key, distance))
             entity_keys_to_visit.clear()
-            relations = SQLRelation.search_multi(
-                current_entity_keys_to_visit,
-                role_names=provisional_role_names,
-                )
+            relations = []
+            for i in range(0, len(current_entity_keys_to_visit), entity_query_cap):
+                entity_key_slice = current_entity_keys_to_visit[i:i + entity_query_cap]
+                relations.extend(SQLRelation.search_multi(
+                    entity_key_slice,
+                    role_names=provisional_role_names,
+                    ))
             for relation in relations:
                 e1k = (relation['entity_one_type'], relation['entity_one_id'])
                 e2k = (relation['entity_two_type'], relation['entity_two_id'])

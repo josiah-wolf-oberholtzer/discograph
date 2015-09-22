@@ -73,6 +73,8 @@ class SQLRelation(SQLModel):
         if role_names:
             artist_where_clause &= (cls.role_name.in_(role_names))
         artist_query = cls.select().where(artist_where_clause)
+        print('COUNT', len(entities))
+        print(artist_query)
         label_where_clause = (
             (cls.entity_one_type == 1) &
             (cls.entity_one_id.in_(label_ids))
