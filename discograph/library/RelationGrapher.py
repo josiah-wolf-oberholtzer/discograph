@@ -116,12 +116,22 @@ class RelationGrapher(object):
 
     @classmethod
     def get_link_key(cls, link):
+        source_type, source_id = link['source']
+        if source_type == 1:
+            source_type = 'artist'
+        else:
+            source_type = 'label'
+        target_type, target_id = link['target']
+        if target_type == 1:
+            target_type = 'artist'
+        else:
+            target_type = 'label'
         return '{}-{}-{}-{}-{}'.format(
-            link['source'][0],
-            link['source'][1],
+            source_type,
+            source_id,
             cls.word_pattern.sub('-', link['role']).lower(),
-            link['target'][0],
-            link['target'][1],
+            target_type,
+            target_id,
             )
 
     @classmethod
@@ -232,15 +242,15 @@ class RelationGrapher(object):
 
         entity_one_id = link['entity_one_id']
         entity_one_type = link['entity_one_type']
-        entity_one_type = Relation.EntityType(entity_one_type)
-        entity_one_type = entity_one_type.name.lower()
+        #entity_one_type = Relation.EntityType(entity_one_type)
+        #entity_one_type = entity_one_type.name.lower()
         source_key = (entity_one_type, entity_one_id)
         link['source'] = source_key
 
         entity_two_id = link['entity_two_id']
         entity_two_type = link['entity_two_type']
-        entity_two_type = Relation.EntityType(entity_two_type)
-        entity_two_type = entity_two_type.name.lower()
+        #entity_two_type = Relation.EntityType(entity_two_type)
+        #entity_two_type = entity_two_type.name.lower()
         target_key = (entity_two_type, entity_two_id)
         link['target'] = target_key
 
@@ -350,17 +360,18 @@ class RelationGrapher(object):
         query = Relation.objects(q_l | q_r)
         return query
 
+    def entity_key_to_node(self, entity_key, distance):
+        node = dict(distance=distance, missing=0, size=0, aliases=set())
+        node['id'] = entity_key[1]
+        if entity_key[0] == 1:
+            node['type'] = 'artist'
+        else:
+            node['type'] = 'label'
+        node['key'] = '{}-{}'.format(node['type'], node['id'])
+        node['links'] = set()
+        return node
+
     def collect_entities_2(self, role_names=None):
-        def entity_key_to_node(entity_key, distance):
-            node = dict(distance=distance, missing=0, size=0, aliases=set())
-            node['id'] = entity_key[1]
-            if entity_key[0] == 1:
-                node['type'] = 'artist'
-            else:
-                node['type'] = 'label'
-            node['key'] = '{}-{}'.format(node['type'], node['id'])
-            node['links'] = set()
-            return node
 
         original_role_names = role_names or ()
         provisional_role_names = set(original_role_names)
@@ -378,7 +389,7 @@ class RelationGrapher(object):
         for distance in range(self.degree + 1):
             current_entity_keys_to_visit = list(entity_keys_to_visit)
             for key in current_entity_keys_to_visit:
-                nodes.setdefault(key, entity_key_to_node(key, distance))
+                nodes.setdefault(key, self.entity_key_to_node(key, distance))
             entity_keys_to_visit.clear()
             relations = SQLRelation.search_multi(
                 current_entity_keys_to_visit,
@@ -389,10 +400,10 @@ class RelationGrapher(object):
                 e2k = (relation['entity_two_type'], relation['entity_two_id'])
                 if e1k not in nodes:
                     entity_keys_to_visit.add(e1k)
-                    nodes[e1k] = entity_key_to_node(e1k, distance + 1)
+                    nodes[e1k] = self.entity_key_to_node(e1k, distance + 1)
                 if e2k not in nodes:
                     entity_keys_to_visit.add(e2k)
-                    nodes[e2k] = entity_key_to_node(e2k, distance + 1)
+                    nodes[e2k] = self.entity_key_to_node(e2k, distance + 1)
                 if relation['role_name'] == 'Alias':
                     nodes[e1k]['aliases'].add(e2k)
                     nodes[e2k]['aliases'].add(e1k)
