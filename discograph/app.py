@@ -60,7 +60,7 @@ def route__api__cluster(artist_id):
     role_names = [
         'Alias',
         'Member Of',
-        'Producer',
+        #'Producer',
         #'Guitar',
         #'Bass Guitar',
         #'Rhythm Guitar',
