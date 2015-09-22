@@ -1,13 +1,10 @@
 # -*- encoding: utf-8 -*-
 import collections
-import mongoengine
 import re
 import six
-from abjad.tools import systemtools
 from discograph.library.Artist import Artist
 from discograph.library.ArtistRole import ArtistRole
 from discograph.library.Label import Label
-from discograph.library.Relation import Relation
 from discograph.library.SQLArtist import SQLArtist
 from discograph.library.SQLLabel import SQLLabel
 from discograph.library.SQLRelation import SQLRelation
@@ -51,62 +48,6 @@ class RelationGrapher(object):
                 for _ in role_names)
         self.role_names = role_names
 
-    def can_continue_searching(self, distance, entities_visited):
-        if not self.max_nodes:
-            return True
-        elif 1 < distance and self.max_nodes <= len(entities_visited):
-            return False
-        return True
-
-    def collect_entities(self):
-        initial_key = (
-            type(self.center_entity).__name__.lower(),
-            self.center_entity.discogs_id,
-            )
-        entities_to_visit = set([initial_key])
-        entities_visited = dict()
-        original_entities = entities_to_visit.copy()
-        for distance in range(self.degree + 1):
-            current_entities_to_visit = sorted(entities_to_visit)
-            entities_to_visit.clear()
-            while current_entities_to_visit:
-                if not self.can_continue_searching(distance, entities_visited):
-                    return entities_visited
-                entity_key = current_entities_to_visit.pop()
-                if entity_key in entities_visited:
-                    continue
-                entity_type, entity_id = entity_key
-                if entity_type == 'artist':
-                    entity_cls = Artist
-                elif entity_type == 'label':
-                    entity_cls = Label
-                found_entity = list(entity_cls.objects(discogs_id=entity_id))
-                if not found_entity:
-                    print('Missing {} ID: {!r}'.format(
-                        entity_cls.__name__,
-                        entity_id,
-                        ))
-                    continue
-                entity = found_entity[0]
-                no_query = False
-                if (
-                    entity_type == 'label' and
-                    entity_key not in original_entities
-                    ):
-                    if 'Not On Label' in entity.name:
-                        continue
-                    no_query = True
-                neighborhood = self.get_neighborhood(
-                    entity,
-                    cache=self.cache,
-                    role_names=self.role_names,
-                    no_query=no_query,
-                    )
-                neighborhood['distance'] = distance
-                entities_visited[entity_key] = neighborhood
-                entities_to_visit.update(neighborhood['nodes'])
-        return entities_visited
-
     @classmethod
     def get_link_key(cls, link):
         source_type, source_id = link['source']
@@ -127,128 +68,22 @@ class RelationGrapher(object):
             target_id,
             )
 
-    @classmethod
-    def get_node_key(cls, node):
-        return '{}-{}'.format(node['type'], node['id'])
-
-    @classmethod
-    def get_neighborhood_cache_key(cls, entity, role_names=None):
-        key = 'cache:/api/{}/neighborhood/{}'
-        key = key.format(type(entity).__name__.lower(), entity.discogs_id)
-        if role_names:
-            pattern = cls.word_pattern
-            role_name_keys = (_.lower() for _ in role_names)
-            role_name_keys = (pattern.sub('-', _) for _ in role_name_keys)
-            role_name_keys = sorted(role_name_keys)
-            key = '{}?role_names={}'.format(key, '+'.join(role_name_keys))
-        return key
-
-    @classmethod
-    def get_neighborhood(
-        cls,
-        entity,
-        cache=None,
-        role_names=None,
-        no_query=None,
-        ):
-        key = cls.get_neighborhood_cache_key(entity, role_names=role_names)
-        if not no_query and cache is not None:
-            neighborhood = cache.get(key)
-            if neighborhood is not None:
-                print('    NEIGHBORHOOD CACHE HIT!', entity.discogs_id)
-                return neighborhood
-            else:
-                print('    NEIGHBORHOOD CACHE MISS!', entity.discogs_id)
-        neighborhood = {
-            'id': entity.discogs_id,
-            'type': type(entity).__name__.lower(),
-            'name': entity.name,
-            }
-        if isinstance(entity, Artist):
-            generator = (_ for _ in entity.members if _.discogs_id)
-            neighborhood['size'] = len(tuple(generator))
-            generator = (_.discogs_id for _ in entity.aliases if _.discogs_id)
-            neighborhood['aliases'] = tuple(generator)
-        elif isinstance(entity, Label):
-            generator = (_ for _ in entity.sublabels if _.discogs_id)
-            neighborhood['size'] = len(tuple(generator))
-        nodes = set()
-        if not no_query:
-            with systemtools.Timer(exit_message='    Neighborhood query time:'):
-                query = cls.query_relations(entity, role_names=role_names)
-                links = tuple(query.as_pymongo())
-            processed_links = []
-            for link in links:
-                try:
-
-                    entity_one_id = link['entity_one_id']
-                    entity_one_type = link['entity_one_type']
-                    entity_one_type = Relation.EntityType(entity_one_type)
-                    entity_one_type = entity_one_type.name.lower()
-                    source_key = (entity_one_type, entity_one_id)
-                    link['source'] = source_key
-
-                    entity_two_id = link['entity_two_id']
-                    entity_two_type = link['entity_two_type']
-                    entity_two_type = Relation.EntityType(entity_two_type)
-                    entity_two_type = entity_two_type.name.lower()
-                    target_key = (entity_two_type, entity_two_id)
-                    link['target'] = target_key
-
-                    link['role'] = link['role_name']
-
-                    del(link['_id'])
-                    del(link['category'])
-                    del(link['country'])
-                    del(link['entity_one_id'])
-                    del(link['entity_one_type'])
-                    del(link['entity_two_id'])
-                    del(link['entity_two_type'])
-                    del(link['role_name'])
-                    del(link['subcategory'])
-
-                    if link.get('genres') is None:
-                        del(link['genres'])
-                    if link.get('styles') is None:
-                        del(link['styles'])
-                    if link.get('release_id') is None:
-                        del(link['release_id'])
-                    if link.get('year') is None:
-                        del(link['year'])
-
-                    nodes.update((source_key, target_key))
-                    processed_links.append(link)
-                except Exception as e:
-                    raise e
-            neighborhood['nodes'] = tuple(sorted(nodes))
-            neighborhood['links'] = tuple(processed_links)
-        else:
-            neighborhood['nodes'] = ()
-            neighborhood['links'] = ()
-        if not no_query and cache is not None:
-            cache.set(key, neighborhood)
-        return neighborhood
-
     def relation_to_link(self, relation):
         link = relation.copy()
-
         entity_one_id = link['entity_one_id']
         entity_one_type = link['entity_one_type']
         #entity_one_type = Relation.EntityType(entity_one_type)
         #entity_one_type = entity_one_type.name.lower()
         source_key = (entity_one_type, entity_one_id)
         link['source'] = source_key
-
         entity_two_id = link['entity_two_id']
         entity_two_type = link['entity_two_type']
         #entity_two_type = Relation.EntityType(entity_two_type)
         #entity_two_type = entity_two_type.name.lower()
         target_key = (entity_two_type, entity_two_id)
         link['target'] = target_key
-
         link['role'] = link['role_name']
         link['key'] = self.get_link_key(link)
-
         if '_id' in link: del(link['_id'])
         if 'country' in link: del(link['country'])
         if 'entity_one_id' in link: del(link['entity_one_id'])
@@ -257,7 +92,6 @@ class RelationGrapher(object):
         if 'entity_two_type' in link: del(link['entity_two_type'])
         if 'id' in link: del(link['id'])
         if 'role_name' in link: del(link['role_name'])
-
         if 'category' in link and not link.get('category'):
             del(link['category'])
         if 'subcategory' in link and not link.get('subcategory'):
@@ -272,85 +106,7 @@ class RelationGrapher(object):
             del(link['styles'])
         if 'year' in link and not link.get('year'):
             del(link['year'])
-
         return link
-
-    def get_network(self):
-        entities = self.collect_entities()
-        nodes = []
-        links = {}
-        cluster_count = 0
-        cluster_map = {}
-        for entity_key, entity_dict in sorted(entities.items()):
-            missing = 0
-            for link in entity_dict['links']:
-                if link['source'] in entities and link['target'] in entities:
-                    link_key = self.get_link_key(link)
-                    link['key'] = link_key
-                    links[link_key] = link
-                else:
-                    missing += 1
-            cluster = None
-            if 'aliases' in entity_dict and entity_dict['aliases']:
-                if entity_dict['id'] not in cluster_map:
-                    cluster_count += 1
-                    cluster_map[entity_dict['id']] = cluster_count
-                    for alias_id in entity_dict['aliases']:
-                        cluster_map[alias_id] = cluster_count
-                cluster = cluster_map[entity_dict['id']]
-            node = {
-                'distance': entity_dict['distance'],
-                'group': cluster,
-                'id': entity_dict['id'],
-                'key': self.get_node_key(entity_dict),
-                'missing': missing,
-                'name': entity_dict['name'],
-                'size': entity_dict['size'],
-                'type': entity_dict['type'],
-                }
-            nodes.append(node)
-        links = tuple(sorted(links.values(),
-            key=lambda x: (x['source'], x['role'], x['target'])))
-        for link in links:
-            link['source'] = '{}-{}'.format(*link['source'])
-            link['target'] = '{}-{}'.format(*link['target'])
-        nodes = tuple(sorted(nodes, key=lambda x: (x['type'], x['id'])))
-        center = '{}-{}'.format(
-            type(self.center_entity).__name__.lower(),
-            self.center_entity.discogs_id,
-            )
-        network = {
-            'center': center,
-            'nodes': nodes,
-            'links': links,
-            }
-        return network
-
-    @classmethod
-    def query_relations(cls, entity, role_names=None):
-        entity_type = Relation._model_to_entity_type[type(entity)]
-        if role_names:
-            q_l = mongoengine.Q(
-                entity_one_id=entity.discogs_id,
-                entity_one_type=entity_type,
-                role_name__in=role_names,
-                )
-            q_r = mongoengine.Q(
-                entity_two_id=entity.discogs_id,
-                entity_two_type=entity_type,
-                role_name__in=role_names,
-                )
-        else:
-            q_l = mongoengine.Q(
-                entity_one_id=entity.discogs_id,
-                entity_one_type=entity_type,
-                )
-            q_r = mongoengine.Q(
-                entity_two_id=entity.discogs_id,
-                entity_two_type=entity_type,
-                )
-        query = Relation.objects(q_l | q_r)
-        return query
 
     def entity_key_to_node(self, entity_key, distance):
         node = dict(distance=distance, missing=0, members=set(), aliases=set())
@@ -364,7 +120,6 @@ class RelationGrapher(object):
         return node
 
     def collect_entities_2(self):
-
         original_role_names = self.role_names or ()
         provisional_role_names = set(original_role_names)
         provisional_role_names.update(['Alias', 'Member Of'])
