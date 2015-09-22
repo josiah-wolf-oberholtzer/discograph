@@ -2,8 +2,6 @@
 flask
 mongoengine
 peewee
-PyMySQL
 pytest
-python-levenshtein
 python-memcached
 six
