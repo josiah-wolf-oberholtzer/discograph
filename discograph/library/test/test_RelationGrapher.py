@@ -526,7 +526,124 @@ class Test(unittest.TestCase):
             role_names=role_names,
             )
         network = grapher.get_network_2()
-        assert network == {}
+        assert network == {
+            'center': 'artist-152882',
+            'links': (
+                {
+                    'distance': 1,
+                    'key': 'artist-23446-member-of-artist-32550',
+                    'role': 'Member Of',
+                    'source': 'artist-23446',
+                    'target': 'artist-32550',
+                    },
+                {
+                    'distance': 1,
+                    'key': 'artist-32550-alias-artist-2561672',
+                    'role': 'Alias',
+                    'source': 'artist-32550',
+                    'target': 'artist-2561672',
+                    },
+                {
+                    'distance': 1,
+                    'key': 'artist-37806-member-of-artist-32550',
+                    'role': 'Member Of',
+                    'source': 'artist-37806',
+                    'target': 'artist-32550',
+                    },
+                {
+                    'distance': 1,
+                    'key': 'artist-37806-member-of-artist-2561672',
+                    'role': 'Member Of',
+                    'source': 'artist-37806',
+                    'target': 'artist-2561672',
+                    },
+                {
+                    'distance': 0,
+                    'key': 'artist-152882-member-of-artist-32550',
+                    'role': 'Member Of',
+                    'source': 'artist-152882',
+                    'target': 'artist-32550',
+                    },
+                {
+                    'distance': 0,
+                    'key': 'artist-152882-member-of-artist-2561672',
+                    'role': 'Member Of',
+                    'source': 'artist-152882',
+                    'target': 'artist-2561672',
+                    },
+                ),
+            'nodes': (
+                {
+                    'distance': 2,
+                    'id': 23446,
+                    'key': 'artist-23446',
+                    'links': ('artist-23446-member-of-artist-32550',),
+                    'missing': 1,
+                    'name': "Alexander O'Neal",
+                    'size': 0,
+                    'type': 'artist',
+                    },
+                {
+                    'aliases': (2561672,),
+                    'cluster': 1,
+                    'distance': 1,
+                    'id': 32550,
+                    'key': 'artist-32550',
+                    'links': (
+                        'artist-152882-member-of-artist-32550',
+                        'artist-23446-member-of-artist-32550',
+                        'artist-32550-alias-artist-2561672',
+                        'artist-37806-member-of-artist-32550',
+                        ),
+                    'missing': 8,
+                    'name': 'Time, The',
+                    'size': 11,
+                    'type': 'artist',
+                    },
+                {
+                    'distance': 2,
+                    'id': 37806,
+                    'key': 'artist-37806',
+                    'links': (
+                        'artist-37806-member-of-artist-2561672',
+                        'artist-37806-member-of-artist-32550',
+                        ),
+                    'missing': 2,
+                    'name': 'Jesse Johnson',
+                    'size': 0,
+                    'type': 'artist',
+                    },
+                {
+                    'distance': 0,
+                    'id': 152882,
+                    'key': 'artist-152882',
+                    'links': (
+                        'artist-152882-member-of-artist-2561672',
+                        'artist-152882-member-of-artist-32550',
+                        ),
+                    'missing': 0,
+                    'name': 'Morris Day',
+                    'size': 0,
+                    'type': 'artist',
+                    },
+                {
+                    'aliases': (32550,),
+                    'cluster': 1,
+                    'distance': 1,
+                    'id': 2561672,
+                    'key': 'artist-2561672',
+                    'links': (
+                        'artist-152882-member-of-artist-2561672',
+                        'artist-32550-alias-artist-2561672',
+                        'artist-37806-member-of-artist-2561672',
+                        ),
+                    'missing': 5,
+                    'name': 'Original 7ven, The',
+                    'size': 7,
+                    'type': 'artist',
+                    },
+                )
+            }
 
     def test_05(self):
         artist = discograph.SQLArtist.get(name='Morris Day')
