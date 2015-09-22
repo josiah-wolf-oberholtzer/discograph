@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 import abjad
 import discograph
-#import mongoengine
 import re
 from flask import (
     Flask,
@@ -10,14 +9,13 @@ from flask import (
     redirect,
     render_template,
     )
-#from werkzeug.contrib.cache import MemcachedCache
+from werkzeug.contrib.cache import MemcachedCache
 
+urlify_pattern = re.compile(r"\s+", re.MULTILINE)
 
 app = Flask(__name__)
-#cache = MemcachedCache(['127.0.0.1:11211'])
-#cache.clear()
-#cache = None
-#mongoengine.connect('discograph')
+cache = MemcachedCache(['127.0.0.1:11211'])
+cache.clear()
 
 
 @app.route('/')
@@ -53,6 +51,12 @@ def route__artist_id(artist_id):
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
 def route__api__cluster(artist_id):
+    cache_key = 'discograph:/api/artist/network/{}'.format(artist_id)
+    data = cache.get(cache_key)
+    if data is not None:
+        print('Cache Hit:  {}'.format(cache_key))
+        return jsonify(data)
+    print('Cache Miss: {}'.format(cache_key))
     query = (discograph.SQLArtist
         .select()
         .where(discograph.SQLArtist.id == artist_id)
@@ -78,21 +82,24 @@ def route__api__cluster(artist_id):
         ]
     relation_grapher = discograph.RelationGrapher(
         center_entity=artist,
-        degree=12,
+        degree=2,
         max_nodes=100,
         role_names=role_names,
         )
     with abjad.systemtools.Timer(exit_message='Network query time:'):
         data = relation_grapher.get_network_2()
+    cache.set(cache_key, data)
     return jsonify(data)
-
-
-urlify_pattern = re.compile(r"\s+", re.MULTILINE)
 
 
 @app.route('/api/search/<search_string>', methods=['GET'])
 def route__api__search(search_string):
-    print(search_string)
+    cache_key = 'discograph:/api/search/{}'.format(search_string.replace(' ', '+'))
+    data = cache.get(cache_key)
+    if data is not None:
+        print('Cache Hit:  {}'.format(cache_key))
+        return jsonify(data)
+    print('Cache Miss: {}'.format(cache_key))
     query = discograph.SQLFTSArtist.search_bm25(search_string).limit(10)
     data = []
     for sql_fts_artist in query:
@@ -103,6 +110,7 @@ def route__api__search(search_string):
         data.append(datum)
         print('    {}'.format(datum))
     data = {'results': tuple(data)}
+    cache.set(cache_key, data)
     return jsonify(data)
 
 
