@@ -4,7 +4,10 @@ import mongoengine
 import re
 import six
 from abjad.tools import systemtools
-from discograph import models
+from discograph.models.Artist import Artist
+from discograph.models.ArtistRole import ArtistRole
+from discograph.models.Label import Label
+from discograph.models.Relation import Relation
 
 
 class RelationGrapher(object):
@@ -23,7 +26,7 @@ class RelationGrapher(object):
         max_nodes=None,
         role_names=None,
         ):
-        prototype = (models.Artist, models.Label)
+        prototype = (Artist, Label)
         if not isinstance(entities, collections.Iterable):
             entities = [entities]
         entities = tuple(entities)
@@ -44,7 +47,7 @@ class RelationGrapher(object):
             elif not isinstance(role_names, collections.Iterable):
                 role_names = (role_names,)
             role_names = tuple(role_names)
-            assert all(_ in models.ArtistRole._available_credit_roles
+            assert all(_ in ArtistRole._available_credit_roles
                 for _ in role_names)
         self.role_names = role_names
 
@@ -77,9 +80,9 @@ class RelationGrapher(object):
                     continue
                 entity_type, entity_id = entity_key
                 if entity_type == 'artist':
-                    entity_cls = models.Artist
+                    entity_cls = Artist
                 elif entity_type == 'label':
-                    entity_cls = models.Label
+                    entity_cls = Label
                 found_entity = list(entity_cls.objects(discogs_id=entity_id))
                 if not found_entity:
                     print('Missing {} ID: {!r}'.format(
@@ -157,12 +160,12 @@ class RelationGrapher(object):
             'type': type(entity).__name__.lower(),
             'name': entity.name,
             }
-        if isinstance(entity, models.Artist):
+        if isinstance(entity, Artist):
             generator = (_ for _ in entity.members if _.discogs_id)
             neighborhood['size'] = len(tuple(generator))
             generator = (_.discogs_id for _ in entity.aliases if _.discogs_id)
             neighborhood['aliases'] = tuple(generator)
-        elif isinstance(entity, models.Label):
+        elif isinstance(entity, Label):
             generator = (_ for _ in entity.sublabels if _.discogs_id)
             neighborhood['size'] = len(tuple(generator))
         nodes = set()
@@ -175,14 +178,14 @@ class RelationGrapher(object):
                 try:
                     entity_one_id = link['entity_one_id']
                     entity_one_type = link['entity_one_type']
-                    entity_one_type = models.Relation.EntityType(entity_one_type)
+                    entity_one_type = Relation.EntityType(entity_one_type)
                     entity_one_type = entity_one_type.name.lower()
                     source_key = (entity_one_type, entity_one_id)
                     link['source'] = source_key
 
                     entity_two_id = link['entity_two_id']
                     entity_two_type = link['entity_two_type']
-                    entity_two_type = models.Relation.EntityType(entity_two_type)
+                    entity_two_type = Relation.EntityType(entity_two_type)
                     entity_two_type = entity_two_type.name.lower()
                     target_key = (entity_two_type, entity_two_id)
                     link['target'] = target_key
@@ -275,7 +278,7 @@ class RelationGrapher(object):
 
     @classmethod
     def query_relations(cls, entity, role_names=None):
-        entity_type = models.Relation._model_to_entity_type[type(entity)]
+        entity_type = Relation._model_to_entity_type[type(entity)]
         if role_names:
             q_l = mongoengine.Q(
                 entity_one_id=entity.discogs_id,
@@ -296,5 +299,5 @@ class RelationGrapher(object):
                 entity_two_id=entity.discogs_id,
                 entity_two_type=entity_type,
                 )
-        query = models.Relation.objects(q_l | q_r)
+        query = Relation.objects(q_l | q_r)
         return query

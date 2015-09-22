@@ -1,6 +1,5 @@
 import mongoengine
 from discograph.Bootstrapper import Bootstrapper
-from discograph.RelationGrapher import RelationGrapher
 from discograph.models import *
 from discograph.app import app
 

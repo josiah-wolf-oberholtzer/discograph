@@ -17,3 +17,4 @@ from discograph.models.SQLArtist import SQLArtist
 from discograph.models.SQLLabel import SQLLabel
 from discograph.models.SQLRelation import SQLRelation
 from discograph.models.SQLFTSArtist import SQLFTSArtist
+from discograph.models.RelationGrapher import RelationGrapher
