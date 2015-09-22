@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 import abjad
 import discograph
-import mongoengine
+#import mongoengine
 import re
 from flask import (
     Flask,
@@ -17,7 +17,7 @@ app = Flask(__name__)
 #cache = MemcachedCache(['127.0.0.1:11211'])
 #cache.clear()
 #cache = None
-mongoengine.connect('discograph')
+#mongoengine.connect('discograph')
 
 
 @app.route('/')
@@ -53,10 +53,15 @@ def route__artist_id(artist_id):
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
 def route__api__cluster(artist_id):
-    try:
-        artist = discograph.library.Artist.objects.get(discogs_id=artist_id)
-    except:
+    query = (discograph.SQLArtist
+        .select()
+        .where(discograph.SQLArtist.id == artist_id)
+        .limit(1)
+        )
+    found = list(query)
+    if not found:
         abort(404)
+    artist = found[0]
     role_names = [
         'Alias',
         'Member Of',
@@ -78,7 +83,7 @@ def route__api__cluster(artist_id):
         role_names=role_names,
         )
     with abjad.systemtools.Timer(exit_message='Network query time:'):
-        data = relation_grapher.get_network()
+        data = relation_grapher.get_network_2()
     return jsonify(data)
 
 
