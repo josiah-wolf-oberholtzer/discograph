@@ -169,8 +169,6 @@ class Artist(Model, mongoengine.Document):
                 rows = []
                 print('Processing... {} of {} [{:.3f}%]'.format(
                     i, count, (float(i) / count) * 100))
-            if 10000 < i:
-                break
         if rows:
             discograph.SQLArtist.insert_many(rows).execute()
             print('Processing... {} of {} [{:.3f}%]'.format(
