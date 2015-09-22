@@ -41,10 +41,10 @@ class Relation(Model, mongoengine.Document):
     entity_one_type = mongoengine.IntField()
     entity_two_id = mongoengine.IntField()
     entity_two_type = mongoengine.IntField()
-    genres = mongoengine.ListField(mongoengine.StringField, null=True)
+    genres = mongoengine.ListField(mongoengine.StringField(), null=True)
     release_id = mongoengine.IntField(null=True)
     role_name = mongoengine.StringField()
-    styles = mongoengine.ListField(mongoengine.StringField, null=True)
+    styles = mongoengine.ListField(mongoengine.StringField(), null=True)
     subcategory = mongoengine.IntField(null=True)
     year = mongoengine.IntField(null=True)
 
@@ -139,6 +139,8 @@ class Relation(Model, mongoengine.Document):
         keyword_argument_names = sorted(self._fields)
         if 'id' in keyword_argument_names:
             keyword_argument_names.remove('id')
+        if 'hash_id' in keyword_argument_names:
+            keyword_argument_names.remove('hash_id')
         keyword_argument_callables = dict(
             category=library.ArtistRole.Category,
             entity_one_type=self.EntityType,
@@ -374,14 +376,14 @@ class Relation(Model, mongoengine.Document):
             release_id,
             styles,
             year,
-            ) = None, None, None, None, None
+            ) = None, [], None, [], None
         if release is not None:
             release_id = release.discogs_id
             if release.release_date is not None:
                 year = release.release_date.year
             country = release.country or None
-            genres = release.genres or None
-            styles = release.styles or None
+            genres = [] or release.genres or []
+            styles = [] or release.styles or []
         for entity_one, role_name, entity_two in triples:
             entity_one_type = cls.EntityType.ARTIST
             if issubclass(entity_one.class_, (library.Label, library.LabelReference)):
@@ -403,8 +405,8 @@ class Relation(Model, mongoengine.Document):
             #        is_trivial = True
             #    if entity_two.name in entity_one.aliases:
             #        is_trivial = True
-            #relation = cls(
-            relation = dict(
+            #relation = dict(
+            relation = cls(
                 category=category,
                 country=country,
                 entity_one_id=entity_one.discogs_id,
@@ -412,15 +414,15 @@ class Relation(Model, mongoengine.Document):
                 entity_two_id=entity_two.discogs_id,
                 entity_two_type=entity_two_type,
                 genres=genres,
-                styles=styles,
-                #is_trivial=is_trivial,
                 release_id=release_id,
                 role_name=role_name,
+                styles=styles,
                 subcategory=subcategory,
                 year=year,
                 )
             #relation.hash_id = Relation._get_hash_id(relation)
-            relation['_id'] = Relation._get_hash_id(relation)
+            hash_id = Relation._get_hash_id(relation)
+            relation['hash_id'] = hash_id
             relations.append(relation)
         return relations
 

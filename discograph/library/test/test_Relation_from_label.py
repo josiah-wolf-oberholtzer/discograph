@@ -11,7 +11,7 @@ except ImportError:
 
 class Test(unittest.TestCase):
 
-    database_name = 'discograph:test'
+    database_name = 'discograph-test'
 
     def setUp(self):
         self.database = mongoengine.connect(self.database_name)
@@ -71,20 +71,16 @@ class Test(unittest.TestCase):
             discograph.library.Relation(
                 category=discograph.library.ArtistRole.Category.RELATION,
                 entity_one_id=66542,
-                entity_one_name='Seasons Limited',
                 entity_one_type=discograph.library.Relation.EntityType.LABEL,
                 entity_two_id=3,
-                entity_two_name='Seasons Recordings',
                 entity_two_type=discograph.library.Relation.EntityType.LABEL,
                 role_name='Sublabel Of',
                 )
             discograph.library.Relation(
                 category=discograph.library.ArtistRole.Category.RELATION,
                 entity_one_id=297127,
-                entity_one_name='Seasons Classics',
                 entity_one_type=discograph.library.Relation.EntityType.LABEL,
                 entity_two_id=3,
-                entity_two_name='Seasons Recordings',
                 entity_two_type=discograph.library.Relation.EntityType.LABEL,
                 role_name='Sublabel Of',
                 )

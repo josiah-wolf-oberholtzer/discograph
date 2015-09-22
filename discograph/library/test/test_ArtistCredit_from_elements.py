@@ -11,7 +11,7 @@ except ImportError:
 
 class Test(unittest.TestCase):
 
-    database_name = 'discograph:test'
+    database_name = 'discograph-test'
 
     def setUp(self):
         self.database = mongoengine.connect(self.database_name)

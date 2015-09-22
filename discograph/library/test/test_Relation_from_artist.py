@@ -8,7 +8,7 @@ from discograph import library
 
 class Test(unittest.TestCase):
 
-    database_name = 'discograph:test'
+    database_name = 'discograph-test'
 
     def setUp(self):
         self.database = mongoengine.connect(self.database_name)
@@ -37,70 +37,56 @@ class Test(unittest.TestCase):
             discograph.library.Relation(
                 category=discograph.library.ArtistRole.Category.RELATION,
                 entity_one_id=2,
-                entity_one_name='Mr. James Barth & A.D.',
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=100000000,
-                entity_two_name='ADCL',
                 entity_two_type=discograph.library.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
             discograph.library.Relation(
                 category=discograph.library.ArtistRole.Category.RELATION,
                 entity_one_id=2,
-                entity_one_name='Mr. James Barth & A.D.',
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=100000001,
-                entity_two_name='Alexi Delano & Cari Lekebusch',
                 entity_two_type=discograph.library.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
             discograph.library.Relation(
                 category=discograph.library.ArtistRole.Category.RELATION,
                 entity_one_id=2,
-                entity_one_name='Mr. James Barth & A.D.',
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=100000002,
-                entity_two_name='Crushed Insect & The Sick Puppy',
                 entity_two_type=discograph.library.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
             discograph.library.Relation(
                 category=discograph.library.ArtistRole.Category.RELATION,
                 entity_one_id=2,
-                entity_one_name='Mr. James Barth & A.D.',
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=100000003,
-                entity_two_name='Puente Latino',
                 entity_two_type=discograph.library.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
             discograph.library.Relation(
                 category=discograph.library.ArtistRole.Category.RELATION,
                 entity_one_id=2,
-                entity_one_name='Mr. James Barth & A.D.',
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=100000004,
-                entity_two_name='Yakari & Delano',
                 entity_two_type=discograph.library.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
             discograph.library.Relation(
                 category=discograph.library.ArtistRole.Category.RELATION,
                 entity_one_id=200000000,
-                entity_one_name='Alexi Delano',
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=2,
-                entity_two_name='Mr. James Barth & A.D.',
                 entity_two_type=discograph.library.Relation.EntityType.ARTIST,
                 role_name='Member Of',
                 )
             discograph.library.Relation(
                 category=discograph.library.ArtistRole.Category.RELATION,
                 entity_one_id=200000001,
-                entity_one_name='Cari Lekebusch',
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=2,
-                entity_two_name='Mr. James Barth & A.D.',
                 entity_two_type=discograph.library.Relation.EntityType.ARTIST,
                 role_name='Member Of',
                 )

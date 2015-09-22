@@ -20,6 +20,7 @@ class Bootstrapper(object):
 
     data_directory = os.path.join(
         os.path.abspath(os.path.dirname(__file__)),
+        '..',
         'data',
         )
 
