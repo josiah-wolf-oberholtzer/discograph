@@ -559,15 +559,15 @@ class Test(unittest.TestCase):
                 'name': 'Morgane Lhote',
                 'type': 'artist'},
             # vvv NO NAME
-            (1, 626678): {
-                'aliases': set(),
-                'distance': 1,
-                'id': 626678,
-                'key': 'artist-626678',
-                'links': {'artist-626678-member-of-artist-910459'},
-                'members': set(),
-                'missing': 0,
-                'type': 'artist'},
+            #(1, 626678): {
+            #    'aliases': set(),
+            #    'distance': 1,
+            #    'id': 626678,
+            #    'key': 'artist-626678',
+            #    'links': {'artist-626678-member-of-artist-910459'},
+            #    'members': set(),
+            #    'missing': 0,
+            #    'type': 'artist'},
             # ^^^ NO NAME
             (1, 910459): {
                 'aliases': set(),
@@ -582,7 +582,7 @@ class Test(unittest.TestCase):
                     'artist-328670-member-of-artist-910459',
                     'artist-407775-member-of-artist-910459',
                     'artist-425145-member-of-artist-910459',
-                    'artist-626678-member-of-artist-910459',
+                    #'artist-626678-member-of-artist-910459',
                     'artist-971316-member-of-artist-910459'},
                 'members': {
                     328670,
@@ -692,12 +692,12 @@ class Test(unittest.TestCase):
                 'role': 'Member Of',
                 'source': (1, 425145),
                 'target': (1, 910459)},
-            'artist-626678-member-of-artist-910459': {
-                'distance': 0,
-                'key': 'artist-626678-member-of-artist-910459',
-                'role': 'Member Of',
-                'source': (1, 626678),
-                'target': (1, 910459)},
+            #'artist-626678-member-of-artist-910459': {
+            #    'distance': 0,
+            #    'key': 'artist-626678-member-of-artist-910459',
+            #    'role': 'Member Of',
+            #    'source': (1, 626678),
+            #    'target': (1, 910459)},
             'artist-971316-member-of-artist-910459': {
                 'distance': 0,
                 'key': 'artist-971316-member-of-artist-910459',
