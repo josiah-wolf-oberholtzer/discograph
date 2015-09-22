@@ -51,7 +51,7 @@ var dg = (function(dg){
             window.history.back();
             return;
         }
-        var key = json.center[0];
+        var key = json.center;
         if (!dg.graph.cache.has(key)) {
             dg.graph.cache.set(key, JSON.parse(JSON.stringify(json)));
             dg.graph.cacheHistory.push(key);
@@ -545,7 +545,7 @@ var dg = (function(dg){
         Array.prototype.push.apply(dg.graph.nodes, dg.graph.nodeMap.values());
         dg.graph.links.length = 0;
         Array.prototype.push.apply(dg.graph.links, dg.graph.linkMap.values());
-        dg.graph.centerNodeKey = json.center[0];
+        dg.graph.centerNodeKey = json.center;
     }
 
     dg.updateGraph = function(key) {

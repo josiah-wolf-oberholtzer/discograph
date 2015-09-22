@@ -72,7 +72,7 @@ def route__api__cluster(artist_id):
         #'Backing Vocals',
         ]
     relation_grapher = discograph.RelationGrapher(
-        entities=[artist],
+        center_entity=artist,
         degree=12,
         max_nodes=100,
         role_names=role_names,

@@ -20,18 +20,15 @@ class RelationGrapher(object):
 
     def __init__(
         self,
-        entities,
+        center_entity,
         cache=None,
         degree=3,
         max_nodes=None,
         role_names=None,
         ):
         prototype = (Artist, Label)
-        if not isinstance(entities, collections.Iterable):
-            entities = [entities]
-        entities = tuple(entities)
-        assert all(isinstance(_, prototype) for _ in entities)
-        self.entities = entities
+        assert isinstance(center_entity, prototype)
+        self.center_entity = center_entity
         degree = int(degree)
         assert 0 < degree
         self.degree = degree
@@ -59,11 +56,12 @@ class RelationGrapher(object):
         return True
 
     def collect_entities(self):
-        entities_visited = dict()
-        entities_to_visit = set(
-            (type(_).__name__.lower(), _.discogs_id)
-            for _ in self.entities,
+        initial_key = (
+            type(self.center_entity).__name__.lower(),
+            self.center_entity.discogs_id,
             )
+        entities_to_visit = set([initial_key])
+        entities_visited = dict()
         original_entities = entities_to_visit.copy()
         for distance in range(self.degree + 1):
             current_entities_to_visit = sorted(entities_to_visit)
@@ -265,9 +263,9 @@ class RelationGrapher(object):
             link['source'] = '{}-{}'.format(*link['source'])
             link['target'] = '{}-{}'.format(*link['target'])
         nodes = tuple(sorted(nodes, key=lambda x: (x['type'], x['id'])))
-        center = tuple(
-            '{}-{}'.format(type(_).__name__.lower(), _.discogs_id)
-            for _ in self.entities
+        center = '{}-{}'.format(
+            type(self.center_entity).__name__.lower(),
+            self.center_entity.discogs_id,
             )
         network = {
             'center': center,
