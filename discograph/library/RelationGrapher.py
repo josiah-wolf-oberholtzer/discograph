@@ -361,7 +361,7 @@ class RelationGrapher(object):
         return query
 
     def entity_key_to_node(self, entity_key, distance):
-        node = dict(distance=distance, missing=0, size=0, aliases=set())
+        node = dict(distance=distance, missing=0, members=set(), aliases=set())
         node['id'] = entity_key[1]
         if entity_key[0] == 1:
             node['type'] = 'artist'
@@ -408,21 +408,14 @@ class RelationGrapher(object):
                     nodes[e1k]['aliases'].add(e2k)
                     nodes[e2k]['aliases'].add(e1k)
                 elif relation['role_name'] in ('Member Of', 'Sublabel Of'):
-                    nodes[e2k]['size'] += 1
+                    #print(relation)
+                    nodes[e2k]['members'].add(e1k[1])
                 if relation['role_name'] not in original_role_names:
                     continue
                 link = self.relation_to_link(relation)
                 links[link['key']] = link
                 nodes[e1k]['links'].add(link['key'])
                 nodes[e2k]['links'].add(link['key'])
-
-        # Prune unvisited nodes and links.
-        for key in entity_keys_to_visit:
-            node = nodes.pop(key)
-            for link_key in node['links']:
-                link = links[link_key]
-
-        # Prune links via threshold.
 
         # Query node names.
         artist_ids = []
@@ -438,5 +431,25 @@ class RelationGrapher(object):
             nodes[(1, artist.id)]['name'] = artist.name
         for label in labels:
             nodes[(2, label.id)]['name'] = label.name
+
+        # Prune unvisited nodes and links.
+        for key in entity_keys_to_visit:
+            node = nodes.pop(key)
+            #print(node['key'], node['name'])
+            for link_key in node['links']:
+                link = links[link_key]
+                source_key = link['source']
+                if source_key in nodes:
+                    source_node = nodes[link['source']]
+                    source_node['missing'] += 1
+                    source_node['links'].remove(link_key)
+                target_key = link['target']
+                if target_key in nodes:
+                    target_node = nodes[link['target']]
+                    target_node['missing'] += 1
+                    target_node['links'].remove(link_key)
+                del(links[link_key])
+
+        # Prune links via threshold.
 
         return nodes, links
