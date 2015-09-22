@@ -444,7 +444,6 @@ class Test(unittest.TestCase):
             role_names=role_names,
             )
         network = grapher.get_network_2()
-
         assert network == {
             'center': 'artist-152882',
             'links': (
@@ -518,6 +517,118 @@ class Test(unittest.TestCase):
             }
 
     def test_04(self):
+        artist = discograph.SQLArtist.get(name='Morris Day')
+        role_names = ['Alias', 'Member Of']
+        grapher = discograph.RelationGrapher(
+            artist,
+            degree=2,
+            max_nodes=5,
+            role_names=role_names,
+            )
+        network = grapher.get_network_2()
+        assert network == {}
+
+    def test_05(self):
+        artist = discograph.SQLArtist.get(name='Morris Day')
+        role_names = ['Alias', 'Member Of']
+        grapher = discograph.RelationGrapher(
+            artist,
+            degree=2,
+            max_links=4,
+            role_names=role_names,
+            )
+        network = grapher.get_network_2()
+        assert network == {
+            'center': 'artist-152882',
+            'links': (
+                {
+                    'distance': 1,
+                    'key': 'artist-32550-alias-artist-2561672',
+                    'role': 'Alias',
+                    'source': 'artist-32550',
+                    'target': 'artist-2561672',
+                    },
+                {
+                    'distance': 1,
+                    'key': 'artist-100600-member-of-artist-2561672',
+                    'role': 'Member Of',
+                    'source': 'artist-100600',
+                    'target': 'artist-2561672',
+                    },
+                {
+                    'distance': 0,
+                    'key': 'artist-152882-member-of-artist-32550',
+                    'role': 'Member Of',
+                    'source': 'artist-152882',
+                    'target': 'artist-32550',
+                    },
+                {
+                    'distance': 0,
+                    'key': 'artist-152882-member-of-artist-2561672',
+                    'role': 'Member Of',
+                    'source': 'artist-152882',
+                    'target': 'artist-2561672',
+                    }
+                ),
+            'nodes': (
+                {
+                    'aliases': (2561672,),
+                    'cluster': 1,
+                    'distance': 1,
+                    'id': 32550,
+                    'key': 'artist-32550',
+                    'links': (
+                        'artist-152882-member-of-artist-32550',
+                        'artist-32550-alias-artist-2561672',
+                        ),
+                    'missing': 10,
+                    'name': 'Time, The',
+                    'size': 11,
+                    'type': 'artist',
+                    },
+                {
+                    'distance': 2,
+                    'id': 100600,
+                    'key': 'artist-100600',
+                    'links': ('artist-100600-member-of-artist-2561672',),
+                    'missing': 2,
+                    'name': 'Monte Moir',
+                    'size': 0,
+                    'type': 'artist',
+                    },
+                {
+                    'distance': 0,
+                    'id': 152882,
+                    'key': 'artist-152882',
+                    'links': (
+                        'artist-152882-member-of-artist-2561672',
+                        'artist-152882-member-of-artist-32550',
+                        ),
+                    'missing': 0,
+                    'name': 'Morris Day',
+                    'size': 0,
+                    'type': 'artist',
+                    },
+                {
+                    'aliases': (32550,),
+                    'cluster': 1,
+                    'distance': 1,
+                    'id': 2561672,
+                    'key': 'artist-2561672',
+                    'links': (
+                        'artist-100600-member-of-artist-2561672',
+                        'artist-152882-member-of-artist-2561672',
+                        'artist-32550-alias-artist-2561672',
+                        ),
+                    'missing': 5,
+                    'name': 'Original 7ven, The',
+                    'size': 7,
+                    'type': 'artist',
+                    }
+                ),
+            }
+
+    def test_06(self):
         artist = discograph.SQLArtist.get(id=910459)
         role_names = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
@@ -526,7 +637,6 @@ class Test(unittest.TestCase):
             role_names=role_names,
             )
         nodes, links = grapher.collect_entities_2()
-
         assert nodes == {
             (1, 328670): {
                 'aliases': {263345, 7156, 500061, 635045},

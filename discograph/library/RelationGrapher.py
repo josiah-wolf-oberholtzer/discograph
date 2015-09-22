@@ -23,6 +23,7 @@ class RelationGrapher(object):
         center_entity,
         cache=None,
         degree=3,
+        max_links=None,
         max_nodes=None,
         role_names=None,
         ):
@@ -33,6 +34,10 @@ class RelationGrapher(object):
         assert 0 < degree
         self.degree = degree
         self.cache = cache
+        if max_links is not None:
+            max_links = int(max_links)
+            assert 0 < max_links
+        self.max_links = max_links
         if max_nodes is not None:
             max_nodes = int(max_nodes)
             assert 0 < max_nodes
@@ -213,6 +218,23 @@ class RelationGrapher(object):
             node = nodes.get(key)
             self.prune_node(node, nodes, links)
 
+        # Prune nodes beyond maximum.
+        if self.max_nodes:
+            nodes_to_prune = sorted(nodes.values(),
+                key=lambda x: (x['distance'], x['id']),
+                )[self.max_nodes:]
+            for node in nodes_to_prune:
+                self.prune_node(node, nodes, links)
+
+        # Prune links beyond maximum.
+        if self.max_links:
+            links_to_prune = sorted(links.values(),
+                key=self.link_sorter,
+                )[self.max_links:]
+            for link in links_to_prune:
+                print(self.link_sorter(link))
+                self.prune_link(link, nodes, links)
+
         return nodes, links
 
     def prune_link(self, link, nodes, links, update_missing_count=True):
@@ -273,7 +295,7 @@ class RelationGrapher(object):
             node['size'] = len(node.pop('members'))
             node['links'] = tuple(sorted(node['links']))
         links = tuple(sorted(links.values(),
-            key=lambda x: (x['source'], x['role'], x['target'])))
+            key=lambda x: (x['source'], x['role'], x['target'], x.get('release_id'))))
         for link in links:
             if link['source'][0] == 1:
                 link['source'] = 'artist-{}'.format(link['source'][1])
@@ -294,3 +316,12 @@ class RelationGrapher(object):
             'links': links,
             }
         return network
+
+    @staticmethod
+    def link_sorter(link):
+        role = 2
+        if link['role'] == 'Alias':
+            role = 0
+        elif link['role'] == 'Member Of':
+            role = 1
+        return link['distance'], role, link['key']
