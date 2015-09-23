@@ -1,5 +1,6 @@
 -e git://github.com/Abjad/abjad.git#egg=abjad [development]
 flask
+gunicorn
 mongoengine
 peewee
 pytest
