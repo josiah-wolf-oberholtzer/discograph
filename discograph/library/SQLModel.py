@@ -14,7 +14,11 @@ database_path = os.path.join(
     )
 database = sqlite_ext.SqliteExtDatabase(
     database_path,
-    journal_mode='WAL',
+    pragmas=(
+        ('journal_mode', 'WAL'),
+        ('cache_size', 20000),
+        ('mmap_size', 1024 * 1024 * 32),
+        )
     )
 
 
