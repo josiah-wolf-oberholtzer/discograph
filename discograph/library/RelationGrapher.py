@@ -144,6 +144,7 @@ class RelationGrapher(object):
         entity_query_cap //= 2
 
         for distance in range(self.degree + 1):
+
             current_entity_keys_to_visit = list(entity_keys_to_visit)
             for key in current_entity_keys_to_visit:
                 nodes.setdefault(key, self.entity_key_to_node(key, distance))
@@ -152,10 +153,11 @@ class RelationGrapher(object):
             print('        {} old nodes'.format(len(nodes) - len(current_entity_keys_to_visit)))
             print('        {} old links'.format(len(links)))
 
-            entity_keys_to_visit.clear()
             if self.max_nodes and self.max_nodes < len(nodes):
                 print('        Maxed out node count.')
                 break
+
+            entity_keys_to_visit.clear()
             relations = []
             for i in range(0, len(current_entity_keys_to_visit), entity_query_cap):
                 # Split into multiple queries to avoid variable maximum.
