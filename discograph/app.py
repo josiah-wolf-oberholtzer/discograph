@@ -52,7 +52,9 @@ def route__artist_id(artist_id):
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
 def route__api__cluster(artist_id):
-    cache_key = 'discograph:/api/artist/network/{}'.format(artist_id)
+    cache_key = 'discograph:/api/artist/network/{}'
+    cache_key = cache_key.format(artist_id)
+    cache_key = cache_key.encode('utf-8')
     data = cache.get(cache_key)
     if data is not None:
         print('Cache Hit:  {}'.format(cache_key))
@@ -96,7 +98,9 @@ def route__api__cluster(artist_id):
 
 @app.route('/api/search/<search_string>', methods=['GET'])
 def route__api__search(search_string):
-    cache_key = 'discograph:/api/search/{}'.format(search_string.replace(' ', '+'))
+    cache_key = 'discograph:/api/search/{}'
+    cache_key = cache_key.format(search_string.replace(' ', '+'))
+    cache_key = cache_key.encode('utf-8')
     data = cache.get(cache_key)
     if data is not None:
         print('Cache Hit:  {}'.format(cache_key))
