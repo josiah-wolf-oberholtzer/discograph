@@ -932,3 +932,16 @@ class Test(unittest.TestCase):
                 'source': (1, 971316),
                 'target': (1, 910459)},
             }
+
+    def test_07(self):
+        artist = discograph.SQLArtist.get(id=882758)  # 167 1-degree links
+        role_names = ['Alias', 'Member Of']
+        grapher = discograph.RelationGrapher(
+            artist,
+            degree=3,
+            role_names=role_names,
+            max_nodes=100,
+            max_links=200,
+            )
+        nodes, links = grapher.collect_entities_2()
+        assert len(nodes) == 100

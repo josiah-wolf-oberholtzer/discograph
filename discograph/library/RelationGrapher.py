@@ -153,7 +153,7 @@ class RelationGrapher(object):
             print('        {} old nodes'.format(len(nodes) - len(current_entity_keys_to_visit)))
             print('        {} old links'.format(len(links)))
 
-            if self.max_nodes and self.max_nodes < len(nodes):
+            if 1 < distance and self.max_nodes and self.max_nodes < len(nodes):
                 print('        Maxed out node count.')
                 break
 
