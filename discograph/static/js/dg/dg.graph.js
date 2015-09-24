@@ -231,7 +231,12 @@ var dg = (function(dg){
             });
             selection.moveToFront();
         });
-        nodeEnter.on("dblclick doubletap", function(d) {
+        nodeEnter.on("dblclick", function(d) {
+            if (!dg.graph.isUpdating) {
+                dg.navigateGraph(d.key);
+            }
+        });
+        nodeEnter.on("doubletap", function(d) {
             if (!dg.graph.isUpdating) {
                 dg.navigateGraph(d.key);
             }
