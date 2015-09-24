@@ -77,7 +77,10 @@ var dg = (function(dg){
         setTimeout(function() {
             dg.graph.isUpdating = false;
         }, 2000);
-        $("#brand .loading").addClass("hidden");
+        $("#page-loading")
+            .removeClass("glyphicon-animate glyphicon-refresh")
+            .addClass("glyphicon-random")
+            ;
     }
 
     dg.navigateGraph = function(key) {
@@ -575,7 +578,10 @@ var dg = (function(dg){
             .transition()
             .duration(250)
             .style("opacity", 0.333);
-        $("#brand .loading").removeClass("hidden");
+        $("#page-loading")
+            .removeClass("glyphicon-random")
+            .addClass("glyphicon-animate glyphicon-refresh")
+            ;
         if (dg.graph.cache.has(key)) {
             var json = JSON.parse(JSON.stringify(dg.graph.cache.get(key)));
             dg.handleNewGraphData(null, json);
