@@ -1,11 +1,13 @@
 #! /usr/bin/env python
 import discograph
-from flask import Flask, abort, jsonify, redirect, render_template
+from flask import Flask, abort, jsonify, redirect, render_template, request
+from flask.ext.mobility import Mobility
 
 
 app = Flask(__name__)
 app.debug = True
 app.api = discograph.DiscographAPI(app)
+Mobility(app)
 
 
 @app.route('/')
@@ -37,7 +39,8 @@ def route__artist_id(artist_id):
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
 def route__api__cluster(artist_id):
-    data = app.api.get_artist_network(artist_id)
+    on_mobile = getattr(request, 'MOBILE', False)
+    data = app.api.get_artist_network(artist_id, on_mobile=on_mobile)
     if data is None:
         abort(404)
     return jsonify(data)

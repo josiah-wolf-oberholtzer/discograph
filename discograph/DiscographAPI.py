@@ -55,9 +55,11 @@ class DiscographAPI(object):
             return None
         return result[0]
 
-    def get_artist_network(self, artist_id):
+    def get_artist_network(self, artist_id, on_mobile=False):
         import discograph
         cache_key = 'discograph:/api/artist/network/{}'.format(artist_id)
+        if on_mobile:
+            cache_key = '{}/mobile'.format(cache_key)
         data = self.cache_get(cache_key)
         if data is not None:
             return data
@@ -78,11 +80,19 @@ class DiscographAPI(object):
             #'Lead Vocals',
             #'Backing Vocals',
             ]
+        if not on_mobile:
+            max_nodes = 100
+            max_links = 200
+            degree = 12
+        else:
+            max_nodes = 25
+            max_links = 75
+            degree = 6
         relation_grapher = discograph.RelationGrapher(
             center_entity=artist,
-            degree=12,
-            max_nodes=100,
-            max_links=200,
+            degree=degree,
+            max_nodes=max_nodes,
+            max_links=max_links,
             role_names=role_names,
             )
         with systemtools.Timer(exit_message='Network query time:'):
