@@ -12,9 +12,11 @@ Mobility(app)
 
 @app.route('/')
 def route__index():
+    print('URL', app.api.application_url)
     return render_template(
         'index.html',
         artist=None,
+        application_url=app.api.application_url,
         og_title='Visualizing music as a social graph',
         og_url='/',
         title='discograph: Visualizing music as a social graph',
@@ -39,6 +41,7 @@ def route__artist_id(artist_id):
     title = 'discograph: {}'.format(artist.name)
     return render_template(
         'index.html',
+        application_url=app.api.application_url,
         key=key,
         og_title=artist.name,
         og_url=url,

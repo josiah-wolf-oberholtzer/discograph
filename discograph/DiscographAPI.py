@@ -21,6 +21,10 @@ class DiscographAPI(object):
         config_path = os.path.join(discograph.__path__[0], 'discograph.cfg')
         parser = ConfigParser()
         parser.read(config_path)
+        if parser.has_option('url', 'application_url'):
+            self._application_url = parser.get('url', 'application_url')
+        else:
+            self._application_url = ''
         if parser.has_option('cache', 'directory'):
             cache_path = parser.get('cache', 'directory')
         else:
@@ -137,6 +141,10 @@ class DiscographAPI(object):
     @property
     def app(self):
         return self._app
+
+    @property
+    def application_url(self):
+        return self._application_url
 
     @property
     def cache(self):
