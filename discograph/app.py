@@ -1,24 +1,11 @@
 #! /usr/bin/env python
-import abjad
 import discograph
-import random
-import re
-from flask import (
-    Flask,
-    abort,
-    jsonify,
-    redirect,
-    render_template,
-    )
-#from werkzeug.contrib.cache import MemcachedCache
+from flask import Flask, abort, jsonify, redirect, render_template
 
-urlify_pattern = re.compile(r"\s+", re.MULTILINE)
 
 app = Flask(__name__)
 app.debug = True
-#cache = MemcachedCache(['127.0.0.1:11211'])
-#print('Clearing memcached.')
-#cache.clear()
+app.api = discograph.DiscographAPI(app)
 
 
 @app.route('/')
@@ -26,20 +13,13 @@ def route__index():
     return render_template(
         'index.html',
         artist=None,
-        title='discoGraph',
+        title='discograph',
         )
 
 
 @app.route('/random')
 def route__random():
-    relation = discograph.SQLRelation.get_random()
-    entity_choice = random.randint(1, 2)
-    if entity_choice == 1:
-        entity_type = relation.entity_one_type
-        entity_id = relation.entity_one_id
-    else:
-        entity_type = relation.entity_two_type
-        entity_id = relation.entity_two_id
+    entity_type, entity_id = app.api.get_random_entity()
     if entity_type == 1:
         return redirect('/artist/{}'.format(entity_id), code=302)
     return redirect('/label/{}'.format(entity_id), code=302)
@@ -47,86 +27,25 @@ def route__random():
 
 @app.route('/artist/<int:artist_id>', methods=['GET'])
 def route__artist_id(artist_id):
-    query = discograph.SQLArtist.select()
-    query = query.where(discograph.SQLArtist.id == artist_id)
-    result = list(query)
-    if not result:
+    artist = app.api.get_artist(artist_id)
+    if artist is None:
         abort(404)
-    artist = result[0]
-    return render_template(
-        'index.html',
-        key='artist-{}'.format(artist.id),
-        title='discoGraph: {}'.format(artist.name),
-        )
+    key = 'artist-{}'.format(artist.id)
+    title = 'discograph: {}'.format(artist.name)
+    return render_template('index.html', key=key, title=title)
 
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
 def route__api__cluster(artist_id):
-    #cache_key = 'discograph:/api/artist/network/{}'
-    #cache_key = cache_key.format(artist_id)
-    #cache_key = cache_key.encode('utf-8')
-    #data = cache.get(cache_key)
-    #if data is not None:
-    #    print('Cache Hit:  {}'.format(cache_key))
-    #    return jsonify(data)
-    #print('Cache Miss: {}'.format(cache_key))
-    query = (discograph.SQLArtist
-        .select()
-        .where(discograph.SQLArtist.id == artist_id)
-        .limit(1)
-        )
-    found = list(query)
-    if not found:
+    data = app.api.get_artist_network(artist_id)
+    if data is None:
         abort(404)
-    artist = found[0]
-    role_names = [
-        'Alias',
-        'Member Of',
-        #'Producer',
-        #'Guitar',
-        #'Bass Guitar',
-        #'Rhythm Guitar',
-        #'Electric Guitar',
-        #'Lead Guitar',
-        #'Drums',
-        #'Vocals',
-        #'Lead Vocals',
-        #'Backing Vocals',
-        ]
-    relation_grapher = discograph.RelationGrapher(
-        center_entity=artist,
-        degree=12,
-        max_nodes=100,
-        max_links=200,
-        role_names=role_names,
-        )
-    with abjad.systemtools.Timer(exit_message='Network query time:'):
-        data = relation_grapher.get_network_2()
-    #cache.set(cache_key, data, timeout=60 * 60)
     return jsonify(data)
 
 
 @app.route('/api/search/<search_string>', methods=['GET'])
 def route__api__search(search_string):
-    #cache_key = 'discograph:/api/search/{}'
-    #cache_key = cache_key.format(search_string.replace(' ', '+'))
-    #cache_key = cache_key.encode('utf-8')
-    #data = cache.get(cache_key)
-    #if data is not None:
-    #    print('Cache Hit:  {}'.format(cache_key))
-    #    return jsonify(data)
-    #print('Cache Miss: {}'.format(cache_key))
-    query = discograph.SQLFTSArtist.search_bm25(search_string).limit(10)
-    data = []
-    for sql_fts_artist in query:
-        datum = dict(
-            key='artist-{}'.format(sql_fts_artist.id),
-            name=sql_fts_artist.name,
-            )
-        data.append(datum)
-        print('    {}'.format(datum))
-    data = {'results': tuple(data)}
-    #cache.set(cache_key, data, timeout=60 * 60)
+    data = app.api.search_entities(search_string)
     return jsonify(data)
 
 

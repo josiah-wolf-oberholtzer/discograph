@@ -6,7 +6,7 @@ var dg = (function(dg){
         if (entityKey) {
             dg.navigateGraph(d3.select("body").attr("id"));
         }
-        console.log('discoGraph initialized.')
+        console.log('discograph initialized.')
     }
     return dg;
 }(dg || {}));
