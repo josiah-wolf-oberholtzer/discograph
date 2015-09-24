@@ -231,7 +231,7 @@ var dg = (function(dg){
             });
             selection.moveToFront();
         });
-        nodeEnter.on("dblclick", function(d) {
+        nodeEnter.on("dblclick doubletap", function(d) {
             if (!dg.graph.isUpdating) {
                 dg.navigateGraph(d.key);
             }
