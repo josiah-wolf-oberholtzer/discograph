@@ -17,7 +17,7 @@ def route__index():
         'index.html',
         artist=None,
         application_url=app.api.application_url,
-        og_title='Visualizing music as a social graph',
+        og_title='Discograph: visualizing music as a social graph',
         og_url='/',
         title='discograph: Visualizing music as a social graph',
         )
@@ -43,7 +43,7 @@ def route__artist_id(artist_id):
         'index.html',
         application_url=app.api.application_url,
         key=key,
-        og_title=artist.name,
+        og_title='Discograph: The "{}" network'.format(artist.name),
         og_url=url,
         title=title,
         )
