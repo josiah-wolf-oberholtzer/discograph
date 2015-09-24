@@ -29,13 +29,13 @@ var dg = (function(dg){
 
     dg.history = {
         onPopState: function(event) {
-            console.log(event, event.state);
-            dg.updateGraph(event.state.key);
+            var entityKey = event.state.key;
             var entityType = entityKey.split("-")[0];
             var entityId = entityKey.split("-")[1];
             var url = "/" + entityType + "/" + entityId;
             ga('send', 'pageview', url);
             ga('set', 'page', url);
+            dg.updateGraph(event.state.key);
         },
         pushState: function(entityKey, params) {
             var entityType = entityKey.split("-")[0];
