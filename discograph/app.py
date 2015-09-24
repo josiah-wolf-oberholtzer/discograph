@@ -15,7 +15,9 @@ def route__index():
     return render_template(
         'index.html',
         artist=None,
-        title='discograph',
+        og_title='Visualizing music as a social graph',
+        og_url='/',
+        title='discograph: Visualizing music as a social graph',
         )
 
 
@@ -33,8 +35,15 @@ def route__artist_id(artist_id):
     if artist is None:
         abort(404)
     key = 'artist-{}'.format(artist.id)
+    url = '/artist/{}'.format(artist.id)
     title = 'discograph: {}'.format(artist.name)
-    return render_template('index.html', key=key, title=title)
+    return render_template(
+        'index.html',
+        key=key,
+        og_title=artist.name,
+        og_url=url,
+        title=title,
+        )
 
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
