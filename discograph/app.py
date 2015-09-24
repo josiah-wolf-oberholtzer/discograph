@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import abjad
 import discograph
+import random
 import re
 from flask import (
     Flask,
@@ -31,9 +32,17 @@ def route__index():
 
 @app.route('/random')
 def route__random():
-    artist = discograph.library.SQLArtist.get_random()
-    artist_id = artist.id
-    return redirect('/artist/{}'.format(artist_id), code=302)
+    relation = discograph.SQLRelation.get_random()
+    entity_choice = random.randint(1, 2)
+    if entity_choice == 1:
+        entity_type = relation.entity_one_type
+        entity_id = relation.entity_one_id
+    else:
+        entity_type = relation.entity_two_type
+        entity_id = relation.entity_two_id
+    if entity_type == 1:
+        return redirect('/artist/{}'.format(entity_id), code=302)
+    return redirect('/label/{}'.format(entity_id), code=302)
 
 
 @app.route('/artist/<int:artist_id>', methods=['GET'])
