@@ -11,6 +11,7 @@ if __name__ == '__main__':
         install_requires=[
             'abjad',
             'flask',
+            'Flask-Mobility',
             'gunicorn',
             'mongoengine',
             'peewee',

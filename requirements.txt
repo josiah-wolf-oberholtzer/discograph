@@ -1,4 +1,5 @@
 -e git://github.com/Abjad/abjad.git#egg=abjad [development]
+Flask-Mobility
 flask
 gunicorn
 mongoengine
