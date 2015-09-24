@@ -19,6 +19,7 @@ def route__index():
         application_url=app.api.application_url,
         og_title='Discograph: visualizing music as a social graph',
         og_url='/',
+        on_mobile=request.MOBILE,
         title='discograph: Visualizing music as a social graph',
         )
 
@@ -45,13 +46,14 @@ def route__artist_id(artist_id):
         key=key,
         og_title='Discograph: The "{}" network'.format(artist.name),
         og_url=url,
+        on_mobile=request.MOBILE,
         title=title,
         )
 
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
 def route__api__cluster(artist_id):
-    on_mobile = getattr(request, 'MOBILE', False)
+    on_mobile = request.MOBILE
     data = app.api.get_artist_network(artist_id, on_mobile=on_mobile)
     if data is None:
         abort(404)

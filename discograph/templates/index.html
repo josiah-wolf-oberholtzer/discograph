@@ -25,7 +25,7 @@
 
 <body id="{{ key }}">
 
-<nav class="navbar navbar-default navbar-fixed-top"> 
+<nav id="topnav" class="navbar navbar-default navbar-fixed-top"> 
     <div class="container-fluid">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-deets" aria-expanded="false">
@@ -148,6 +148,38 @@
         </div>
     </div>
 </div>
+
+{% if on_mobile %}
+
+<div id="mobile-modal" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h1>Hi!</h1>
+            </div>
+            <div class="modal-body">
+                <p>Discograph doesn't <em>quite</em> work on mobile devices yet.</p>
+                <p>For one, you can't double-click on anything yet!</p>
+                <p>To get the full experience, try it on a laptop.</p>
+                <p>We'll have 100% mobile-compatibility really soon!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK, OK</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#mobile-modal').modal('show');
+});
+</script>
+
+{% endif %}
 
 <script src="/static/js/dg/dg.js"></script>
 <script src="/static/js/dg/dg.color.js"></script>
