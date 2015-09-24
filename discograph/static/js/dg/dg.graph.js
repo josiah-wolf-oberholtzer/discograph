@@ -31,6 +31,11 @@ var dg = (function(dg){
         onPopState: function(event) {
             console.log(event, event.state);
             dg.updateGraph(event.state.key);
+            var entityType = entityKey.split("-")[0];
+            var entityId = entityKey.split("-")[1];
+            var url = "/" + entityType + "/" + entityId;
+            ga('send', 'pageview', url);
+            ga('set', 'page', url);
         },
         pushState: function(entityKey, params) {
             var entityType = entityKey.split("-")[0];
@@ -40,6 +45,8 @@ var dg = (function(dg){
             if (params) { url += "?" + $.params(params); }
             var state = {key: entityKey, params: params};
             window.history.pushState(state, title, url);
+            ga('send', 'pageview', url);
+            ga('set', 'page', url);
         },
     }
 
