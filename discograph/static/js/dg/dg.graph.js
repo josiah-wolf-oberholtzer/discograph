@@ -242,29 +242,55 @@ var dg = (function(dg){
     }
 
     function onNodeEnterEventBindings(nodeEnter) {
-        nodeEnter.on("mousedown", function(d) {
+        nodeEnter.on("dblclick", function(d) { 
+            //console.log('dblclick', d.name); 
+            if (!dg.graph.isUpdating) { dg.navigateGraph(d.key); }
+        });
+        nodeEnter.on("mousedown", function(d) { 
+            //console.log('mousedown', d.name);
             if (!dg.graph.isUpdating) {
                 dg.graph.nodes.forEach(function(n) { n.fixed = false; });
                 d.fixed = true;
                 dg.selectNode(d.key);
             }
-            d3.event.stopPropagation();
+            d3.event.stopPropagation(); // What is this for?
         });
-        nodeEnter.on("mouseover", function(d) {
+        nodeEnter.on("mouseover", function(d) { 
+            //console.log('mouseover', d.name);
             var selection = dg.graph.nodeSelection.select(function(n) {
                 return n.key == d.key ? this : null;
             });
             selection.moveToFront();
         });
-        nodeEnter.on("dblclick", function(d) {
-            if (!dg.graph.isUpdating) {
-                dg.navigateGraph(d.key);
+        nodeEnter.on("touchstart", function(d) { 
+            //console.log('touchstart', d.name);
+            var thisTime = $.now();
+            var lastTime = d.lastTouchTime;
+            d.lastTouchTime = thisTime;
+            if (!lastTime || (500 < (thisTime - lastTime))) {
+                // Single touch.
+                if (!dg.graph.isUpdating) {
+                    dg.graph.nodes.forEach(function(n) { n.fixed = false; });
+                    d.fixed = true;
+                    dg.selectNode(d.key);
+                }
+            } else if ((thisTime - lastTime) < 500) {
+                // Double touch.
+                if (!dg.graph.isUpdating) { dg.navigateGraph(d.key); }
             }
+            d3.event.stopPropagation(); // What is this for?
         });
-        nodeEnter.on("doubletap", function(d) {
-            if (!dg.graph.isUpdating) {
-                dg.navigateGraph(d.key);
-            }
+    }
+
+    function foo() {
+        nodeEnter.on("mousedown", function(d) {
+            console.log('mousedown', d.name);
+        });
+        nodeEnter.on("mouseover", function(d) {
+            console.log('mouseover', d.name);
+        });
+        nodeEnter.on("dblclick", function(d) {
+            console.log('dblclick', d.name);
         });
     }
 
