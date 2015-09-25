@@ -1,4 +1,4 @@
-var dg = (function(dg){
+var dg = (function(dg){ 
 
     dg.graph = {
         cache: d3.map(),
@@ -26,29 +26,6 @@ var dg = (function(dg){
         nodeLayer: null,
         linkLayer: null,
     };
-
-    dg.history = {
-        onPopState: function(event) {
-            var entityKey = event.state.key;
-            var entityType = entityKey.split("-")[0];
-            var entityId = entityKey.split("-")[1];
-            var url = "/" + entityType + "/" + entityId;
-            ga('send', 'pageview', url);
-            ga('set', 'page', url);
-            dg.updateGraph(event.state.key);
-        },
-        pushState: function(entityKey, params) {
-            var entityType = entityKey.split("-")[0];
-            var entityId = entityKey.split("-")[1];
-            var title = document.title;
-            var url = "/" + entityType + "/" + entityId;
-            if (params) { url += "?" + $.params(params); }
-            var state = {key: entityKey, params: params};
-            window.history.pushState(state, title, url);
-            ga('send', 'pageview', url);
-            ga('set', 'page', url);
-        },
-    }
 
     /* GRAPH METHODS */
 
@@ -152,12 +129,17 @@ var dg = (function(dg){
     }
 
     function onLinkEnter(linkEnter) {
+        var linkEnter = linkEnter.append("g")
+            .attr("class", function(d) { return "link link-" + d.key; });
+        onLinkEnterElementConstruction(linkEnter);
+        onLinkEnterEventBindings(linkEnter);
+    }
+
+    function onLinkEnterElementConstruction(linkEnter) {
         var aggregateRoleNames = [
             "Member Of", "Sublable Of",
             "Released On", "Compiled On",
             ]
-        var linkEnter = linkEnter.append("g")
-            .attr("class", function(d) { return "link link-" + d.key; });
         linkEnter.append("path")
             .attr("class", "inner")
             .attr("marker-end", function(d) {
@@ -176,17 +158,6 @@ var dg = (function(dg){
                     return "0, 0";
                 }
             });
-        linkEnter.on("mouseover", function(d) {
-            d3.select(this).select(".inner")
-                .transition()
-                .style("stroke-width", 3);
-            });
-        linkEnter.on("mouseout", function(d) {
-            d3.select(this).select(".inner")
-                .transition()
-                .duration(500)
-                .style("stroke-width", 1);
-        });
         linkEnter.append("path")
             .attr("class", "outer")
             .append("title").text(function(d) { 
@@ -200,6 +171,21 @@ var dg = (function(dg){
                 }
             });
     }
+
+    function onLinkEnterEventBindings(linkEnter) {
+        linkEnter.on("mouseover", function(d) {
+            d3.select(this).select(".inner")
+                .transition()
+                .style("stroke-width", 3);
+            });
+        linkEnter.on("mouseout", function(d) {
+            d3.select(this).select(".inner")
+                .transition()
+                .duration(500)
+                .style("stroke-width", 1);
+        });
+    }
+
 
     function onLinkExit(linkExit) {
         linkExit.remove();
@@ -217,30 +203,11 @@ var dg = (function(dg){
                 }
             })
             .call(dg.graph.forceLayout.drag);
-        nodeEnter.on("mousedown", function(d) {
-            if (!dg.graph.isUpdating) {
-                dg.graph.nodes.forEach(function(n) { n.fixed = false; });
-                d.fixed = true;
-                dg.selectNode(d.key);
-            }
-            d3.event.stopPropagation();
-        });
-        nodeEnter.on("mouseover", function(d) {
-            var selection = dg.graph.nodeSelection.select(function(n) {
-                return n.key == d.key ? this : null;
-            });
-            selection.moveToFront();
-        });
-        nodeEnter.on("dblclick", function(d) {
-            if (!dg.graph.isUpdating) {
-                dg.navigateGraph(d.key);
-            }
-        });
-        nodeEnter.on("doubletap", function(d) {
-            if (!dg.graph.isUpdating) {
-                dg.navigateGraph(d.key);
-            }
-        });
+        onNodeEnterElementConstruction(nodeEnter);
+        onNodeEnterEventBindings(nodeEnter);
+    }
+
+    function onNodeEnterElementConstruction(nodeEnter) {
         var artistEnter = nodeEnter.select(function(d) { 
             return d.type == 'artist' ? this : null;
         });
@@ -272,6 +239,33 @@ var dg = (function(dg){
             .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
         nodeEnter.append("title")
             .text(function(d) { return d.name; });
+    }
+
+    function onNodeEnterEventBindings(nodeEnter) {
+        nodeEnter.on("mousedown", function(d) {
+            if (!dg.graph.isUpdating) {
+                dg.graph.nodes.forEach(function(n) { n.fixed = false; });
+                d.fixed = true;
+                dg.selectNode(d.key);
+            }
+            d3.event.stopPropagation();
+        });
+        nodeEnter.on("mouseover", function(d) {
+            var selection = dg.graph.nodeSelection.select(function(n) {
+                return n.key == d.key ? this : null;
+            });
+            selection.moveToFront();
+        });
+        nodeEnter.on("dblclick", function(d) {
+            if (!dg.graph.isUpdating) {
+                dg.navigateGraph(d.key);
+            }
+        });
+        nodeEnter.on("doubletap", function(d) {
+            if (!dg.graph.isUpdating) {
+                dg.navigateGraph(d.key);
+            }
+        });
     }
 
     function onNodeExit(nodeExit) {
