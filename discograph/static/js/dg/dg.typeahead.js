@@ -16,6 +16,7 @@ var dg = (function(dg){
             dg.navigateGraph(datum);
             $("#typeahead").typeahead("close");
             $("#typeahead").blur();
+            $('.navbar-toggle').click();
         };
     };
     var init = function() {
