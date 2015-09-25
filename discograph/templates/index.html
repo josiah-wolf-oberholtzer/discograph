@@ -153,73 +153,39 @@
 </div>
 
 {% if not is_a_return_visitor %}
-    {% if on_mobile %}
-
-    <div id="modal-mobile" class="modal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h3>Just so you know...</h3>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Discograph</strong> doesn't <em>quite</em> work on mobile devices yet.</p>
-                    <p>For one, you can't double-click on anything!</p>
-                    <p>To get the full experience, play with <strong>Discograph</strong> on a laptop.</p>
-                    <p>We'll have 100% mobile-compatibility really soon!</p>
-                    <p>Thank you! &#x1F602;</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">OK, OK, OK</button>
-                </div>
+<div id="modal-welcome" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h3>Hello, friends and lovers!</h3>
+            </div>
+            <div class="modal-body">
+                <p>Welcome to <strong>Discograph</strong>, an interactive
+                visualization of relationships between artists, bands and
+                labels, based on data from the <a
+                href="http://discogs.com">Discogs.com</a> database.</p>
+                <p>Use the search box in the right corner to look for a
+                recording musician or click on the
+                <strong>Discograph</strong> link in the left corner to find
+                a random artist.</p>
+                <p>When the graph appears, you can click and drag the nodes
+                around. Double-click on any node with a plus-sign to reveal
+                more connections.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Let's Go!</button>
             </div>
         </div>
     </div>
-    <script>
-    $(document).ready(function() {
-        $('#modal-mobile').modal('show');
-    });
-    </script>
-
-    {% else %}
-
-    <div id="modal-welcome" class="modal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h3>Hello, friends and lovers!</h3>
-                </div>
-                <div class="modal-body">
-                    <p>Welcome to <strong>Discograph</strong>, an interactive
-                    visualization of relationships between artists, bands and
-                    labels, based on data from the <a
-                    href="http://discogs.com">Discogs.com</a> database.</p>
-
-                    <p>Use the search box in the right corner to look for a
-                    recording musician or click on the
-                    <strong>Discograph</strong> link in the left corner to find
-                    a random artist.</p>
-
-                    <p>When the shapes appear, drag 'em around, double-click.
-                    You'll figure it out.</p>
-
-                    <p>There's a lot of music in this crazy world...</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">What?!</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    $(document).ready(function() {
-        $('#modal-welcome').modal('show');
-    });
-    </script>
-
-    {% endif %}
+</div>
+<script>
+$(document).ready(function() {
+    $('#modal-welcome').modal('show');
+});
+</script>
 {% endif %}
 
 <script src="/static/js/dg/dg.js"></script>
