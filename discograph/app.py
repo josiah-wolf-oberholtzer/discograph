@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 import discograph
-from flask import Flask, abort, jsonify, redirect, render_template, request
+from flask import Flask, abort, jsonify, make_response, redirect, render_template, request
 from flask.ext.mobility import Mobility
 
 
@@ -12,16 +12,44 @@ Mobility(app)
 
 @app.route('/')
 def route__index():
-    print('URL', app.api.application_url)
-    return render_template(
+    is_a_return_visitor = request.cookies.get('is_a_return_visitor')
+    rendered_template = render_template(
         'index.html',
         artist=None,
         application_url=app.api.application_url,
+        is_a_return_visitor=is_a_return_visitor,
         og_title='Discograph: visualizing music as a social graph',
         og_url='/',
         on_mobile=request.MOBILE,
         title='discograph: Visualizing music as a social graph',
         )
+    response = make_response(rendered_template)
+    response.set_cookie('is_a_return_visitor', 'true')
+    return response
+
+
+@app.route('/artist/<int:artist_id>', methods=['GET'])
+def route__artist_id(artist_id):
+    artist = app.api.get_artist(artist_id)
+    if artist is None:
+        abort(404)
+    is_a_return_visitor = request.cookies.get('is_a_return_visitor')
+    key = 'artist-{}'.format(artist.id)
+    url = '/artist/{}'.format(artist.id)
+    title = 'discograph: {}'.format(artist.name)
+    rendered_template = render_template(
+        'index.html',
+        application_url=app.api.application_url,
+        is_a_return_visitor=is_a_return_visitor,
+        key=key,
+        og_title='Discograph: The "{}" network'.format(artist.name),
+        og_url=url,
+        on_mobile=request.MOBILE,
+        title=title,
+        )
+    response = make_response(rendered_template)
+    response.set_cookie('is_a_return_visitor', 'true')
+    return response
 
 
 @app.route('/random')
@@ -30,25 +58,6 @@ def route__random():
     if entity_type == 1:
         return redirect('/artist/{}'.format(entity_id), code=302)
     return redirect('/label/{}'.format(entity_id), code=302)
-
-
-@app.route('/artist/<int:artist_id>', methods=['GET'])
-def route__artist_id(artist_id):
-    artist = app.api.get_artist(artist_id)
-    if artist is None:
-        abort(404)
-    key = 'artist-{}'.format(artist.id)
-    url = '/artist/{}'.format(artist.id)
-    title = 'discograph: {}'.format(artist.name)
-    return render_template(
-        'index.html',
-        application_url=app.api.application_url,
-        key=key,
-        og_title='Discograph: The "{}" network'.format(artist.name),
-        og_url=url,
-        on_mobile=request.MOBILE,
-        title=title,
-        )
 
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
