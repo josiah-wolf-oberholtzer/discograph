@@ -86,6 +86,7 @@ var dg = (function(dg){
         linkOff.style("opacity", 0.25);
         nodeOff.select(".more").style("fill", "#fff");
         nodeOff.style("stroke", "#fff");
+        nodeOff.select("text").remove();
 
         if (key === null) {
             return;
@@ -103,6 +104,36 @@ var dg = (function(dg){
         nodeOn.select(".more").style("fill", "#000");
         nodeOn.style("stroke", "#000")
         textOn.moveToFront();
+
+        nodeOn.select('text').remove();
+        var icon = nodeOn.append('text')
+            //.attr('filter', 'url(#shadow)')
+            .style('cursor', 'pointer')
+            .style('fill', '#fff')
+            .style('font-family', 'Glyphicons Halflings')
+            .style('font-style', 'normal')
+            .style('font-weight', 100)
+            .style('font-size', '20px')
+            .style('opacity', 0.5)
+            .attr('dx', function(d) {
+                return (-1 * d.radius) - 28;
+            })
+            .attr('dy', 10)
+            .text('\ue164');
+        icon.append('title').text(function(d) {
+            return 'View ' + d.name + ' on Discogs.com'; 
+        });
+        icon.on('mouseover', function(d) {
+            d3.select(this).transition().duration(0).style('opacity', '1');
+        });
+        icon.on('mouseout', function(d) {
+            d3.select(this).transition().duration(100).style('opacity', '0.5');
+        });
+        icon.on('mousedown', function(d) {
+            var url = 'http://discogs.com/' + d.type + '/' + d.id;
+            window.open(url);
+        });
+
     }
 
     function getOuterRadius(d) {
