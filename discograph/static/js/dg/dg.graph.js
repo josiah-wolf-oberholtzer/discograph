@@ -71,6 +71,7 @@ var dg = (function(dg){
         if (key !== null) {
             var haloOff = dg.graph.haloSelection.filter("*:not(.node-" + key + ")");
             var nodeOff = dg.graph.nodeSelection.filter("*:not(.node-" + key + ")");
+            var textOff = dg.graph.textSelection.filter("*:not(.node-" + key + ")");
             var nodeOn = dg.graph.nodeSelection.filter(".node-" + key);
             var linkKeys = nodeOn.data()[0].links;
             var linkOff = dg.graph.linkSelection.filter(function(d) { 
@@ -80,13 +81,14 @@ var dg = (function(dg){
             var haloOff = dg.graph.haloSelection;
             var nodeOff = dg.graph.nodeSelection;
             var linkOff = dg.graph.linkSelection;
+            var textOff = dg.graph.textSelection;
         }
 
         haloOff.select(".halo").style("fill-opacity", 0.);
         linkOff.style("opacity", 0.25);
         nodeOff.select(".more").style("fill", "#fff");
         nodeOff.style("stroke", "#fff");
-        nodeOff.select("text").remove();
+        textOff.select(".icon").remove();
 
         if (key === null) {
             return;
@@ -105,16 +107,9 @@ var dg = (function(dg){
         nodeOn.style("stroke", "#000")
         textOn.moveToFront();
 
-        nodeOn.select('text').remove();
-        var icon = nodeOn.append('text')
-            //.attr('filter', 'url(#shadow)')
-            .style('cursor', 'pointer')
-            .style('fill', '#fff')
-            .style('font-family', 'Glyphicons Halflings')
-            .style('font-style', 'normal')
-            .style('font-weight', 100)
-            .style('font-size', '20px')
-            .style('opacity', 0.5)
+        textOn.select('.icon').remove();
+        var icon = textOn.append('text')
+            .classed('icon', true)
             .attr('dx', function(d) {
                 return (-1 * d.radius) - 28;
             })

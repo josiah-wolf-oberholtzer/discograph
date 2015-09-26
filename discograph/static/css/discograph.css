@@ -52,6 +52,17 @@ svg {
     fill: none;
     }
 
+.node text.icon {
+    cursor: pointer;
+    fill: #fff;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: 200;
+    font-size: 20px;
+    opacity: 0.5;
+    stroke: #000;
+    }
+
 .node .halo {
     pointer-events: none;
     fill: #000;
