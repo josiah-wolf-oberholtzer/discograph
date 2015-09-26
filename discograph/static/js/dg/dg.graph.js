@@ -725,12 +725,25 @@ var dg = (function(dg){
             ;
 
         /*
-        var blur = defs.append("filter")
-            .attr("id", "blur")
-            .append("feGaussianBlur")
-            .attr("in", "SourceGraphic")
-            .attr("stdDeviation", 1)
-            ;
+        var shadow = defs.append("filter")
+            .attr("id", "shadow")
+            .attr('height', '200%')
+            .attr('width', '200%')
+            .attr('x', 0)
+            .attr('y', 0);
+        shadow.append('feOffset')
+            .attr('result', "offOut")
+            .attr('in', "SourceAlpha")
+            .attr('dx', "0")
+            .attr('dy', "0");
+        shadow.append('feGaussianBlur')
+            .attr('result', "blurOut")
+            .attr('in', "offOut")
+            .attr('stdDeviation', "2");
+        shadow.append('feBlend')
+            .attr('in', "SourceGraphic")
+            .attr('in2', "blurOut")
+            .attr('mode', "normal");
         */
 
         dg.graph.haloLayer = dg.graph.svgSelection.append("g")
