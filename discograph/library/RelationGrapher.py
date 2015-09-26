@@ -143,28 +143,42 @@ class RelationGrapher(object):
         entity_query_cap -= (1 + len(provisional_role_names)) * 2
         entity_query_cap //= 2
 
+        break_on_next_loop = False
+
         for distance in range(self.degree + 1):
 
             current_entity_keys_to_visit = list(entity_keys_to_visit)
             for key in current_entity_keys_to_visit:
                 nodes.setdefault(key, self.entity_key_to_node(key, distance))
+
             print('    At distance {}:'.format(distance))
-            print('        {} new nodes'.format(len(current_entity_keys_to_visit)))
-            print('        {} old nodes'.format(len(nodes) - len(current_entity_keys_to_visit)))
+            print('        {} new nodes'.format(
+                len(current_entity_keys_to_visit)))
+            print('        {} old nodes'.format(
+                len(nodes) - len(current_entity_keys_to_visit)))
             print('        {} old links'.format(len(links)))
 
-            if 1 < distance and self.max_nodes and self.max_nodes < len(nodes):
-                print('        Maxed out node count.')
+            if break_on_next_loop:
+                print('        Leaving search loop.')
                 break
+            if (
+                1 < distance and
+                self.max_nodes and
+                self.max_nodes <= len(nodes)
+                ):
+                print('        Maxed out node count.')
+                break_on_next_loop = True
 
             entity_keys_to_visit.clear()
             relations = []
-            for i in range(0, len(current_entity_keys_to_visit), entity_query_cap):
+            range_stop = len(current_entity_keys_to_visit)
+            for start in range(0, range_stop, entity_query_cap):
                 # Split into multiple queries to avoid variable maximum.
+                stop = start + entity_query_cap
                 print('        Querying: {} to {} of {} new nodes'.format(
-                    i, i + entity_query_cap, len(current_entity_keys_to_visit)
+                    start, stop, len(current_entity_keys_to_visit)
                     ))
-                entity_key_slice = current_entity_keys_to_visit[i:i + entity_query_cap]
+                entity_key_slice = current_entity_keys_to_visit[start:stop]
                 relations.extend(SQLRelation.search_multi(
                     entity_key_slice,
                     role_names=provisional_role_names,
@@ -233,7 +247,8 @@ class RelationGrapher(object):
         for key in entity_keys_to_visit:
             node = nodes.get(key)
             self.prune_node(node, nodes, links)
-        print('    Pruned unvisited: {} / {}'.format(len(nodes), len(links)))
+        print('    Pruned unvisited: {} / {}'.format(
+            len(nodes), len(links)))
 
         # Prune nodes beyond maximum.
         if self.max_nodes:
@@ -242,7 +257,8 @@ class RelationGrapher(object):
                 )[self.max_nodes:]
             for node in nodes_to_prune:
                 self.prune_node(node, nodes, links)
-        print('    Pruned by max nodes: {} / {}'.format(len(nodes), len(links)))
+        print('    Pruned by max nodes: {} / {}'.format(
+            len(nodes), len(links)))
 
         # Prune links beyond maximum.
         if self.max_links:
@@ -252,7 +268,8 @@ class RelationGrapher(object):
             for link in links_to_prune:
                 print(self.link_sorter(link))
                 self.prune_link(link, nodes, links)
-        print('    Pruned by max links: {} / {}'.format(len(nodes), len(links)))
+        print('    Pruned by max links: {} / {}'.format(
+            len(nodes), len(links)))
 
         print('Finally: {} / {}'.format(len(nodes), len(links)))
         return nodes, links
@@ -315,7 +332,12 @@ class RelationGrapher(object):
             node['size'] = len(node.pop('members'))
             node['links'] = tuple(sorted(node['links']))
         links = tuple(sorted(links.values(),
-            key=lambda x: (x['source'], x['role'], x['target'], x.get('release_id'))))
+            key=lambda x: (
+                x['source'],
+                x['role'],
+                x['target'],
+                x.get('release_id')
+                )))
         for link in links:
             if link['source'][0] == 1:
                 link['source'] = 'artist-{}'.format(link['source'][1])
@@ -325,7 +347,8 @@ class RelationGrapher(object):
                 link['target'] = 'artist-{}'.format(link['target'][1])
             else:
                 link['target'] = 'label-{}'.format(link['target'][1])
-        nodes = tuple(sorted(nodes.values(), key=lambda x: (x['type'], x['id'])))
+        nodes = tuple(sorted(nodes.values(),
+            key=lambda x: (x['type'], x['id'])))
         if type(self.center_entity) in (Artist, SQLArtist):
             center = 'artist-{}'.format(self.center_entity.discogs_id)
         else:
