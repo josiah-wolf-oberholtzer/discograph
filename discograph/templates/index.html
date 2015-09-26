@@ -10,8 +10,8 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="/static/css/discograph.css"/>
     <link rel="stylesheet" href="/static/css/typeahead-bootstrap.css">
+    <link rel="stylesheet" href="/static/css/discograph.css"/>
     <meta property="og:description" content=" Discograph provides an
     interactive visualization of the relationships between nearly 5 million
     artists, bands and labels using information derived from the Discogs
@@ -43,9 +43,14 @@
         <div>
         <div class="collapse navbar-collapse" id="navbar-details">
             <form id="search" class="navbar-form navbar-right" role="search" method="get">
-                <div class="form-group has-feedback">
-                    <input id="typeahead" type="text" class="form-control" placeholder="Search">
-                    <span class="loading glyphicon glyphicon-refresh form-control-feedback glyphicon-animate invisible"></span> 
+                <div class="input-group">
+                    <div class="form-group has-feedback">
+                        <input id="typeahead" type="text" class="form-control" placeholder="Search">
+                        <span class="loading glyphicon glyphicon-refresh form-control-feedback glyphicon-animate invisible"></span> 
+                    </div>
+                    <a class="clear input-group-addon">
+                        <i class="glyphicon glyphicon-remove"></i>
+                    </a>
                 </div>
             </form>
             <ul class="nav navbar-nav navbar-right">
@@ -197,10 +202,8 @@ $(document).ready(function() {
 <script>
 $(document).ready(function() {
     dg.init();
-});
-$(function () {
     $('[data-toggle="tooltip"]').tooltip()
-})
+});
 </script>
 
 <script>

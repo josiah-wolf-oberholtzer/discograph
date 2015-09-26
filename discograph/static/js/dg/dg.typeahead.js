@@ -61,6 +61,9 @@ var dg = (function(dg){
             $(this).data("selectedKey", datum.key);
             navigate();
         });
+        $('#search .clear').click(function() {
+            $('#typeahead').typeahead('val', '');
+        });
     };
     dg.typeahead = {
         init: init,
