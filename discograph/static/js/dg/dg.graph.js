@@ -234,9 +234,18 @@ var dg = (function(dg){
     }
 
     function onNodeEnterElementConstruction(nodeEnter) {
+
         var artistEnter = nodeEnter.select(function(d) { 
             return d.type == 'artist' ? this : null;
         });
+        artistEnter
+            .append("circle")
+            .attr("class", "shadow")
+            .attr("cx", 5)
+            .attr("cy", 5)
+            .attr("r", function(d) {
+                return 7 + getOuterRadius(d)
+            });
         artistEnter
             .select(function(d, i) {return 0 < d.size ? this : null; })
             .append("circle")
@@ -246,6 +255,7 @@ var dg = (function(dg){
             .append("circle")
             .attr("class", "inner")
             .attr("r", getInnerRadius);
+
         var labelEnter = nodeEnter.select(function(d) { 
             return d.type == 'label' ? this : null;
         });
@@ -725,23 +735,15 @@ var dg = (function(dg){
             .attr("x", "-50%")
             .attr("height", "300%")
             .attr("width", "300%");
-
-        // SourceAlpha refers to opacity of graphic that this filter will be applied to
-        // convolve that with a Gaussian with standard deviation 3 and store result
-        // in blur
         filter.append("feGaussianBlur")
             .attr("in", "SourceAlpha")
             .attr("stdDeviation", 3)
             .attr("result", "blur");
-
-        // translate output of Gaussian blur to the right and downwards with 2px
-        // store result in offsetBlur
         filter.append("feOffset")
             .attr("in", "blur")
             .attr("dx", 4)
             .attr("dy", 4)
             .attr("result", "offsetBlur");
-
         var feComponentTransfer = filter.append("feComponentTransfer")
             .attr("in", "offsetBlur")
             .attr("result", "lightenedBlur");
@@ -749,36 +751,30 @@ var dg = (function(dg){
             .attr("type", "linear")
             .attr("slope", 0.25)
             .attr("intercept", 0);
-
-        // overlay original SourceGraphic over translated blurred opacity by using
-        // feMerge filter. Order of specifying inputs is important!
         var feMerge = filter.append("feMerge");
         feMerge.append("feMergeNode")
             .attr("in", "lightenedBlur")
         feMerge.append("feMergeNode")
             .attr("in", "SourceGraphic");
 
-        /*
-        var shadow = defs.append("filter")
-            .attr("id", "shadow")
-            .attr('height', '200%')
-            .attr('width', '200%')
-            .attr('x', 0)
-            .attr('y', 0);
-        shadow.append('feOffset')
-            .attr('result', "offOut")
-            .attr('in', "SourceAlpha")
-            .attr('dx', "0")
-            .attr('dy', "0");
-        shadow.append('feGaussianBlur')
-            .attr('result', "blurOut")
-            .attr('in', "offOut")
-            .attr('stdDeviation', "2");
-        shadow.append('feBlend')
-            .attr('in', "SourceGraphic")
-            .attr('in2', "blurOut")
-            .attr('mode', "normal");
-        */
+        var gradient = defs.append('radialGradient')
+            .attr('id', 'radial-gradient');
+        gradient.append('stop')
+            .attr('offset', '0%')
+            .attr('stop-color', '#333')
+            .attr('stop-opacity', '100%');
+        gradient.append('stop')
+            .attr('offset', '50%')
+            .attr('stop-color', '#333')
+            .attr('stop-opacity', '33%');
+        gradient.append('stop')
+            .attr('offset', '75%')
+            .attr('stop-color', '#333')
+            .attr('stop-opacity', '11%');
+        gradient.append('stop')
+            .attr('offset', '100%')
+            .attr('stop-color', '#333')
+            .attr('stop-opacity', '0%');
 
         dg.graph.haloLayer = dg.graph.svgSelection.append("g")
             .attr("id", "haloLayer");

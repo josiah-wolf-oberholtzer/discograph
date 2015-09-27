@@ -37,8 +37,9 @@ svg {
     stroke-width: 1.5px;
     }
 
-.node circle.inner {
-    filter: url(#drop-shadow);
+.node circle.shadow {
+    fill: url(#radial-gradient);
+    stroke: none;
     }
 
 .node text.inner {
