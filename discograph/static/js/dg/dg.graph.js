@@ -97,11 +97,7 @@ var dg = (function(dg){
 
         var node = dg.graph.nodeMap.get(key);
         var url = 'http://discogs.com/' + node.type + '/' + node.id;
-        var name = node.name;
-        if (25 < name.length) {
-            name = name.slice(0, 25) + '...';
-        }
-        $('#entity-name').text(name);
+        $('#entity-name').text(node.name);
         $('#entity-link')
             .attr('href', url)
             .removeClass('hidden')

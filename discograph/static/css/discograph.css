@@ -9,6 +9,10 @@ svg {
     position: fixed;
     }
 
+body {
+    padding-top: 70px;
+}
+
 svg {
     background-color: #fff;
     z-index: -1;
@@ -117,6 +121,8 @@ a.input-group-addon:active {
     100% { -webkit-transform: rotate(359deg); transform: rotate(359deg); }
     }
 
-body {
-    padding-top: 70px;
-}
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    }
