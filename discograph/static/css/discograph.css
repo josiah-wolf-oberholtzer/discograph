@@ -47,7 +47,6 @@ svg {
     font: 10px sans-serif;
     fill: #000;
     stroke: none;
-    //filter: url(#drop-shadow);
     }
 
 .node text.outer {
@@ -61,7 +60,6 @@ svg {
 .node text.icon {
     cursor: pointer;
     fill: #fff;
-    //filter: url(#drop-shadow);
     font-family: 'Glyphicons Halflings';
     font-style: normal;
     font-weight: 200;

@@ -1,0 +1,40 @@
+<nav id="nav-top" class="navbar navbar-default navbar-fixed-top"> 
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-details" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a id="brand" href="/random" class="navbar-brand"
+                title="choose a random artist" data-toggle="tooltip" 
+                data-placement="bottom">
+                DISCOGRAPH
+                <span id="page-loading" class="glyphicon glyphicon-random glyphicon" style="font-size: 0.9em;"></span>
+            </a>
+        </div>
+        <div>
+        <div class="collapse navbar-collapse" id="navbar-details">
+            <form id="search" class="navbar-form navbar-right" role="search" method="get">
+                <div class="input-group">
+                    <div class="form-group has-feedback">
+                        <input id="typeahead" type="text" class="form-control" placeholder="Search">
+                        <span class="loading glyphicon glyphicon-refresh form-control-feedback glyphicon-animate invisible"></span> 
+                    </div>
+                    <a class="clear input-group-addon">
+                        <i class="glyphicon glyphicon-remove"></i>
+                    </a>
+                </div>
+            </form>
+            <ul class="nav navbar-nav navbar-right">
+                <li data-toggle="tooltip" data-placement="bottom" title="what is this?">
+                    <a data-toggle="modal" data-target="#modal-what">WHAT</a>
+                </li>
+                <li data-toggle="tooltip" data-placement="bottom" title="who made this?">
+                    <a data-toggle="modal" data-target="#modal-who">WHO</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

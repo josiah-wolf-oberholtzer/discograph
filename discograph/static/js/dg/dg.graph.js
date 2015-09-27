@@ -91,8 +91,17 @@ var dg = (function(dg){
         textOff.select(".icon").remove();
 
         if (key === null) {
+            $('#entity-link').hide(0);
             return;
         }
+
+        var node = dg.graph.nodeMap.get(key);
+        var url = 'http://discogs.com/' + node.type + '/' + node.id;
+        $('#entity-name').text(node.name);
+        $('#entity-link')
+            .attr('href', url)
+            .removeClass('hidden')
+            .show(0);
 
         var haloOn = dg.graph.haloSelection.filter(".node-" + key);
         var linkOn = dg.graph.linkSelection.filter(function(d) { 
@@ -107,6 +116,7 @@ var dg = (function(dg){
         nodeOn.style("stroke", "#000")
         textOn.moveToFront();
 
+        /*
         textOn.select('.icon').remove();
         var icon = textOn.append('text')
             .classed('icon', true)
@@ -128,6 +138,7 @@ var dg = (function(dg){
             var url = 'http://discogs.com/' + d.type + '/' + d.id;
             window.open(url);
         });
+        */
 
     }
 
