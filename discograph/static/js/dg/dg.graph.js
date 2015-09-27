@@ -719,6 +719,45 @@ var dg = (function(dg){
             .attr("stroke-width", 1.5)
             ;
 
+        var filter = defs.append("filter")
+            .attr("id", "drop-shadow")
+            .attr("y", "-50%")
+            .attr("x", "-50%")
+            .attr("height", "300%")
+            .attr("width", "300%");
+
+        // SourceAlpha refers to opacity of graphic that this filter will be applied to
+        // convolve that with a Gaussian with standard deviation 3 and store result
+        // in blur
+        filter.append("feGaussianBlur")
+            .attr("in", "SourceAlpha")
+            .attr("stdDeviation", 3)
+            .attr("result", "blur");
+
+        // translate output of Gaussian blur to the right and downwards with 2px
+        // store result in offsetBlur
+        filter.append("feOffset")
+            .attr("in", "blur")
+            .attr("dx", 4)
+            .attr("dy", 4)
+            .attr("result", "offsetBlur");
+
+        var feComponentTransfer = filter.append("feComponentTransfer")
+            .attr("in", "offsetBlur")
+            .attr("result", "lightenedBlur");
+        feComponentTransfer.append("feFuncA")
+            .attr("type", "linear")
+            .attr("slope", 0.25)
+            .attr("intercept", 0);
+
+        // overlay original SourceGraphic over translated blurred opacity by using
+        // feMerge filter. Order of specifying inputs is important!
+        var feMerge = filter.append("feMerge");
+        feMerge.append("feMergeNode")
+            .attr("in", "lightenedBlur")
+        feMerge.append("feMergeNode")
+            .attr("in", "SourceGraphic");
+
         /*
         var shadow = defs.append("filter")
             .attr("id", "shadow")

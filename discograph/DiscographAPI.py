@@ -93,8 +93,8 @@ class DiscographAPI(object):
             #'Backing Vocals',
             ]
         if not on_mobile:
-            max_nodes = 100
-            max_links = 200
+            max_nodes = 75
+            max_links = 150
             degree = 12
         else:
             max_nodes = 25
