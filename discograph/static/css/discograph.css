@@ -14,6 +14,14 @@ svg {
     z-index: -1;
     }
 
+a.input-group-addon {
+    color: #337ab7;
+    }
+
+a.input-group-addon:active {
+    background-color: #ccc;
+    }
+
 .link .inner {
     fill: none;
     stroke-linecap: round;

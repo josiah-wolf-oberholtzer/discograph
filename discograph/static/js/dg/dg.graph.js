@@ -97,7 +97,11 @@ var dg = (function(dg){
 
         var node = dg.graph.nodeMap.get(key);
         var url = 'http://discogs.com/' + node.type + '/' + node.id;
-        $('#entity-name').text(node.name);
+        var name = node.name;
+        if (25 < name.length) {
+            name = name.slice(0, 25) + '...';
+        }
+        $('#entity-name').text(name);
         $('#entity-link')
             .attr('href', url)
             .removeClass('hidden')
@@ -115,30 +119,6 @@ var dg = (function(dg){
         nodeOn.select(".more").style("fill", "#000");
         nodeOn.style("stroke", "#000")
         textOn.moveToFront();
-
-        /*
-        textOn.select('.icon').remove();
-        var icon = textOn.append('text')
-            .classed('icon', true)
-            .attr('dx', function(d) {
-                return (-1 * d.radius) - 28;
-            })
-            .attr('dy', 10)
-            .text('\ue164');
-        icon.append('title').text(function(d) {
-            return 'View ' + d.name + ' on Discogs.com'; 
-        });
-        icon.on('mouseover', function(d) {
-            d3.select(this).transition().duration(0).style('opacity', '1');
-        });
-        icon.on('mouseout', function(d) {
-            d3.select(this).transition().duration(100).style('opacity', '0.5');
-        });
-        icon.on('mousedown', function(d) {
-            var url = 'http://discogs.com/' + d.type + '/' + d.id;
-            window.open(url);
-        });
-        */
 
     }
 
