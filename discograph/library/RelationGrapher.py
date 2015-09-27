@@ -151,22 +151,22 @@ class RelationGrapher(object):
             for key in current_entity_keys_to_visit:
                 nodes.setdefault(key, self.entity_key_to_node(key, distance))
 
-            print('    At distance {}:'.format(distance))
-            print('        {} new nodes'.format(
-                len(current_entity_keys_to_visit)))
-            print('        {} old nodes'.format(
-                len(nodes) - len(current_entity_keys_to_visit)))
-            print('        {} old links'.format(len(links)))
+            #print('    At distance {}:'.format(distance))
+            #print('        {} new nodes'.format(
+            #    len(current_entity_keys_to_visit)))
+            #print('        {} old nodes'.format(
+            #    len(nodes) - len(current_entity_keys_to_visit)))
+            #print('        {} old links'.format(len(links)))
 
             if break_on_next_loop:
-                print('        Leaving search loop.')
+                #print('        Leaving search loop.')
                 break
             if (
                 1 < distance and
                 self.max_nodes and
                 self.max_nodes <= len(nodes)
                 ):
-                print('        Maxed out node count.')
+                #print('        Maxed out node count.')
                 break_on_next_loop = True
 
             entity_keys_to_visit.clear()
@@ -175,9 +175,9 @@ class RelationGrapher(object):
             for start in range(0, range_stop, entity_query_cap):
                 # Split into multiple queries to avoid variable maximum.
                 stop = start + entity_query_cap
-                print('        Querying: {} to {} of {} new nodes'.format(
-                    start, stop, len(current_entity_keys_to_visit)
-                    ))
+                #print('        Querying: {} to {} of {} new nodes'.format(
+                #    start, stop, len(current_entity_keys_to_visit)
+                #    ))
                 entity_key_slice = current_entity_keys_to_visit[start:stop]
                 relations.extend(SQLRelation.search_multi(
                     entity_key_slice,
@@ -208,7 +208,7 @@ class RelationGrapher(object):
                 nodes[e1k]['links'].add(link['key'])
                 nodes[e2k]['links'].add(link['key'])
 
-        print('    Collected: {} / {}'.format(len(nodes), len(links)))
+        #print('    Collected: {} / {}'.format(len(nodes), len(links)))
 
         # Query node names.
         artist_ids = []
@@ -241,14 +241,14 @@ class RelationGrapher(object):
         for node in tuple(nodes.values()):
             if not node.get('name'):
                 self.prune_node(node, nodes, links, update_missing_count=False)
-        print('    Pruning nameless: {} / {}'.format(len(nodes), len(links)))
+        #print('    Pruning nameless: {} / {}'.format(len(nodes), len(links)))
 
         # Prune unvisited nodes and links.
         for key in entity_keys_to_visit:
             node = nodes.get(key)
             self.prune_node(node, nodes, links)
-        print('    Pruned unvisited: {} / {}'.format(
-            len(nodes), len(links)))
+        #print('    Pruned unvisited: {} / {}'.format(
+        #    len(nodes), len(links)))
 
         # Prune nodes beyond maximum.
         if self.max_nodes:
@@ -257,8 +257,8 @@ class RelationGrapher(object):
                 )[self.max_nodes:]
             for node in nodes_to_prune:
                 self.prune_node(node, nodes, links)
-        print('    Pruned by max nodes: {} / {}'.format(
-            len(nodes), len(links)))
+        #print('    Pruned by max nodes: {} / {}'.format(
+        #    len(nodes), len(links)))
 
         # Prune links beyond maximum.
         if self.max_links:
@@ -266,12 +266,11 @@ class RelationGrapher(object):
                 key=self.link_sorter,
                 )[self.max_links:]
             for link in links_to_prune:
-                print(self.link_sorter(link))
                 self.prune_link(link, nodes, links)
-        print('    Pruned by max links: {} / {}'.format(
-            len(nodes), len(links)))
+        #print('    Pruned by max links: {} / {}'.format(
+        #    len(nodes), len(links)))
 
-        print('Finally: {} / {}'.format(len(nodes), len(links)))
+        #print('Finally: {} / {}'.format(len(nodes), len(links)))
         return nodes, links
 
     def prune_link(self, link, nodes, links, update_missing_count=True):

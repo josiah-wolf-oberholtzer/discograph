@@ -1,7 +1,11 @@
 # -*- encoding: utf-8 -*-
+import flask
+import functools
 import os
 import random
 import re
+import redis
+import time
 try:
     from configparser import ConfigParser
 except ImportError:
@@ -33,6 +37,7 @@ class DiscographAPI(object):
         if not os.path.exists(cache_path):
             os.makedirs(cache_path)
         self._app = app
+        self._redis = redis.StrictRedis()
         self._cache = FileSystemCache(
             cache_path,
             default_timeout=60 * 60 * 48,
@@ -119,6 +124,34 @@ class DiscographAPI(object):
             entity_id = relation.entity_two_id
         return entity_type, entity_id
 
+    def limit(self, requests=10, window=60):
+        def decorator(f):
+            @functools.wraps(f)
+            def wrapped(*args, **kwargs):
+                key = 'ratelimit:{}:{}'.format(
+                    flask.request.endpoint,
+                    flask.request.remote_addr,
+                    )
+                try:
+                    remaining = requests - int(self.redis.get(key))
+                except (ValueError, TypeError):
+                    remaining = requests
+                    self.redis.setex(key, window, 0)
+                ttl = self.redis.ttl(key)
+                if not ttl:
+                    self.redis.expire(key, window)
+                    ttl = window
+                flask.g.view_limits = (requests, remaining - 1, time.time() + ttl)
+                if 0 < remaining:
+                    self.redis.incr(key, 1)
+                    print(key, remaining, ttl)
+                    return f(*args, **kwargs)
+                else:
+                    print(key, remaining, ttl)
+                    return flask.Response('Too Many Requests', 429)
+            return wrapped
+        return decorator
+
     def search_entities(self, search_string):
         import discograph
         cache_key = 'discograph:/api/search/{}'.format(
@@ -152,3 +185,7 @@ class DiscographAPI(object):
     @property
     def cache(self):
         return self._cache
+
+    @property
+    def redis(self):
+        return self._redis

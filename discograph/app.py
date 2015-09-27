@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 import discograph
-from flask import Flask, abort, jsonify, make_response, redirect, render_template, request
+from flask import Flask, abort, jsonify, make_response, redirect, render_template, request, g
 from flask.ext.mobility import Mobility
 
 
@@ -61,6 +61,7 @@ def route__random():
 
 
 @app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
+@app.api.limit(requests=100, window=60)
 def route__api__cluster(artist_id):
     on_mobile = request.MOBILE
     data = app.api.get_artist_network(artist_id, on_mobile=on_mobile)
@@ -70,9 +71,24 @@ def route__api__cluster(artist_id):
 
 
 @app.route('/api/search/<search_string>', methods=['GET'])
+@app.api.limit(requests=200, window=60)
 def route__api__search(search_string):
     data = app.api.search_entities(search_string)
     return jsonify(data)
+
+
+@app.after_request
+def inject_rate_limit_headers(response):
+    try:
+        requests, remaining, reset = map(int, g.view_limits)
+    except (AttributeError, ValueError):
+        return response
+    else:
+        h = response.headers
+        h.add('X-RateLimit-Remaining', remaining)
+        h.add('X-RateLimit-Limit', requests)
+        h.add('X-RateLimit-Reset', reset)
+        return response
 
 
 if __name__ == '__main__':
