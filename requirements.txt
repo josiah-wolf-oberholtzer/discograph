@@ -5,5 +5,5 @@ gunicorn
 mongoengine
 peewee
 pytest
-python-memcached
+redis
 six
