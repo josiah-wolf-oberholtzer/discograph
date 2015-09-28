@@ -307,8 +307,8 @@ class Relation(Model, mongoengine.Document):
                 role_name=mongo_document.get('role_name'),
                 random=random.random(),
                 ))
-            if mongo_document.get('role_name') not in ('Alias', 'Member Of'):
-                break
+            #if mongo_document.get('role_name') not in ('Alias', 'Member Of'):
+            #    break
             if len(rows) == 100:
                 discograph.SQLRelation.insert_many(rows).execute()
                 rows = []
