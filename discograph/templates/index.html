@@ -20,6 +20,19 @@
     <meta property="og:site_name" content="Discograph"/>
     <meta property="og:url" content="{{ application_url }}{{ og_url }}"/>
     <meta property="og:image" content="{{ application_url }}/static/img/og_image.png"/>
+    <script>
+    if (!String.prototype.format) {
+        String.prototype.format = function() {
+            var args = arguments;
+            return this.replace(/{(\d+)}/g, function(match, number) { 
+            return typeof args[number] != 'undefined'
+                ? args[number]
+                : match
+            ;
+            });
+        };
+    }
+    </script>
 </head>
 
 <body id="{{ key }}">
