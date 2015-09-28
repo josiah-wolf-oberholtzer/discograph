@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+import random
 import peewee
 from discograph.library.SQLModel import SQLModel
 
@@ -25,6 +26,14 @@ class SQLRelation(SQLModel):
             )
 
     ### PUBLIC METHODS ###
+
+    @classmethod
+    def get_random(cls, role_names=None):
+        n = random.random()
+        where_clause = (cls.random > n)
+        if role_names:
+            where_clause &= cls.role_name.in_(role_names)
+        return cls.select().where(where_clause).order_by(cls.random).get()
 
     @classmethod
     def search(cls, entity_id, entity_type=1, role_names=None, query_only=False):
