@@ -52,19 +52,84 @@ def route__artist_id(artist_id):
     return response
 
 
+@app.route('/label/<int:label_id>', methods=['GET'])
+def route__label_id(label_id):
+    label = app.api.get_label(label_id)
+    if label is None:
+        abort(404)
+    is_a_return_visitor = request.cookies.get('is_a_return_visitor')
+    key = 'label-{}'.format(label.id)
+    url = '/label/{}'.format(label.id)
+    title = 'discograph: {}'.format(label.name)
+    rendered_template = render_template(
+        'index.html',
+        application_url=app.api.application_url,
+        is_a_return_visitor=is_a_return_visitor,
+        key=key,
+        og_title='Discograph: The "{}" network'.format(label.name),
+        og_url=url,
+        on_mobile=request.MOBILE,
+        title=title,
+        )
+    response = make_response(rendered_template)
+    response.set_cookie('is_a_return_visitor', 'true')
+    return response
+
+
 @app.route('/random')
 def route__random():
-    entity_type, entity_id = app.api.get_random_entity()
+    role_names = [
+        'Alias',
+        'Member Of',
+        #'Released On',
+        #'Sublabel Of',
+        #'Producer',
+        #'Remix',
+        #'Guitar',
+        #'Bass Guitar',
+        #'Rhythm Guitar',
+        #'Electric Guitar',
+        #'Lead Guitar',
+        #'Drums',
+        #'Vocals',
+        #'Lead Vocals',
+        #'Backing Vocals',
+        ]
+    entity_type, entity_id = app.api.get_random_entity(role_names)
     if entity_type == 1:
         return redirect('/artist/{}'.format(entity_id), code=302)
     return redirect('/label/{}'.format(entity_id), code=302)
 
 
-@app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
+@app.route('/api/<entity_type>/network/<int:entity_id>', methods=['GET'])
 @app.api.limit(requests=100, window=60)
-def route__api__cluster(artist_id):
+def route__api__network(entity_type, entity_id):
+    if entity_type not in ('artist', 'label'):
+        abort(404)
     on_mobile = request.MOBILE
-    data = app.api.get_artist_network(artist_id, on_mobile=on_mobile)
+    role_names = [
+        'Alias',
+        'Member Of',
+        #'Released On',
+        #'Sublabel Of',
+        #'Producer',
+        #'Remix',
+        #'Guitar',
+        #'Bass Guitar',
+        #'Rhythm Guitar',
+        #'Electric Guitar',
+        #'Lead Guitar',
+        #'Drums',
+        #'Vocals',
+        #'Lead Vocals',
+        #'Backing Vocals',
+        ]
+    data = app.api.get_network(
+        entity_type,
+        entity_id,
+        on_mobile=on_mobile,
+        role_names=role_names,
+        )
     if data is None:
         abort(404)
     return jsonify(data)

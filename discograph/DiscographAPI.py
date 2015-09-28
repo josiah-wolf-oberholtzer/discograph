@@ -67,31 +67,29 @@ class DiscographAPI(object):
             return None
         return result[0]
 
-    def get_artist_network(self, artist_id, on_mobile=False):
+    def get_label(self, label_id):
         import discograph
-        cache_key = 'discograph:/api/artist/network/{}'.format(artist_id)
-        if on_mobile:
-            cache_key = '{}/mobile'.format(cache_key)
-        data = self.cache_get(cache_key)
-        if data is not None:
-            return data
-        artist = self.get_artist(artist_id)
-        if artist is None:
+        query = discograph.SQLLabel.select()
+        query = query.where(discograph.SQLLabel.id == label_id)
+        result = list(query)
+        if not result:
             return None
-        role_names = [
-            'Alias',
-            'Member Of',
-            #'Producer',
-            #'Guitar',
-            #'Bass Guitar',
-            #'Rhythm Guitar',
-            #'Electric Guitar',
-            #'Lead Guitar',
-            #'Drums',
-            #'Vocals',
-            #'Lead Vocals',
-            #'Backing Vocals',
-            ]
+        return result[0]
+
+    def get_network(self, entity_type, entity_id, on_mobile=False, role_names=None, year=None):
+        import discograph
+        #cache_key = 'discograph:/api/{}/network/{}'.format(entity_type, entity_id)
+        #if on_mobile:
+        #    cache_key = '{}/mobile'.format(cache_key)
+        #data = self.cache_get(cache_key)
+        #if data is not None:
+        #    return data
+        if entity_type == 'artist':
+            entity = self.get_artist(entity_id)
+        elif entity_type == 'label':
+            entity = self.get_label(entity_id)
+        if entity is None:
+            return None
         if not on_mobile:
             max_nodes = 75
             max_links = 150
@@ -101,20 +99,21 @@ class DiscographAPI(object):
             max_links = 75
             degree = 6
         relation_grapher = discograph.RelationGrapher(
-            center_entity=artist,
+            center_entity=entity,
             degree=degree,
             max_nodes=max_nodes,
             max_links=max_links,
             role_names=role_names,
+            year=year,
             )
         with systemtools.Timer(exit_message='Network query time:'):
-            data = relation_grapher.get_network_2()
-        self.cache_set(cache_key, data)
+            data = relation_grapher.get_network()
+        #self.cache_set(cache_key, data)
         return data
 
-    def get_random_entity(self):
+    def get_random_entity(self, role_names=None):
         import discograph
-        relation = discograph.SQLRelation.get_random()
+        relation = discograph.SQLRelation.get_random(role_names=role_names)
         entity_choice = random.randint(1, 2)
         if entity_choice == 1:
             entity_type = relation.entity_one_type
@@ -144,10 +143,10 @@ class DiscographAPI(object):
                 flask.g.view_limits = (requests, remaining - 1, time.time() + ttl)
                 if 0 < remaining:
                     self.redis.incr(key, 1)
-                    print(key, remaining, ttl)
+                    #print(key, remaining, ttl)
                     return f(*args, **kwargs)
                 else:
-                    print(key, remaining, ttl)
+                    #print(key, remaining, ttl)
                     return flask.Response('Too Many Requests', 429)
             return wrapped
         return decorator

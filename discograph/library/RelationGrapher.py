@@ -2,6 +2,7 @@
 import collections
 import re
 import six
+from concurrent.futures import ThreadPoolExecutor
 from discograph.library.Artist import Artist
 from discograph.library.ArtistRole import ArtistRole
 from discograph.library.Label import Label
@@ -26,6 +27,7 @@ class RelationGrapher(object):
         max_links=None,
         max_nodes=None,
         role_names=None,
+        year=None,
         ):
         prototype = (Artist, Label, SQLArtist, SQLLabel)
         assert isinstance(center_entity, prototype)
@@ -52,6 +54,13 @@ class RelationGrapher(object):
             assert all(_ in ArtistRole._available_credit_roles
                 for _ in role_names)
         self.role_names = role_names
+        if year is not None:
+            if isinstance(year, collections.Sequence):
+                year = tuple(int(_) for _ in year)
+                assert len(year) == 2
+            else:
+                year = int(year)
+        self.year = year
 
     @classmethod
     def get_link_key(cls, link):
@@ -65,53 +74,14 @@ class RelationGrapher(object):
             target_type = 'artist'
         else:
             target_type = 'label'
-        return '{}-{}-{}-{}-{}'.format(
+        pieces = [
             source_type,
             source_id,
             cls.word_pattern.sub('-', link['role']).lower(),
             target_type,
             target_id,
-            )
-
-    def relation_to_link(self, relation):
-        link = relation.copy()
-        entity_one_id = link['entity_one_id']
-        entity_one_type = link['entity_one_type']
-        #entity_one_type = Relation.EntityType(entity_one_type)
-        #entity_one_type = entity_one_type.name.lower()
-        source_key = (entity_one_type, entity_one_id)
-        link['source'] = source_key
-        entity_two_id = link['entity_two_id']
-        entity_two_type = link['entity_two_type']
-        #entity_two_type = Relation.EntityType(entity_two_type)
-        #entity_two_type = entity_two_type.name.lower()
-        target_key = (entity_two_type, entity_two_id)
-        link['target'] = target_key
-        link['role'] = link['role_name']
-        link['key'] = self.get_link_key(link)
-        if '_id' in link: del(link['_id'])
-        if 'country' in link: del(link['country'])
-        if 'entity_one_id' in link: del(link['entity_one_id'])
-        if 'entity_one_type' in link: del(link['entity_one_type'])
-        if 'entity_two_id' in link: del(link['entity_two_id'])
-        if 'entity_two_type' in link: del(link['entity_two_type'])
-        if 'id' in link: del(link['id'])
-        if 'role_name' in link: del(link['role_name'])
-        if 'category' in link and not link.get('category'):
-            del(link['category'])
-        if 'subcategory' in link and not link.get('subcategory'):
-            del(link['subcategory'])
-        if 'genres' in link and not link.get('genres'):
-            del(link['genres'])
-        if 'random' in link:
-            del(link['random'])
-        if 'release_id' in link and not link.get('release_id'):
-            del(link['release_id'])
-        if 'styles' in link and not link.get('styles'):
-            del(link['styles'])
-        if 'year' in link and not link.get('year'):
-            del(link['year'])
-        return link
+            ]
+        return '-'.join(str(_) for _ in pieces)
 
     def entity_key_to_node(self, entity_key, distance):
         node = dict(distance=distance, missing=0, members=set(), aliases=set())
@@ -124,153 +94,73 @@ class RelationGrapher(object):
         node['links'] = set()
         return node
 
-    def collect_entities_2(self):
+    def collect_entities(self, verbose=True):
         original_role_names = self.role_names or ()
         provisional_role_names = set(original_role_names)
         provisional_role_names.update(['Alias', 'Member Of'])
         provisional_role_names = sorted(provisional_role_names)
-
         if type(self.center_entity).__name__.endswith('Artist'):
             initial_key = (1, self.center_entity.discogs_id)
         else:
             initial_key = (2, self.center_entity.discogs_id)
         entity_keys_to_visit = set([initial_key])
-
         links = dict()
         nodes = dict()
-
-        entity_query_cap = 999
-        entity_query_cap -= (1 + len(provisional_role_names)) * 2
-        entity_query_cap //= 2
-
         break_on_next_loop = False
-
         for distance in range(self.degree + 1):
-
             current_entity_keys_to_visit = list(entity_keys_to_visit)
             for key in current_entity_keys_to_visit:
                 nodes.setdefault(key, self.entity_key_to_node(key, distance))
-
-            #print('    At distance {}:'.format(distance))
-            #print('        {} new nodes'.format(
-            #    len(current_entity_keys_to_visit)))
-            #print('        {} old nodes'.format(
-            #    len(nodes) - len(current_entity_keys_to_visit)))
-            #print('        {} old links'.format(len(links)))
-
+            if verbose:
+                print('    At distance {}:'.format(distance))
+                print('        {} old nodes'.format(
+                    len(nodes) - len(current_entity_keys_to_visit)))
+                print('        {} old links'.format(len(links)))
+                print('        {} new nodes'.format(
+                    len(current_entity_keys_to_visit)))
             if break_on_next_loop:
-                #print('        Leaving search loop.')
+                if verbose:
+                    print('        Exiting search loop.')
                 break
-            if (
-                1 < distance and
-                self.max_nodes and
-                self.max_nodes <= len(nodes)
-                ):
-                #print('        Maxed out node count.')
+            if 1 < distance:
+                if self.max_nodes and self.max_nodes <= len(nodes):
+                    if verbose:
+                        print('        Max nodes: exiting next search loop.')
+                    break_on_next_loop = True
+            relations = self.query_relations(
+                entity_keys=current_entity_keys_to_visit,
+                role_names=provisional_role_names,
+                year=None,
+                verbose=verbose,
+                )
+            if verbose:
+                print('            {} new links'.format(len(relations)))
+            if not relations:
                 break_on_next_loop = True
-
+            if 0 < distance:
+                if self.max_links and (self.max_links * 2) <= len(relations):
+                    if verbose:
+                        print('        Max links: exiting next search loop.')
+                    break_on_next_loop = True
             entity_keys_to_visit.clear()
-            relations = []
-            range_stop = len(current_entity_keys_to_visit)
-            for start in range(0, range_stop, entity_query_cap):
-                # Split into multiple queries to avoid variable maximum.
-                stop = start + entity_query_cap
-                #print('        Querying: {} to {} of {} new nodes'.format(
-                #    start, stop, len(current_entity_keys_to_visit)
-                #    ))
-                entity_key_slice = current_entity_keys_to_visit[start:stop]
-                relations.extend(SQLRelation.search_multi(
-                    entity_key_slice,
-                    role_names=provisional_role_names,
-                    ))
             for relation in relations:
-                e1k = (relation['entity_one_type'], relation['entity_one_id'])
-                e2k = (relation['entity_two_type'], relation['entity_two_id'])
-                if e1k not in nodes:
-                    entity_keys_to_visit.add(e1k)
-                    nodes[e1k] = self.entity_key_to_node(e1k, distance + 1)
-                if e2k not in nodes:
-                    entity_keys_to_visit.add(e2k)
-                    nodes[e2k] = self.entity_key_to_node(e2k, distance + 1)
-                if relation['role_name'] == 'Alias':
-                    nodes[e1k]['aliases'].add(e2k[1])
-                    nodes[e2k]['aliases'].add(e1k[1])
-                elif relation['role_name'] in ('Member Of', 'Sublabel Of'):
-                    nodes[e2k]['members'].add(e1k[1])
-                if relation['role_name'] not in original_role_names:
-                    continue
-                link = self.relation_to_link(relation)
-                link['distance'] = min(
-                    nodes[e1k]['distance'],
-                    nodes[e2k]['distance'],
+                self.process_relation(
+                    distance=distance,
+                    entity_keys_to_visit=entity_keys_to_visit,
+                    links=links,
+                    nodes=nodes,
+                    original_role_names=original_role_names,
+                    relation=relation,
                     )
-                links[link['key']] = link
-                nodes[e1k]['links'].add(link['key'])
-                nodes[e2k]['links'].add(link['key'])
-
-        #print('    Collected: {} / {}'.format(len(nodes), len(links)))
-
-        # Query node names.
-        artist_ids = []
-        label_ids = []
-        for entity_type, entity_id in nodes.keys():
-            if entity_type == 1:
-                artist_ids.append(entity_id)
-            else:
-                label_ids.append(entity_id)
-        artists = []
-        for i in range(0, len(artist_ids), 999):
-            query = (SQLArtist
-                .select()
-                .where(SQLArtist.id.in_(artist_ids[i:i + 999]))
-                )
-            artists.extend(query)
-        labels = []
-        for i in range(0, len(artist_ids), 999):
-            query = (SQLLabel
-                .select()
-                .where(SQLLabel.id.in_(label_ids[i:i + 999]))
-                )
-            labels.extend(query)
-        for artist in artists:
-            nodes[(1, artist.id)]['name'] = artist.name
-        for label in labels:
-            nodes[(2, label.id)]['name'] = label.name
-
-        # Prune nameless nodes.
-        for node in tuple(nodes.values()):
-            if not node.get('name'):
-                self.prune_node(node, nodes, links, update_missing_count=False)
-        #print('    Pruning nameless: {} / {}'.format(len(nodes), len(links)))
-
-        # Prune unvisited nodes and links.
-        for key in entity_keys_to_visit:
-            node = nodes.get(key)
-            self.prune_node(node, nodes, links)
-        #print('    Pruned unvisited: {} / {}'.format(
-        #    len(nodes), len(links)))
-
-        # Prune nodes beyond maximum.
-        if self.max_nodes:
-            nodes_to_prune = sorted(nodes.values(),
-                key=lambda x: (x['distance'], x['id']),
-                )[self.max_nodes:]
-            for node in nodes_to_prune:
-                self.prune_node(node, nodes, links)
-        #print('    Pruned by max nodes: {} / {}'.format(
-        #    len(nodes), len(links)))
-
-        # Prune links beyond maximum.
-        if self.max_links:
-            links_to_prune = sorted(links.values(),
-                key=self.link_sorter,
-                )[self.max_links:]
-            for link in links_to_prune:
-                self.prune_link(link, nodes, links)
-        #print('    Pruned by max links: {} / {}'.format(
-        #    len(nodes), len(links)))
-
-        #print('Finally: {} / {}'.format(len(nodes), len(links)))
+        if verbose:
+            print('    Collected: {} / {}'.format(len(nodes), len(links)))
+        self.query_node_names(nodes)
+        self.prune_nameless(nodes, links, verbose=verbose)
+        self.prune_unvisited(entity_keys_to_visit, nodes, links, verbose=verbose)
+        self.prune_excess_nodes(nodes, links, verbose=verbose)
+        self.prune_excess_links(nodes, links, verbose=verbose)
+        if verbose:
+            print('Finally: {} / {}'.format(len(nodes), len(links)))
         return nodes, links
 
     def prune_link(self, link, nodes, links, update_missing_count=True):
@@ -282,7 +172,8 @@ class RelationGrapher(object):
         if source_node is not None:
             if update_missing_count:
                 source_node['missing'] += 1
-            source_node['links'].remove(link['key'])
+            if link['key'] in source_node['links']:
+                source_node['links'].remove(link['key'])
             if not source_node['links']:
                 self.prune_node(source_node, nodes, links,
                     update_missing_count=update_missing_count)
@@ -290,7 +181,8 @@ class RelationGrapher(object):
         if target_node is not None:
             if update_missing_count:
                 target_node['missing'] += 1
-            target_node['links'].remove(link['key'])
+            if link['key'] in target_node['links']:
+                target_node['links'].remove(link['key'])
             if not target_node['links']:
                 self.prune_node(target_node, nodes, links,
                     update_missing_count=update_missing_count)
@@ -309,8 +201,8 @@ class RelationGrapher(object):
             self.prune_link(link, nodes, links,
                 update_missing_count=update_missing_count)
 
-    def get_network_2(self):
-        nodes, links = self.collect_entities_2()
+    def get_network(self):
+        nodes, links = self.collect_entities()
         cluster_count = 0
         cluster_map = {}
         for node in nodes.values():
@@ -367,3 +259,133 @@ class RelationGrapher(object):
         elif link['role'] == 'Member Of':
             role = 1
         return link['distance'], role, link['key']
+
+    def process_relation(
+        self,
+        distance,
+        entity_keys_to_visit,
+        links,
+        nodes,
+        original_role_names,
+        relation,
+        ):
+        e1k = (relation.entity_one_type, relation.entity_one_id)
+        e2k = (relation.entity_two_type, relation.entity_two_id)
+        if e1k not in nodes:
+            entity_keys_to_visit.add(e1k)
+            nodes[e1k] = self.entity_key_to_node(e1k, distance + 1)
+        if e2k not in nodes:
+            entity_keys_to_visit.add(e2k)
+            nodes[e2k] = self.entity_key_to_node(e2k, distance + 1)
+        if relation.role_name == 'Alias':
+            nodes[e1k]['aliases'].add(e2k[1])
+            nodes[e2k]['aliases'].add(e1k[1])
+        elif relation.role_name in ('Member Of', 'Sublabel Of'):
+            nodes[e2k]['members'].add(e1k[1])
+        if relation.role_name not in original_role_names:
+            return
+        link = dict(
+            role=relation.role_name,
+            source=e1k,
+            target=e2k,
+            )
+        if relation.release_id:
+            link['release_id'] = relation.release_id
+        if relation.year:
+            link['year'] = relation.year
+        link['distance'] = min(
+            nodes[e1k]['distance'],
+            nodes[e2k]['distance'],
+            )
+        link['key'] = self.get_link_key(link)
+        links[link['key']] = link
+        nodes[e1k]['links'].add(link['key'])
+        nodes[e2k]['links'].add(link['key'])
+
+    def prune_excess_links(self, nodes, links, verbose=True):
+        if self.max_links:
+            links_to_prune = sorted(links.values(),
+                key=self.link_sorter,
+                )[self.max_links:]
+            for link in links_to_prune:
+                self.prune_link(link, nodes, links)
+        if verbose:
+            print('    Pruned by max links: {} / {}'.format(len(nodes), len(links)))
+
+    def prune_excess_nodes(self, nodes, links, verbose=True):
+        if self.max_nodes:
+            nodes_to_prune = sorted(nodes.values(),
+                key=lambda x: (x['distance'], x['id']),
+                )[self.max_nodes:]
+            for node in nodes_to_prune:
+                self.prune_node(node, nodes, links)
+        if verbose:
+            print('    Pruned by max nodes: {} / {}'.format(len(nodes), len(links)))
+
+    def prune_nameless(self, nodes, links, verbose=True):
+        for node in tuple(nodes.values()):
+            if not node.get('name'):
+                self.prune_node(node, nodes, links, update_missing_count=False)
+        if verbose:
+            print('    Pruning nameless: {} / {}'.format(len(nodes), len(links)))
+
+    def prune_unvisited(self, entity_keys_to_visit, nodes, links, verbose=True):
+        for key in entity_keys_to_visit:
+            node = nodes.get(key)
+            self.prune_node(node, nodes, links)
+        if verbose:
+            print('    Pruned unvisited: {} / {}'.format(len(nodes), len(links)))
+
+    def query_node_names(self, nodes):
+        artist_ids = []
+        label_ids = []
+        for entity_type, entity_id in nodes.keys():
+            if entity_type == 1:
+                artist_ids.append(entity_id)
+            else:
+                label_ids.append(entity_id)
+        artists = []
+        for i in range(0, len(artist_ids), 999):
+            query = (SQLArtist
+                .select()
+                .where(SQLArtist.id.in_(artist_ids[i:i + 999]))
+                )
+            artists.extend(query)
+        labels = []
+        for i in range(0, len(label_ids), 999):
+            query = (SQLLabel
+                .select()
+                .where(SQLLabel.id.in_(label_ids[i:i + 999]))
+                )
+            labels.extend(query)
+        for artist in artists:
+            nodes[(1, artist.id)]['name'] = artist.name
+        for label in labels:
+            nodes[(2, label.id)]['name'] = label.name
+
+    def query_relations(self, entity_keys, role_names=None, year=None, verbose=True):
+        futures = []
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            entity_query_cap = 999
+            entity_query_cap -= (1 + len(role_names)) * 2
+            if isinstance(year, int):
+                entity_query_cap -= 2
+            elif year:
+                entity_query_cap -= 4
+            entity_query_cap //= 2
+            range_stop = len(entity_keys)
+            for start in range(0, range_stop, entity_query_cap):
+                stop = start + entity_query_cap
+                entity_key_slice = entity_keys[start:stop]
+                future = executor.submit(
+                    SQLRelation.search_multi,
+                    entity_key_slice,
+                    role_names=role_names,
+                    verbose=verbose,
+                    year=year,
+                    )
+                futures.append(future)
+        relations = []
+        for future in futures:
+            relations.extend(future.result())
+        return relations
