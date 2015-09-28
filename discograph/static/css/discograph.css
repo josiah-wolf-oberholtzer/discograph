@@ -41,6 +41,15 @@ a.input-group-addon:active {
     stroke-width: 10;
     }
 
+.hull path {
+    fill: #000;
+    opacity: 0.05;
+    stroke: #000;
+    stroke-width: 32;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    }
+
 .node {
     cursor: move;
     fill-opacity: 1;

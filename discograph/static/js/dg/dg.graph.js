@@ -17,6 +17,7 @@ var dg = (function(dg){
         // selections
         svgSelection: null,
         haloSelection: null,
+        hullSelection: null,
         nodeSelection: null,
         linkSelection: null,
         textSelection: null,
@@ -139,6 +140,16 @@ var dg = (function(dg){
 
     function onHaloExit(haloExit) {
         haloExit.remove();
+    }
+
+    function onHullEnter(hullEnter) {
+        var hullEnter = hullEnter.append("g")
+            .attr("class", function(d) { return "hull hull-" + d.key });
+        hullEnter.append("path");
+    }
+    
+    function onHullExit(hullExit) {
+        hullExit.remove();
     }
 
     function onLinkEnter(linkEnter) {
@@ -397,8 +408,20 @@ var dg = (function(dg){
         dg.graph.textSelection = dg.graph.textSelection.data(nodes, keyFunc);
         dg.graph.linkSelection = dg.graph.linkSelection.data(links, keyFunc);
 
+        var hullNodes = dg.graph.nodeMap.values().filter(function(d) { 
+                return d.cluster !== undefined;
+            });
+        var hullData = d3.nest().key(function(d) { return d.cluster; })
+            .entries(hullNodes)
+            .filter(function(d) { return 1 < d.values.length; });
+
+        dg.graph.hullSelection = dg.graph.hullSelection.data(hullData);
+
         onHaloEnter(dg.graph.haloSelection.enter());
         onHaloExit(dg.graph.haloSelection.exit());
+
+        onHullEnter(dg.graph.hullSelection.enter());
+        onHullExit(dg.graph.hullSelection.exit());
 
         onNodeEnter(dg.graph.nodeSelection.enter());
         onNodeExit(dg.graph.nodeSelection.exit());
@@ -478,6 +501,20 @@ var dg = (function(dg){
         dg.graph.haloSelection.attr("transform", translate);
         dg.graph.nodeSelection.attr("transform", translate);
         dg.graph.textSelection.attr("transform", translate);
+        dg.graph.hullSelection.select("path").attr("d", function(d) {
+            return "M" + d3.geom.hull(getHullVertices(d.values)).join("L") + "Z"; });
+    }
+
+    getHullVertices = function(nodes) { 
+        var vertices = [];
+        nodes.forEach(function(d) {
+            var radius = d.radius;
+            vertices.push([d.x + radius, d.y + radius]); 
+            vertices.push([d.x + radius, d.y - radius]); 
+            vertices.push([d.x - radius, d.y + radius]); 
+            vertices.push([d.x - radius, d.y - radius]); 
+        });
+        return vertices;
     }
 
     dg.updateForceLayout = function() {
@@ -548,6 +585,7 @@ var dg = (function(dg){
             if (dg.graph.nodeMap.has(key)) {
                 if (!value.isIntermediate) {
                     var node = dg.graph.nodeMap.get(key);
+                    node.cluster = value.cluster;
                     node.distance = value.distance;
                     node.missing = value.missing;
                 }
@@ -772,6 +810,7 @@ var dg = (function(dg){
         dg.graph.textLayer = dg.graph.svgSelection.append("g")
             .attr("id", "textLayer");
         dg.graph.haloSelection = dg.graph.haloLayer.selectAll(".node");
+        dg.graph.hullSelection = dg.graph.haloLayer.selectAll(".hull");
         dg.graph.linkSelection = dg.graph.linkLayer.selectAll(".link");
         dg.graph.nodeSelection = dg.graph.nodeLayer.selectAll(".node");
         dg.graph.textSelection = dg.graph.textLayer.selectAll(".node");
