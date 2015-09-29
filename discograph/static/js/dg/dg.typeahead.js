@@ -8,6 +8,8 @@ var dg = (function(dg){
             filter: function(response) {
                 return response.results;
             },
+            rateLimitBy: 'throttle',
+            rateLimitWait: 1000,
         },
     });
     var navigate = function() {
