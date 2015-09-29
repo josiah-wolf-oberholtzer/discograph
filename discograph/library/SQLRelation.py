@@ -28,6 +28,38 @@ class SQLRelation(SQLModel):
     ### PUBLIC METHODS ###
 
     @classmethod
+    def bootstrap(cls):
+        import discograph
+        discograph.SQLRelation.drop_table(fail_silently=True)
+        discograph.SQLRelation.create_table()
+        count = discograph.Relation.objects.count()
+        query = discograph.Relation._get_collection().find()
+        rows = []
+        for i, mongo_document in enumerate(query, 1):
+            rows.append(dict(
+                id=i,
+                entity_one_id=mongo_document.get('entity_one_id'),
+                entity_one_type=mongo_document.get('entity_one_type'),
+                entity_two_id=mongo_document.get('entity_two_id'),
+                entity_two_type=mongo_document.get('entity_two_type'),
+                year=mongo_document.get('year'),
+                release_id=mongo_document.get('release_id'),
+                role_name=mongo_document.get('role_name'),
+                random=random.random(),
+                ))
+            #if mongo_document.get('role_name') not in ('Alias', 'Member Of'):
+            #    break
+            if len(rows) == 100:
+                discograph.SQLRelation.insert_many(rows).execute()
+                rows = []
+                print('Processing... {} of {} [{:.3f}%]'.format(
+                    i, count, (float(i) / count) * 100))
+        if rows:
+            discograph.SQLRelation.insert_many(rows).execute()
+            print('Processing... {} of {} [{:.3f}%]'.format(
+                i, count, (float(i) / count) * 100))
+
+    @classmethod
     def get_random(cls, role_names=None):
         n = random.random()
         where_clause = (cls.random > n)
