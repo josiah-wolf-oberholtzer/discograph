@@ -20,6 +20,40 @@ class SQLEntity(SQLModel):
             (('entity_id', 'entity_type'), True),
             )
 
+    ### PRIVATE METHODS ###
+
+    @classmethod
+    def _populate_from_mongo(cls, mongo_class, entity_type):
+        query = mongo_class.objects().no_cache().timeout(False)
+        query = query.only('discogs_id', 'name')
+        count = query.count()
+        rows = []
+        for i, mongo_document in enumerate(query, 1):
+            if mongo_document.discogs_id and mongo_document.name:
+                rows.append(dict(
+                    entity_id=mongo_document.discogs_id,
+                    entity_type=entity_type,
+                    name=mongo_document.name,
+                    random=random.random(),
+                    ))
+            if len(rows) == 100:
+                cls.insert_many(rows).execute()
+                rows = []
+                print('Processing {}s... {} of {} [{:.3f}%]'.format(
+                    mongo_class.__name__.lower(),
+                    i,
+                    count,
+                    (float(i) / count) * 100),
+                    )
+        if rows:
+            cls.insert_many(rows).execute()
+            print('Processing {}s... {} of {} [{:.3f}%]'.format(
+                mongo_class.__name__.lower(),
+                i,
+                count,
+                (float(i) / count) * 100),
+                )
+
     ### PUBLIC METHODS ###
 
     def get_relations(self, role_names=None):
@@ -40,48 +74,8 @@ class SQLEntity(SQLModel):
             content=discograph.SQLEntity,
             tokenize='porter',
             )
-        query = discograph.Artist.objects().no_cache().timeout(False)
-        query = query.only('discogs_id', 'name')
-        count = query.count()
-        rows = []
-        for i, mongo_document in enumerate(query, 1):
-            if mongo_document.discogs_id and mongo_document.name:
-                rows.append(dict(
-                    entity_id=mongo_document.discogs_id,
-                    entity_type=1,
-                    name=mongo_document.name,
-                    random=random.random(),
-                    ))
-            if len(rows) == 100:
-                discograph.SQLEntity.insert_many(rows).execute()
-                rows = []
-                print('Processing artists... {} of {} [{:.3f}%]'.format(
-                    i, count, (float(i) / count) * 100))
-        if rows:
-            discograph.SQLEntity.insert_many(rows).execute()
-            print('Processing artists... {} of {} [{:.3f}%]'.format(
-                i, count, (float(i) / count) * 100))
-        query = discograph.Label.objects().no_cache().timeout(False)
-        query = query.only('discogs_id', 'name')
-        count = query.count()
-        rows = []
-        for i, mongo_document in enumerate(query, 1):
-            if mongo_document.discogs_id and mongo_document.name:
-                rows.append(dict(
-                    entity_id=mongo_document.discogs_id,
-                    entity_type=1,
-                    name=mongo_document.name,
-                    random=random.random(),
-                    ))
-            if len(rows) == 100:
-                discograph.SQLEntity.insert_many(rows).execute()
-                rows = []
-                print('Processing labels... {} of {} [{:.3f}%]'.format(
-                    i, count, (float(i) / count) * 100))
-        if rows:
-            discograph.SQLEntity.insert_many(rows).execute()
-            print('Processing labels... {} of {} [{:.3f}%]'.format(
-                i, count, (float(i) / count) * 100))
+        cls._populate_from_mongo(discograph.Artist, 1)
+        cls._populate_from_mongo(discograph.Label, 2)
         discograph.SQLFTSEntity.rebuild()
         discograph.SQLFTSEntity.optimize()
 
