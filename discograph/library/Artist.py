@@ -1,7 +1,6 @@
 from __future__ import print_function
 import gzip
 import mongoengine
-import random
 import traceback
 from abjad.tools import systemtools
 from discograph.library.Bootstrapper import Bootstrapper
@@ -115,39 +114,6 @@ class Artist(Model, mongoengine.Document):
                 document.name,
                 )
             print(message)
-
-    @staticmethod
-    def dump_to_sqlite():
-        import discograph
-        discograph.SQLFTSArtist.drop_table(True)
-        discograph.SQLArtist.drop_table(True)
-        discograph.SQLArtist.create_table()
-        discograph.SQLFTSArtist.create_table(
-            content=discograph.SQLArtist,
-            tokenize='porter',
-            )
-        query = discograph.Artist.objects().no_cache().timeout(False)
-        query = query.only('discogs_id', 'name')
-        count = query.count()
-        rows = []
-        for i, mongo_document in enumerate(query, 1):
-            if mongo_document.discogs_id and mongo_document.name:
-                rows.append(dict(
-                    id=mongo_document.discogs_id,
-                    name=mongo_document.name,
-                    random=random.random(),
-                    ))
-            if len(rows) == 100:
-                discograph.SQLArtist.insert_many(rows).execute()
-                rows = []
-                print('Processing... {} of {} [{:.3f}%]'.format(
-                    i, count, (float(i) / count) * 100))
-        if rows:
-            discograph.SQLArtist.insert_many(rows).execute()
-            print('Processing... {} of {} [{:.3f}%]'.format(
-                i, count, (float(i) / count) * 100))
-        discograph.SQLFTSArtist.rebuild()
-        discograph.SQLFTSArtist.optimize()
 
     @classmethod
     def from_element(cls, element):
