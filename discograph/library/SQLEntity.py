@@ -8,14 +8,17 @@ class SQLEntity(SQLModel):
 
     ### PEEWEE FIELDS ###
 
-    entity_id = peewee.IntField()
-    entity_type = peewee.IntField()
-    name = peewee.CharField(index=True, null=True)
+    entity_id = peewee.IntegerField()
+    entity_type = peewee.IntegerField()
+    name = peewee.TextField(null=True)
 
     ### PEEWEE META ###
 
     class Meta:
         db_table = 'entity'
+        indexes = (
+            (('entity_id', 'entity_type'), True),
+            )
 
     ### PUBLIC METHODS ###
 
