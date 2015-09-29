@@ -78,23 +78,25 @@ def route__label_id(label_id):
 
 @app.route('/random')
 def route__random():
-    role_names = [
-        'Alias',
-        'Member Of',
-        #'Released On',
-        #'Sublabel Of',
-        #'Producer',
-        #'Remix',
-        #'Guitar',
-        #'Bass Guitar',
-        #'Rhythm Guitar',
-        #'Electric Guitar',
-        #'Lead Guitar',
-        #'Drums',
-        #'Vocals',
-        #'Lead Vocals',
-        #'Backing Vocals',
-        ]
+    role_names, year = app.api.parse_request_args(request.args)
+    if not role_names:
+        role_names = [
+            'Alias',
+            'Member Of',
+            #'Released On',
+            #'Sublabel Of',
+            #'Producer',
+            #'Remix',
+            #'Guitar',
+            #'Bass Guitar',
+            #'Rhythm Guitar',
+            #'Electric Guitar',
+            #'Lead Guitar',
+            #'Drums',
+            #'Vocals',
+            #'Lead Vocals',
+            #'Backing Vocals',
+            ]
     entity_type, entity_id = app.api.get_random_entity(role_names)
     if entity_type == 1:
         return redirect('/artist/{}'.format(entity_id), code=302)
@@ -106,24 +108,26 @@ def route__random():
 def route__api__network(entity_type, entity_id):
     if entity_type not in ('artist', 'label'):
         abort(404)
+    role_names, year = app.api.parse_request_args(request.args)
+    if not role_names:
+        role_names = [
+            'Alias',
+            'Member Of',
+            #'Released On',
+            #'Sublabel Of',
+            #'Producer',
+            #'Remix',
+            #'Guitar',
+            #'Bass Guitar',
+            #'Rhythm Guitar',
+            #'Electric Guitar',
+            #'Lead Guitar',
+            #'Drums',
+            #'Vocals',
+            #'Lead Vocals',
+            #'Backing Vocals',
+            ]
     on_mobile = request.MOBILE
-    role_names = [
-        'Alias',
-        'Member Of',
-        #'Released On',
-        #'Sublabel Of',
-        #'Producer',
-        #'Remix',
-        #'Guitar',
-        #'Bass Guitar',
-        #'Rhythm Guitar',
-        #'Electric Guitar',
-        #'Lead Guitar',
-        #'Drums',
-        #'Vocals',
-        #'Lead Vocals',
-        #'Backing Vocals',
-        ]
     data = app.api.get_network(
         entity_type,
         entity_id,

@@ -1,15 +1,44 @@
 <nav id="nav-bottom" class="navbar navbar-default navbar-fixed-bottom"> 
     <div class="container-fluid">
         <div class="navbar-header"> 
-            <!--
-            <a id="settings" class="navbar-brand" href="#">
-                <span class="glyphicon glyphicon-cog"></span>
+            <button type="button" class="navbar-toggle collapsed" 
+                data-toggle="collapse" data-target="#nav-bottom-details">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a id="entity-link" class="truncate navbar-brand hidden" href="#" target="_blank">
+                <span class="glyphicon glyphicon-new-window"></span>
+                <span id="entity-name">Band Name</span>
             </a>
-            -->
-                <a id="entity-link" class="truncate navbar-brand hidden" href="#" target="_blank">
-                    <span class="glyphicon glyphicon-new-window"></span>
-                    <span id="entity-name">Band Name</span>
-                </a>
+        </div>
+        <div class="collapse navbar-collapse" id="nav-bottom-details">
+            <form id="filter" class="navbar-form navbar-right" action="#">
+                <div class="form-group dropup">
+                    <select id="filter-roles" multiple="multiple" name="roles" class="form-control">
+                    {% for name in [
+                        'Guitar',
+                        'Producer',
+                        'Released On',
+                        'Remix',
+                        'Vocals',
+                        ] %}
+                        <option value="{{ name }}">{{ name }}</option>
+                    {% endfor %}
+                    </select>
+                    <button type="submit" class="submit btn btn-default">Filter</button>
+                </div>
+            </form>
         </div>
     </div>
 </nav>
+
+<script>
+$(document).ready(function() {
+    $('#filter select').multiselect({
+        enableFiltering: true,
+        inheritClass: true,
+    });
+});
+</script>

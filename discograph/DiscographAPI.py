@@ -151,6 +151,30 @@ class DiscographAPI(object):
             return wrapped
         return decorator
 
+    @staticmethod
+    def parse_request_args(args):
+        from discograph.library import ArtistRole
+        year = None
+        role_names = set()
+        for key in args:
+            if key == 'year':
+                value = args[key]
+                try:
+                    if '-' in year:
+                        start, _, stop = year.partition('-')
+                        year = tuple(sorted((int(start), int(stop))))
+                    else:
+                        year = int(year)
+                except:
+                    pass
+            elif key == 'roles[]':
+                value = args.getlist(key)
+                for role_name in value:
+                    if role_name in ArtistRole._available_credit_roles:
+                        role_names.add(role_name)
+        role_names = list(sorted(role_names))
+        return role_names, year
+
     def search_entities(self, search_string):
         import discograph
         cache_key = 'discograph:/api/search/{}'.format(

@@ -1,5 +1,6 @@
 var dg = (function(dg){
     dg.init = function() {
+        dg.filter.init();
         dg.graph.init();
         dg.typeahead.init();
         var entityKey = d3.select("body").attr("id");

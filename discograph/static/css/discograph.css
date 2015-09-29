@@ -26,6 +26,10 @@ a.input-group-addon:active {
     background-color: #ccc;
     }
 
+.navbar-collapse.in {
+    overflow-y: visible;
+    }
+
 .link .inner {
     fill: none;
     stroke-linecap: round;
