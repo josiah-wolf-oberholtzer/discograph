@@ -10,6 +10,25 @@ app.api = discograph.DiscographAPI(app)
 Mobility(app)
 
 
+default_role_names = [
+    'Alias',
+    'Member Of',
+    #'Released On',
+    #'Sublabel Of',
+    #'Producer',
+    #'Remix',
+    #'Guitar',
+    #'Bass Guitar',
+    #'Rhythm Guitar',
+    #'Electric Guitar',
+    #'Lead Guitar',
+    #'Drums',
+    #'Vocals',
+    #'Lead Vocals',
+    #'Backing Vocals',
+    ]
+
+
 @app.route('/')
 def route__index():
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
@@ -38,6 +57,8 @@ def route__entity(entity_type, entity_id):
         entity = app.api.get_label(entity_id)
     if entity is None:
         abort(404)
+    original_role_names, original_year = app.api.parse_request_args(
+        request.args)
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
     key = '{}-{}'.format(entity_type, entity.id)
     url = '/{}/{}'.format(entity_type, entity.id)
@@ -52,7 +73,9 @@ def route__entity(entity_type, entity_id):
         og_title='Discograph: The "{}" network'.format(entity.name),
         og_url=url,
         on_mobile=request.MOBILE,
+        original_role_names=original_role_names,
         title=title,
+        original_year=original_year,
         )
     response = make_response(rendered_template)
     response.set_cookie('is_a_return_visitor', 'true')
@@ -62,24 +85,7 @@ def route__entity(entity_type, entity_id):
 @app.route('/random')
 def route__random():
     role_names, year = app.api.parse_request_args(request.args)
-    if not role_names:
-        role_names = [
-            'Alias',
-            'Member Of',
-            #'Released On',
-            #'Sublabel Of',
-            #'Producer',
-            #'Remix',
-            #'Guitar',
-            #'Bass Guitar',
-            #'Rhythm Guitar',
-            #'Electric Guitar',
-            #'Lead Guitar',
-            #'Drums',
-            #'Vocals',
-            #'Lead Vocals',
-            #'Backing Vocals',
-            ]
+    role_names = role_names or default_role_names[:]
     entity_type, entity_id = app.api.get_random_entity(role_names)
     if entity_type == 1:
         return redirect('/artist/{}'.format(entity_id), code=302)
@@ -95,24 +101,7 @@ def route__api__network(entity_type, entity_id):
     print('NETWORK SEARCH:', entity_type, entity_id)
     print('ROLES:         ', role_names)
     print('YEAR:          ', year)
-    if not role_names:
-        role_names = [
-            'Alias',
-            'Member Of',
-            #'Released On',
-            #'Sublabel Of',
-            #'Producer',
-            #'Remix',
-            #'Guitar',
-            #'Bass Guitar',
-            #'Rhythm Guitar',
-            #'Electric Guitar',
-            #'Lead Guitar',
-            #'Drums',
-            #'Vocals',
-            #'Lead Vocals',
-            #'Backing Vocals',
-            ]
+    role_names = role_names or default_role_names[:]
     role_names = set(role_names)
     role_names.add('Member Of')
     role_names.add('Alias')
