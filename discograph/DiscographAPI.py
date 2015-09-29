@@ -52,6 +52,7 @@ class DiscographAPI(object):
         data = self.cache.get(cache_key)
         if data is not None:
             print('Cache Hit:  {}'.format(cache_key))
+            data['cached'] = True
             return data
         print('Cache Miss: {}'.format(cache_key))
 
