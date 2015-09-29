@@ -15,24 +15,19 @@
         </div>
         <div class="collapse navbar-collapse" id="nav-bottom-details">
             <form id="filter" class="navbar-form navbar-right" action="#">
-                <div class="form-group dropup">
+                <div class="btn-group dropup">
                     <select id="filter-roles" multiple="multiple" name="roles" class="form-control">
-                        <optgroup label="Roles">
-                    {% for name in [
-                        'Bass Guitar',
-                        'Drums',
-                        'Guitar',
-                        'Producer',
-                        'Released On',
-                        'Remix',
-                        'Vocals',
-                        ] %}
-                        <option value="{{ name }}">{{ name }}</option>
-                    {% endfor %}
+                    {% for category, roles in multiselect_mapping.items() %}
+                        <optgroup label="{{ category }}">
+                        {% for role in roles %}
+                            <option value="{{ role }}">{{ role }}</option>
+                        {% endfor %}
                         </optgroup>
+                    {% endfor %}
                     </select>
-                    <button type="submit" class="submit btn btn-default">Filter</button>
+                    <button id="filter-reset" type="reset" class="btn btn-default">Reset</button>
                 </div>
+                <button type="submit" class="submit btn btn-default">Filter</button>
             </form>
         </div>
     </div>
@@ -40,11 +35,22 @@
 
 <script>
 $(document).ready(function() {
-    $('#filter select').multiselect({
+    $('#filter-roles').multiselect({
+        buttonWidth: "160px",
         enableFiltering: true,
+        enableCaseInsensitiveFiltering: true,
+        includeSelectAllOption: true,
         inheritClass: true,
         enableClickableOptGroups: true,
+        maxHeight: 400,
         nonSelectedText: 'Select relationships'
+    });
+    $('#filter').on('reset', function(event) {
+        $('#filter-roles option:selected').each(function() {
+            $(this).prop('selected', false);
+        });
+        $('#filter-roles').multiselect('refresh');
+        event.preventDefault();
     });
 });
 </script>

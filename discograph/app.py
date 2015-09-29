@@ -28,45 +28,28 @@ def route__index():
     return response
 
 
-@app.route('/artist/<int:artist_id>', methods=['GET'])
-def route__artist_id(artist_id):
-    artist = app.api.get_artist(artist_id)
-    if artist is None:
+@app.route('/<entity_type>/<int:entity_id>', methods=['GET'])
+def route__entity(entity_type, entity_id):
+    if entity_type not in ('artist', 'label'):
+        abort(404)
+    if entity_type == 'artist':
+        entity = app.api.get_artist(entity_id)
+    else:
+        entity = app.api.get_label(entity_id)
+    if entity is None:
         abort(404)
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
-    key = 'artist-{}'.format(artist.id)
-    url = '/artist/{}'.format(artist.id)
-    title = 'discograph: {}'.format(artist.name)
+    key = '{}-{}'.format(entity_type, entity.id)
+    url = '/{}/{}'.format(entity_type, entity.id)
+    title = 'discograph: {}'.format(entity.name)
+    multiselect_mapping = discograph.ArtistRole.get_multiselect_mapping()
     rendered_template = render_template(
         'index.html',
         application_url=app.api.application_url,
         is_a_return_visitor=is_a_return_visitor,
         key=key,
-        og_title='Discograph: The "{}" network'.format(artist.name),
-        og_url=url,
-        on_mobile=request.MOBILE,
-        title=title,
-        )
-    response = make_response(rendered_template)
-    response.set_cookie('is_a_return_visitor', 'true')
-    return response
-
-
-@app.route('/label/<int:label_id>', methods=['GET'])
-def route__label_id(label_id):
-    label = app.api.get_label(label_id)
-    if label is None:
-        abort(404)
-    is_a_return_visitor = request.cookies.get('is_a_return_visitor')
-    key = 'label-{}'.format(label.id)
-    url = '/label/{}'.format(label.id)
-    title = 'discograph: {}'.format(label.name)
-    rendered_template = render_template(
-        'index.html',
-        application_url=app.api.application_url,
-        is_a_return_visitor=is_a_return_visitor,
-        key=key,
-        og_title='Discograph: The "{}" network'.format(label.name),
+        multiselect_mapping=multiselect_mapping,
+        og_title='Discograph: The "{}" network'.format(entity.name),
         og_url=url,
         on_mobile=request.MOBILE,
         title=title,

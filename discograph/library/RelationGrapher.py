@@ -96,6 +96,7 @@ class RelationGrapher(object):
 
     def collect_entities(self, verbose=True):
         original_role_names = self.role_names or ()
+        print('Roles:', original_role_names)
         provisional_role_names = set(original_role_names)
         provisional_role_names.update(['Alias', 'Member Of'])
         provisional_role_names = sorted(provisional_role_names)
