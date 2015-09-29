@@ -107,6 +107,10 @@ class RelationGrapher(object):
         links = dict()
         nodes = dict()
         break_on_next_loop = False
+        distance_pruned_roles = {
+            0: ['Released On'],
+            1: ['Producer'],
+            }
         for distance in range(self.degree + 1):
             current_entity_keys_to_visit = list(entity_keys_to_visit)
             for key in current_entity_keys_to_visit:
@@ -133,6 +137,9 @@ class RelationGrapher(object):
                 year=None,
                 verbose=verbose,
                 )
+            for role_name in distance_pruned_roles.get(distance, []):
+                if role_name in provisional_role_names:
+                    provisional_role_names.remove(role_name)
             if verbose:
                 print('            {} new links'.format(len(relations)))
             if not relations:
@@ -364,6 +371,7 @@ class RelationGrapher(object):
             nodes[(2, label.id)]['name'] = label.name
 
     def query_relations(self, entity_keys, role_names=None, year=None, verbose=True):
+        print('        Roles:', role_names)
         futures = []
         with ThreadPoolExecutor(max_workers=4) as executor:
             entity_query_cap = 999

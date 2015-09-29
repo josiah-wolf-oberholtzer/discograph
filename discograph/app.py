@@ -109,6 +109,9 @@ def route__api__network(entity_type, entity_id):
     if entity_type not in ('artist', 'label'):
         abort(404)
     role_names, year = app.api.parse_request_args(request.args)
+    print('NETWORK SEARCH:', entity_type, entity_id)
+    print('ROLES:         ', role_names)
+    print('YEAR:          ', year)
     if not role_names:
         role_names = [
             'Alias',
@@ -127,6 +130,10 @@ def route__api__network(entity_type, entity_id):
             #'Lead Vocals',
             #'Backing Vocals',
             ]
+    role_names = set(role_names)
+    role_names.add('Member Of')
+    role_names.add('Alias')
+    role_names = sorted(role_names)
     on_mobile = request.MOBILE
     data = app.api.get_network(
         entity_type,

@@ -17,7 +17,10 @@
             <form id="filter" class="navbar-form navbar-right" action="#">
                 <div class="form-group dropup">
                     <select id="filter-roles" multiple="multiple" name="roles" class="form-control">
+                        <optgroup label="Roles">
                     {% for name in [
+                        'Bass Guitar',
+                        'Drums',
                         'Guitar',
                         'Producer',
                         'Released On',
@@ -26,6 +29,7 @@
                         ] %}
                         <option value="{{ name }}">{{ name }}</option>
                     {% endfor %}
+                        </optgroup>
                     </select>
                     <button type="submit" class="submit btn btn-default">Filter</button>
                 </div>
@@ -39,6 +43,8 @@ $(document).ready(function() {
     $('#filter select').multiselect({
         enableFiltering: true,
         inheritClass: true,
+        enableClickableOptGroups: true,
+        nonSelectedText: 'Select relationships'
     });
 });
 </script>

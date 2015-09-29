@@ -62,8 +62,11 @@ var dg = (function(dg){
     }
 
     dg.navigateGraph = function(key) {
-        dg.history.pushState(key);
-        dg.updateGraph(key);
+        var params = {
+            'roles': $('#filter select').val(),
+            };
+        dg.history.pushState(key, params);
+        dg.updateGraph(key, params);
     }
 
     dg.selectNode = function(key) {
@@ -644,7 +647,7 @@ var dg = (function(dg){
         dg.graph.centerNodeKey = json.center;
     }
 
-    dg.updateGraph = function(key) {
+    dg.updateGraph = function(key, params) {
         var entityType = key.split("-")[0];
         var entityId = key.split("-")[1];
         dg.graph.isUpdating = true;
@@ -668,11 +671,12 @@ var dg = (function(dg){
             .removeClass("glyphicon-random")
             .addClass("glyphicon-animate glyphicon-refresh")
             ;
-        if (dg.graph.cache.has(key)) {
-            var json = JSON.parse(JSON.stringify(dg.graph.cache.get(key)));
+        var url = "/api/" + entityType + "/network/" + entityId;
+        if (params) { url += '?' + decodeURIComponent($.param(params)); }
+        if (dg.graph.cache.has(url)) {
+            var json = JSON.parse(JSON.stringify(dg.graph.cache.get(url)));
             dg.handleNewGraphData(null, json);
         } else {
-            var url = "/api/" + entityType + "/network/" + entityId;
             d3.json(url, dg.handleNewGraphData);
         }
     }

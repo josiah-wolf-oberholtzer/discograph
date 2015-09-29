@@ -1,7 +1,7 @@
 var dg = (function(dg){
     var init = function() {
         $('#filter').submit(function(event) {
-            console.log(event);
+            dg.navigateGraph(dg.graph.centerNodeKey);
             event.preventDefault();
         });
     }
