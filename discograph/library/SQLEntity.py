@@ -56,14 +56,6 @@ class SQLEntity(SQLModel):
 
     ### PUBLIC METHODS ###
 
-    def get_relations(self, role_names=None):
-        from discograph.library.SQLRelation import SQLRelation
-        return SQLRelation.search(
-            entity_id=self.entity_id,
-            entity_type=self.entity_type,
-            role_names=role_names,
-            )
-
     @classmethod
     def bootstrap(cls):
         import discograph
@@ -78,6 +70,26 @@ class SQLEntity(SQLModel):
         cls._populate_from_mongo(discograph.Label, 2)
         discograph.SQLFTSEntity.rebuild()
         discograph.SQLFTSEntity.optimize()
+
+    @classmethod
+    def from_artist_id(cls, artist_id):
+        return cls.select().where(
+            (cls.entity_id == artist_id) & (cls.entity_type == 1)
+            ).get()
+
+    @classmethod
+    def from_label_id(cls, label_id):
+        return cls.select().where(
+            (cls.entity_id == label_id) & (cls.entity_type == 2)
+            ).get()
+
+    def get_relations(self, role_names=None):
+        from discograph.library.SQLRelation import SQLRelation
+        return SQLRelation.search(
+            entity_id=self.entity_id,
+            entity_type=self.entity_type,
+            role_names=role_names,
+            )
 
     ### PUBLIC PROPERTIES ###
 
