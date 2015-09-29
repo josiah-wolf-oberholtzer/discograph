@@ -108,32 +108,6 @@ class Label(Model, mongoengine.Document):
                 )
             print(message)
 
-    @classmethod
-    def dump_to_csv(cls, file_path=None):
-        import discograph
-        if file_path is None:
-            file_path = os.path.join(
-                discograph.__path__[0],
-                'data',
-                '{}.csv'.format(cls.__name__.lower()),
-                )
-        query = cls.objects().no_cache().timeout(False)
-        count = query.count()
-        file_pointer = open(file_path, 'w')
-        progress_indicator = systemtools.ProgressIndicator(
-            message='Processing', total=count)
-        with file_pointer, progress_indicator:
-            line = 'id;name\n'
-            file_pointer.write(line)
-            for document in query:
-                discogs_id = document.discogs_id
-                name = document.name
-                if discogs_id and name:
-                    name = name.replace('"', r'\"')
-                    line = '{};"{}"\n'.format(discogs_id, name)
-                    file_pointer.write(line)
-                progress_indicator.advance()
-
     @staticmethod
     def dump_to_sqlite():
         import discograph
