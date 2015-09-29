@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import peewee
+import random
 from discograph.library.SQLModel import SQLModel
 
 
@@ -15,6 +16,32 @@ class SQLLabel(SQLModel):
         db_table = 'label'
 
     ### PUBLIC METHODS ###
+
+    @classmethod
+    def bootstrap(cls):
+        import discograph
+        discograph.SQLLabel.drop_table(fail_silently=True)
+        discograph.SQLLabel.create_table()
+        query = discograph.Label.objects().no_cache().timeout(False)
+        query = query.only('discogs_id', 'name')
+        count = query.count()
+        rows = []
+        for i, mongo_document in enumerate(query, 1):
+            if mongo_document.discogs_id and mongo_document.name:
+                rows.append(dict(
+                    id=mongo_document.discogs_id,
+                    name=mongo_document.name,
+                    random=random.random(),
+                    ))
+            if len(rows) == 100:
+                discograph.SQLLabel.insert_many(rows).execute()
+                rows = []
+                print('Processing... {} of {} [{:.3f}%]'.format(
+                    i, count, (float(i) / count) * 100))
+        if rows:
+            discograph.SQLLabel.insert_many(rows).execute()
+            print('Processing... {} of {} [{:.3f}%]'.format(
+                i, count, (float(i) / count) * 100))
 
     def get_relations(self, role_names=None):
         from discograph.library.SQLRelation import SQLRelation
