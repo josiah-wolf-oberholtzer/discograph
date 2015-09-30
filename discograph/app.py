@@ -16,13 +16,7 @@ Mobility(app)
 @app.route('/')
 def route__index():
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
-    initial_json = json.dumps(
-        None,
-        sort_keys=True,
-        indent=4,
-        separators=(',', ': '),
-        )
-    initial_json = 'var dgData = {};'.format(initial_json)
+    initial_json = 'var dgData = null;'
     rendered_template = render_template(
         'index.html',
         artist=None,

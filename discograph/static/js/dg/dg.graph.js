@@ -709,7 +709,7 @@ var dg = (function(dg){
             dg.graph.forceLayout.size(dg.graph.dimensions).start();
         });
 
-        dg.graph.svgSelection = d3.select("body").append("svg")
+        dg.graph.svgSelection = d3.select("#svg")
             .attr("width", dg.graph.dimensions[0])
             .attr("height", dg.graph.dimensions[1]);
 
