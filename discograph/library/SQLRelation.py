@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import peewee
+import random
 from discograph.library.SQLModel import SQLModel
 
 
@@ -25,6 +26,32 @@ class SQLRelation(SQLModel):
             )
 
     ### PUBLIC METHODS ###
+
+    def get_entity_one(self):
+        from discograph.library.SQLArtist import SQLArtist
+        from discograph.library.SQLLabel import SQLLabel
+        entity_id = self.entity_one_id
+        entity_type = self.entity_one_type
+        if entity_type == 1:
+            return SQLArtist.from_id(entity_id)
+        return SQLLabel.from_id(entity_id)
+
+    def get_entity_two(self):
+        from discograph.library.SQLArtist import SQLArtist
+        from discograph.library.SQLLabel import SQLLabel
+        entity_id = self.entity_two_id
+        entity_type = self.entity_two_type
+        if entity_type == 1:
+            return SQLArtist.from_id(entity_id)
+        return SQLLabel.from_id(entity_id)
+
+    @classmethod
+    def get_random(cls, role_names=None):
+        n = random.random()
+        where_clause = (cls.random > n)
+        if role_names:
+            where_clause &= (cls.role_name.in_(role_names))
+        return cls.select().where(where_clause).order_by(cls.random).get()
 
     @classmethod
     def search(cls, entity_id, entity_type=1, role_names=None, query_only=False):
@@ -87,21 +114,3 @@ class SQLRelation(SQLModel):
             return artist_query, label_query
         return list(_._data for _ in artist_query) + \
             list(_._data for _ in label_query)
-
-    def get_entity_one(self):
-        from discograph.library.SQLArtist import SQLArtist
-        from discograph.library.SQLLabel import SQLLabel
-        entity_id = self.entity_one_id
-        entity_type = self.entity_one_type
-        if entity_type == 1:
-            return SQLArtist.from_id(entity_id)
-        return SQLLabel.from_id(entity_id)
-
-    def get_entity_two(self):
-        from discograph.library.SQLArtist import SQLArtist
-        from discograph.library.SQLLabel import SQLLabel
-        entity_id = self.entity_two_id
-        entity_type = self.entity_two_type
-        if entity_type == 1:
-            return SQLArtist.from_id(entity_id)
-        return SQLLabel.from_id(entity_id)
