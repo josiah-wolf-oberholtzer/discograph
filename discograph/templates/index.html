@@ -67,6 +67,7 @@ $('#brand').click(function(event) {
         if (error) { console.warn(error); return; } 
         if (!dg.graph.isUpdating) { dg.navigateGraph(json.center); }
     });
+    $(this).tooltip('hide');
     event.preventDefault();
 });
 </script>
