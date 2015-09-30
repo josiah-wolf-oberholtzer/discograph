@@ -3,11 +3,13 @@ import discograph
 import json
 from flask import Flask, abort, jsonify, make_response, redirect, render_template, request, g
 from flask.ext.mobility import Mobility
+from werkzeug.contrib.fixers import ProxyFix
 
 
 app = Flask(__name__)
 app.debug = True
 app.api = discograph.DiscographAPI(app)
+app.wsgi_app = ProxyFix(app.wsgi_app)
 Mobility(app)
 
 
@@ -80,7 +82,7 @@ def route__random():
 
 
 @app.route('/api/random')
-@app.api.limit(requests=100, window=60)
+#@app.api.limit(requests=100, window=60)
 def route__api__random():
     role_names = ['Alias', 'Member Of']
     entity_type, entity_id = app.api.get_random_entity(role_names=role_names)
@@ -93,7 +95,7 @@ def route__api__random():
 
 
 @app.route('/api/artist/network/<int:artist_id>')
-@app.api.limit(requests=100, window=60)
+#@app.api.limit(requests=100, window=60)
 def route__api__artist__network__artist_id(artist_id):
     on_mobile = request.MOBILE
     data = app.api.get_artist_network(artist_id, on_mobile=on_mobile)
@@ -103,10 +105,17 @@ def route__api__artist__network__artist_id(artist_id):
 
 
 @app.route('/api/search/<search_string>')
-@app.api.limit(requests=200, window=60)
+#@app.api.limit(requests=200, window=60)
 def route__api__search(search_string):
     data = app.api.search_entities(search_string)
     return jsonify(data)
+
+
+@app.route('/api/ping')
+@app.api.limit(requests=200, window=60)
+def route__api__ping():
+    print('PING', request.remote_addr)
+    return jsonify({'ping': True})
 
 
 @app.after_request
