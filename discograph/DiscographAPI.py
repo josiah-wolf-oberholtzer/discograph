@@ -43,8 +43,8 @@ class DiscographAPI(object):
             default_timeout=60 * 60 * 48,
             threshold=1024 * 32,
             )
-        print('Clearing cache.')
-        self._cache.clear()
+        #print('Clearing cache.')
+        #self._cache.clear()
 
     ### PUBLIC METHODS ###
 
