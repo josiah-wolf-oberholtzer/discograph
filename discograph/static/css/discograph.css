@@ -15,7 +15,7 @@ body {
 
 svg {
     background-color: #fff;
-    z-index: -1;
+    pointer-events: visible;
     }
 
 a.input-group-addon {
