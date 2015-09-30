@@ -95,7 +95,7 @@ def route__random():
 
 
 @app.route('/api/<entity_type>/network/<int:entity_id>', methods=['GET'])
-@app.api.limit(requests=100, window=60)
+#@app.api.limit(requests=100, window=60)
 def route__api__network(entity_type, entity_id):
     if entity_type not in ('artist', 'label'):
         abort(404)
@@ -121,7 +121,7 @@ def route__api__network(entity_type, entity_id):
 
 
 @app.route('/api/search/<search_string>', methods=['GET'])
-@app.api.limit(requests=200, window=60)
+#@app.api.limit(requests=200, window=60)
 def route__api__search(search_string):
     data = app.api.search_entities(search_string)
     return jsonify(data)
