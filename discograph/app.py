@@ -30,7 +30,7 @@ def route__index():
     return response
 
 
-@app.route('/artist/<int:artist_id>', methods=['GET'])
+@app.route('/artist/<int:artist_id>')
 def route__artist_id(artist_id):
     on_mobile = request.MOBILE
     data = app.api.get_artist_network(artist_id, on_mobile=on_mobile)
@@ -72,9 +72,20 @@ def route__random():
     return redirect('/label/{}'.format(entity_id), code=302)
 
 
-@app.route('/api/artist/network/<int:artist_id>', methods=['GET'])
+@app.route('/api/random/network')
+def route__api__random__network():
+    on_mobile = request.MOBILE
+    role_names = ['Alias', 'Member Of']
+    entity_type, entity_id = app.api.get_random_entity(role_names=role_names)
+    data = app.api.get_artist_network(entity_id, on_mobile=on_mobile)
+    if data is None:
+        abort(404)
+    return jsonify(data)
+
+
+@app.route('/api/artist/network/<int:artist_id>')
 @app.api.limit(requests=100, window=60)
-def route__api__cluster(artist_id):
+def route__api__artist__network__artist_id(artist_id):
     on_mobile = request.MOBILE
     data = app.api.get_artist_network(artist_id, on_mobile=on_mobile)
     if data is None:
@@ -82,7 +93,7 @@ def route__api__cluster(artist_id):
     return jsonify(data)
 
 
-@app.route('/api/search/<search_string>', methods=['GET'])
+@app.route('/api/search/<search_string>')
 @app.api.limit(requests=200, window=60)
 def route__api__search(search_string):
     data = app.api.search_entities(search_string)
