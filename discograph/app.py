@@ -18,10 +18,10 @@ def route__index():
         artist=None,
         application_url=app.api.application_url,
         is_a_return_visitor=is_a_return_visitor,
-        og_title='Discograph: visualizing music as a social graph',
+        og_title='Disco/graph: visualizing music as a social graph',
         og_url='/',
         on_mobile=request.MOBILE,
-        title='discograph: Visualizing music as a social graph',
+        title='Disco/graph: Visualizing music as a social graph',
         )
     response = make_response(rendered_template)
     response.set_cookie('is_a_return_visitor', 'true')
@@ -36,13 +36,13 @@ def route__artist_id(artist_id):
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
     key = 'artist-{}'.format(artist.id)
     url = '/artist/{}'.format(artist.id)
-    title = 'discograph: {}'.format(artist.name)
+    title = 'Disco/graph: {}'.format(artist.name)
     rendered_template = render_template(
         'index.html',
         application_url=app.api.application_url,
         is_a_return_visitor=is_a_return_visitor,
         key=key,
-        og_title='Discograph: The "{}" network'.format(artist.name),
+        og_title='Disco/graph: The "{}" network'.format(artist.name),
         og_url=url,
         on_mobile=request.MOBILE,
         title=title,

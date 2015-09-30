@@ -12,12 +12,12 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="/static/css/typeahead-bootstrap.css">
     <link rel="stylesheet" href="/static/css/discograph.css"/>
-    <meta property="og:description" content=" Discograph provides an
+    <meta property="og:description" content=" Disco/graph provides an
     interactive visualization of the relationships between nearly 5 million
-    artists, bands and labels using information derived from the Discogs
+    artists, bands and labels using information derived from the Discogs.com
     database."/>
     <meta property="og:title" content="{{ og_title }}"/>
-    <meta property="og:site_name" content="Discograph"/>
+    <meta property="og:site_name" content="Disco/graph"/>
     <meta property="og:url" content="{{ application_url }}{{ og_url }}"/>
     <meta property="og:image" content="{{ application_url }}/static/img/og_image.png"/>
 </head>
@@ -31,6 +31,15 @@
 {% include "modal-who.html" %}
 
 {% include "modal-welcome.html" %}
+
+<div class="alert alert-warning alert-dismissible" role="alert">                
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <p><strong>Hey friends!</strong> The site's been seeing a lot of traffic, and I'm looking into a server upgrade and some other speed-ups.</p>
+    <p>If a link doesn't respond, or the search bar gives up the ghost, take a second and try again. Heck, a full refresh usually does the trick.</p>
+    <p>Something not working? Send me a <a href="https://github.com/josiah-wolf-oberholtzer/discograph/issues" target="_blank">bug report</a>.
+    Artist information seems incorrect? Fix it on <a href="http://discogs.com" target="_blank">Discogs.com</a>.</p>
+    <p>Meanwhile, <a href="https://soundcloud.com/fright-house-records/love-patron?in=josiah-wolf-oberholtzer/sets/bounce" target="_blank">thank you!</a> -josiah</p>
+</div> 
 
 {% include "nav-bottom.html" %}
 

@@ -46,7 +46,7 @@ var dg = (function(dg){
         }
         var name = json.nodes.filter(function(d) { return d.key == key; })
         if (name.length) {
-            document.title = "discograph: " + name[0].name;
+            document.title = "Disco/graph: " + name[0].name;
         }
         $(document).attr("body").id = key;
         dg.graph.json = json;
