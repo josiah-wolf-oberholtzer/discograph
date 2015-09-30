@@ -769,6 +769,10 @@ class ArtistRole(Model, mongoengine.EmbeddedDocument):
 
     @classmethod
     def get_multiselect_mapping(cls):
+        excluded_role_names = [
+            'Alias',
+            'Member Of',
+            ]
         category_names = {
             cls.Category.ACTING_LITERARY_AND_SPOKEN: 'Acting, Literary & Spoken',
             cls.Category.CONDUCTING_AND_LEADING: 'Conducting & Leading',
@@ -794,7 +798,7 @@ class ArtistRole(Model, mongoengine.EmbeddedDocument):
             }
         mapping = collections.OrderedDict()
         for role_name, categories in cls._available_credit_roles.items():
-            if categories is None:
+            if categories is None or role_name in excluded_role_names:
                 continue
             if len(categories) == 1:
                 category_name = category_names[categories[0]]

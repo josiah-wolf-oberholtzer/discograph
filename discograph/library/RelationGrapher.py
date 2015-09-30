@@ -109,8 +109,8 @@ class RelationGrapher(object):
         nodes = dict()
         break_on_next_loop = False
         distance_pruned_roles = {
-            0: ['Released On'],
-            1: ['Producer'],
+            0: ['Released On', 'Compiled On'],
+            1: ['Producer', 'Remix', 'DJ Mix'],
             }
         for distance in range(self.degree + 1):
             current_entity_keys_to_visit = list(entity_keys_to_visit)
