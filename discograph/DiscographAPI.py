@@ -41,7 +41,7 @@ class DiscographAPI(object):
         self._cache = FileSystemCache(
             cache_path,
             default_timeout=60 * 60 * 48,
-            threshold=1024 * 8,
+            threshold=1024 * 32,
             )
         print('Clearing cache.')
         self._cache.clear()
