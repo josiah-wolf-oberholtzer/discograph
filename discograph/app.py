@@ -32,11 +32,13 @@ default_role_names = [
 @app.route('/')
 def route__index():
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
+    multiselect_mapping = discograph.ArtistRole.get_multiselect_mapping()
     rendered_template = render_template(
         'index.html',
         artist=None,
         application_url=app.api.application_url,
         is_a_return_visitor=is_a_return_visitor,
+        multiselect_mapping=multiselect_mapping,
         og_title='Disco/graph: visualizing music as a social graph',
         og_url='/',
         on_mobile=request.MOBILE,
