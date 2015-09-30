@@ -112,9 +112,9 @@ class DiscographAPI(object):
         self.cache_set(cache_key, data)
         return data
 
-    def get_random_entity(self):
+    def get_random_entity(self, role_names=None):
         import discograph
-        relation = discograph.SQLRelation.get_random()
+        relation = discograph.SQLRelation.get_random(role_names=role_names)
         entity_choice = random.randint(1, 2)
         if entity_choice == 1:
             entity_type = relation.entity_one_type
