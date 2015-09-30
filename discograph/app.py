@@ -14,11 +14,18 @@ Mobility(app)
 @app.route('/')
 def route__index():
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
+    initial_json = json.dumps(
+        None,
+        sort_keys=True,
+        indent=4,
+        separators=(',', ': '),
+        )
+    initial_json = 'var dgData = {};'.format(initial_json)
     rendered_template = render_template(
         'index.html',
         artist=None,
         application_url=app.api.application_url,
-        initial_json=None,
+        initial_json=initial_json,
         is_a_return_visitor=is_a_return_visitor,
         og_title='Disco/graph: visualizing music as a social graph',
         og_url='/',
@@ -72,14 +79,16 @@ def route__random():
     return redirect('/label/{}'.format(entity_id), code=302)
 
 
-@app.route('/api/random/network')
-def route__api__random__network():
-    on_mobile = request.MOBILE
+@app.route('/api/random')
+@app.api.limit(requests=100, window=60)
+def route__api__random():
     role_names = ['Alias', 'Member Of']
     entity_type, entity_id = app.api.get_random_entity(role_names=role_names)
-    data = app.api.get_artist_network(entity_id, on_mobile=on_mobile)
-    if data is None:
-        abort(404)
+    entity_type = {
+        1: 'artist',
+        2: 'label',
+        }[entity_type]
+    data = {'center': '{}-{}'.format(entity_type, entity_id)}
     return jsonify(data)
 
 
