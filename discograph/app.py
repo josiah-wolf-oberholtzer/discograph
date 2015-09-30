@@ -37,10 +37,10 @@ def route__index():
         artist=None,
         application_url=app.api.application_url,
         is_a_return_visitor=is_a_return_visitor,
-        og_title='Discograph: visualizing music as a social graph',
+        og_title='Disco/graph: visualizing music as a social graph',
         og_url='/',
         on_mobile=request.MOBILE,
-        title='discograph: Visualizing music as a social graph',
+        title='Disco/graph: Visualizing music as a social graph',
         )
     response = make_response(rendered_template)
     response.set_cookie('is_a_return_visitor', 'true')
@@ -62,7 +62,7 @@ def route__entity(entity_type, entity_id):
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
     key = '{}-{}'.format(entity_type, entity.id)
     url = '/{}/{}'.format(entity_type, entity.id)
-    title = 'discograph: {}'.format(entity.name)
+    title = 'Disco/graph: {}'.format(entity.name)
     multiselect_mapping = discograph.ArtistRole.get_multiselect_mapping()
     rendered_template = render_template(
         'index.html',
@@ -70,7 +70,7 @@ def route__entity(entity_type, entity_id):
         is_a_return_visitor=is_a_return_visitor,
         key=key,
         multiselect_mapping=multiselect_mapping,
-        og_title='Discograph: The "{}" network'.format(entity.name),
+        og_title='Disco/graph: The "{}" network'.format(entity.name),
         og_url=url,
         on_mobile=request.MOBILE,
         original_role_names=original_role_names,
