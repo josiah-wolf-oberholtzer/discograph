@@ -51,7 +51,7 @@ $(document).ready(function() {
     dg.init();
     $('[data-toggle="tooltip"]').tooltip()
 });
-$('#brand').click(function(event) {
+$('#brand').on("click touchstart", function(event) {
     d3.json('/api/random', function(error, json) {
         if (error) { console.warn(error); return; } 
         if (!dg.graph.isUpdating) { dg.navigateGraph(json.center); }
