@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import discograph
+import json
 from flask import Flask, abort, jsonify, make_response, redirect, render_template, request, g
 from flask.ext.mobility import Mobility
 
@@ -17,6 +18,7 @@ def route__index():
         'index.html',
         artist=None,
         application_url=app.api.application_url,
+        initial_json=None,
         is_a_return_visitor=is_a_return_visitor,
         og_title='Disco/graph: visualizing music as a social graph',
         og_url='/',
@@ -30,21 +32,31 @@ def route__index():
 
 @app.route('/artist/<int:artist_id>', methods=['GET'])
 def route__artist_id(artist_id):
-    artist = app.api.get_artist(artist_id)
-    if artist is None:
+    on_mobile = request.MOBILE
+    data = app.api.get_artist_network(artist_id, on_mobile=on_mobile)
+    if data is None:
         abort(404)
+    initial_json = json.dumps(
+        data,
+        sort_keys=True,
+        indent=4,
+        separators=(',', ': '),
+        )
+    initial_json = 'var dgData = {};'.format(initial_json)
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
+    artist = app.api.get_artist(artist_id)
     key = 'artist-{}'.format(artist.id)
     url = '/artist/{}'.format(artist.id)
     title = 'Disco/graph: {}'.format(artist.name)
     rendered_template = render_template(
         'index.html',
         application_url=app.api.application_url,
+        initial_json=initial_json,
         is_a_return_visitor=is_a_return_visitor,
         key=key,
         og_title='Disco/graph: The "{}" network'.format(artist.name),
         og_url=url,
-        on_mobile=request.MOBILE,
+        on_mobile=on_mobile,
         title=title,
         )
     response = make_response(rendered_template)
