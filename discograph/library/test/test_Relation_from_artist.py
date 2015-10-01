@@ -35,7 +35,7 @@ class Test(unittest.TestCase):
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
             discograph.library.Relation(
-                category=discograph.library.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=2,
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=100000000,
@@ -43,7 +43,7 @@ class Test(unittest.TestCase):
                 role_name='Alias',
                 )
             discograph.library.Relation(
-                category=discograph.library.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=2,
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=100000001,
@@ -51,7 +51,7 @@ class Test(unittest.TestCase):
                 role_name='Alias',
                 )
             discograph.library.Relation(
-                category=discograph.library.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=2,
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=100000002,
@@ -59,7 +59,7 @@ class Test(unittest.TestCase):
                 role_name='Alias',
                 )
             discograph.library.Relation(
-                category=discograph.library.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=2,
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=100000003,
@@ -67,7 +67,7 @@ class Test(unittest.TestCase):
                 role_name='Alias',
                 )
             discograph.library.Relation(
-                category=discograph.library.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=2,
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=100000004,
@@ -75,7 +75,7 @@ class Test(unittest.TestCase):
                 role_name='Alias',
                 )
             discograph.library.Relation(
-                category=discograph.library.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=200000000,
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=2,
@@ -83,7 +83,7 @@ class Test(unittest.TestCase):
                 role_name='Member Of',
                 )
             discograph.library.Relation(
-                category=discograph.library.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=200000001,
                 entity_one_type=discograph.library.Relation.EntityType.ARTIST,
                 entity_two_id=2,

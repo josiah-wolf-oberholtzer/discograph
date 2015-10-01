@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 import mongoengine
 from discograph.library.Bootstrapper import Bootstrapper
-from discograph.library.ArtistRole import ArtistRole
+from discograph.library.mongo.ArtistRole import ArtistRole
 from discograph.library.mongo.MongoModel import MongoModel
 
 

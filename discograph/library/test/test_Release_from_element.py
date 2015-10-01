@@ -151,7 +151,7 @@ class Test(unittest.TestCase):
         release_document = library.Release.from_element(release_element)
         actual = format(release_document)
         expected = stringtools.normalize(u"""
-            discograph.library.Release(
+            discograph.library.mongo.Release(
                 artists=[
                     discograph.library.mongo.ArtistCredit(
                         discogs_id=1,
@@ -177,7 +177,7 @@ class Test(unittest.TestCase):
                         discogs_id=239,
                         name='Jesper Dahlbäck',
                         roles=[
-                            discograph.library.ArtistRole(
+                            discograph.library.mongo.ArtistRole(
                                 detail='All Tracks By',
                                 name='Music By',
                                 ),
@@ -220,32 +220,32 @@ class Test(unittest.TestCase):
                 styles=['Deep House'],
                 title='Stockholm',
                 tracklist=[
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         duration='4:45',
                         position='A',
                         title='Östermalm',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         duration='6:11',
                         position='B1',
                         title='Vasastaden',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         duration='2:49',
                         position='B2',
                         title='Kungsholmen',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         duration='5:38',
                         position='C1',
                         title='Södermalm',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         duration='4:52',
                         position='C2',
                         title='Norrmalm',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         duration='5:16',
                         position='D',
                         title='Gamla Stan',
@@ -615,7 +615,7 @@ class Test(unittest.TestCase):
         release_document = library.Release.from_element(release_element)
         actual = format(release_document)
         expected = stringtools.normalize(u"""
-            discograph.library.Release(
+            discograph.library.mongo.Release(
                 artists=[
                     discograph.library.mongo.ArtistCredit(
                         discogs_id=3,
@@ -641,7 +641,7 @@ class Test(unittest.TestCase):
                         discogs_id=3,
                         name='Josh Wink',
                         roles=[
-                            discograph.library.ArtistRole(
+                            discograph.library.mongo.ArtistRole(
                                 name='DJ Mix',
                                 ),
                             ],
@@ -672,7 +672,7 @@ class Test(unittest.TestCase):
                 styles=['Techno', 'Tech House'],
                 title='Profound Sounds Vol. 1',
                 tracklist=[
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=5,
@@ -689,7 +689,7 @@ class Test(unittest.TestCase):
                         position='1',
                         title='Untitled 8',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 anv='K.A.B.',
@@ -702,7 +702,7 @@ class Test(unittest.TestCase):
                         position='2',
                         title='Anjua (Sneaky 3)',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=7,
@@ -716,7 +716,7 @@ class Test(unittest.TestCase):
                                 discogs_id=8,
                                 name='Mood II Swing',
                                 roles=[
-                                    discograph.library.ArtistRole(
+                                    discograph.library.mongo.ArtistRole(
                                         name='Remix',
                                         ),
                                     ],
@@ -725,7 +725,7 @@ class Test(unittest.TestCase):
                         position='3',
                         title='When The Funk Hits The Fan (Mood II Swing When The Dub Hits The Fan)',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=1,
@@ -737,7 +737,7 @@ class Test(unittest.TestCase):
                         position='4',
                         title="What's The Time, Mr. Templar",
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=267132,
@@ -749,7 +749,7 @@ class Test(unittest.TestCase):
                         position='5',
                         title='Vol. 2',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=6981,
@@ -761,7 +761,7 @@ class Test(unittest.TestCase):
                         position='6',
                         title='Political Prisoner',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=11,
@@ -773,7 +773,7 @@ class Test(unittest.TestCase):
                         position='7',
                         title='Pop Kulture',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=10702,
@@ -792,7 +792,7 @@ class Test(unittest.TestCase):
                                 discogs_id=23,
                                 name='Alex Hi-Fi',
                                 roles=[
-                                    discograph.library.ArtistRole(
+                                    discograph.library.mongo.ArtistRole(
                                         name='Remix',
                                         ),
                                     ],
@@ -801,7 +801,7 @@ class Test(unittest.TestCase):
                         position='8',
                         title='K-Mart Shopping (Hi-Fi Mix)',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=13,
@@ -815,7 +815,7 @@ class Test(unittest.TestCase):
                                 discogs_id=14,
                                 name='Eight Miles High',
                                 roles=[
-                                    discograph.library.ArtistRole(
+                                    discograph.library.mongo.ArtistRole(
                                         name='Remix',
                                         ),
                                     ],
@@ -824,7 +824,7 @@ class Test(unittest.TestCase):
                         position='9',
                         title='Lovelee Dae (Eight Miles High Mix)',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=67226,
@@ -843,7 +843,7 @@ class Test(unittest.TestCase):
                                 discogs_id=67226,
                                 name='Stacey Pullen',
                                 roles=[
-                                    discograph.library.ArtistRole(
+                                    discograph.library.mongo.ArtistRole(
                                         name='Presenter',
                                         ),
                                     ],
@@ -852,7 +852,7 @@ class Test(unittest.TestCase):
                         position='10',
                         title='Sweat',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=3906,
@@ -864,7 +864,7 @@ class Test(unittest.TestCase):
                         position='11',
                         title='Silver',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=3,
@@ -876,7 +876,7 @@ class Test(unittest.TestCase):
                         position='12',
                         title='Untitled',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=19,
@@ -888,7 +888,7 @@ class Test(unittest.TestCase):
                         position='13',
                         title='Boom Box',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         artists=[
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=20,
@@ -992,7 +992,7 @@ class Test(unittest.TestCase):
         release_document = library.Release.from_element(release_element)
         actual = format(release_document)
         expected = stringtools.normalize(u"""
-            discograph.library.Release(
+            discograph.library.mongo.Release(
                 artists=[
                     discograph.library.mongo.ArtistCredit(
                         discogs_id=12584,
@@ -1020,27 +1020,27 @@ class Test(unittest.TestCase):
                 styles=['Acid House', 'Experimental', 'Happy Hardcore'],
                 title='Jetlag Disco',
                 tracklist=[
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='1',
                         title='Phonebashing',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='2',
                         title='Groscher Lausangriff',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='3',
                         title='Mondgesang',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='4',
                         title='Hotel Supernova',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='5',
                         title='I lost My Heart In Reykjavik',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='6',
                         title='Liebe Mutter',
                         ),
@@ -1136,7 +1136,7 @@ class Test(unittest.TestCase):
         release_document = library.Release.from_element(release_element)
         actual = format(release_document)
         expected = stringtools.normalize(u"""
-            discograph.library.Release(
+            discograph.library.mongo.Release(
                 artists=[
                     discograph.library.mongo.ArtistCredit(
                         discogs_id=12584,
@@ -1164,27 +1164,27 @@ class Test(unittest.TestCase):
                 styles=['Acid House', 'Experimental', 'Happy Hardcore'],
                 title='Jetlag Disco',
                 tracklist=[
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='1',
                         title='Phonebashing',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='2',
                         title='Groscher Lausangriff',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='3',
                         title='Mondgesang',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='4',
                         title='Hotel Supernova',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='5',
                         title='I lost My Heart In Reykjavik',
                         ),
-                    discograph.library.Track(
+                    discograph.library.mongo.Track(
                         position='6',
                         title='Liebe Mutter',
                         ),

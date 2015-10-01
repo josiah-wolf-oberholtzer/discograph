@@ -13,7 +13,7 @@ from discograph.library.mongo.Format import Format
 from discograph.library.mongo.Identifier import Identifier
 from discograph.library.mongo.LabelCredit import LabelCredit
 from discograph.library.mongo.MongoModel import MongoModel
-from discograph.library.Track import Track
+from discograph.library.mongo.Track import Track
 
 
 class Release(MongoModel, mongoengine.Document):
