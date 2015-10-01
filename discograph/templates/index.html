@@ -54,7 +54,8 @@ $(document).ready(function() {
 });
 (function() {
     var click = $.debounce(300, function() {
-        d3.json('/api/random', function(error, json) {
+        var url = '/api/random?' + Math.floor(Math.random() * 1000000);
+        d3.json(url, function(error, json) {
             if (error) { console.warn(error); return; } 
             if (!dg.graph.isUpdating) { dg.navigateGraph(json.center); }
         });
