@@ -57,29 +57,29 @@ class Test(unittest.TestCase):
         expected = stringtools.normalize('''
             discograph.library.Artist(
                 aliases=[
-                    discograph.library.ArtistReference(
+                    discograph.library.mongo.ArtistReference(
                         name='ADCL',
                         ),
-                    discograph.library.ArtistReference(
+                    discograph.library.mongo.ArtistReference(
                         name='Alexi Delano & Cari Lekebusch',
                         ),
-                    discograph.library.ArtistReference(
+                    discograph.library.mongo.ArtistReference(
                         name='Crushed Insect & The Sick Puppy',
                         ),
-                    discograph.library.ArtistReference(
+                    discograph.library.mongo.ArtistReference(
                         name='Puente Latino',
                         ),
-                    discograph.library.ArtistReference(
+                    discograph.library.mongo.ArtistReference(
                         name='Yakari & Delano',
                         ),
                     ],
                 discogs_id=2,
                 members=[
-                    discograph.library.ArtistReference(
+                    discograph.library.mongo.ArtistReference(
                         discogs_id=26,
                         name='Alexi Delano',
                         ),
-                    discograph.library.ArtistReference(
+                    discograph.library.mongo.ArtistReference(
                         discogs_id=27,
                         name='Cari Lekebusch',
                         ),

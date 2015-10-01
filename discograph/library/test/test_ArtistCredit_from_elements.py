@@ -36,7 +36,7 @@ class Test(unittest.TestCase):
         element = ElementTree.fromstring(source)
         artist_credits = library.ArtistCredit.from_elements(element)
         assert format(artist_credits[0]) == stringtools.normalize(r'''
-            discograph.library.ArtistCredit(
+            discograph.library.mongo.ArtistCredit(
                 discogs_id=1,
                 name='Persuader, The',
                 )
@@ -58,7 +58,7 @@ class Test(unittest.TestCase):
         element = ElementTree.fromstring(source)
         artist_credits = library.ArtistCredit.from_elements(element)
         assert format(artist_credits[0]) == stringtools.normalize(r'''
-            discograph.library.ArtistCredit(
+            discograph.library.mongo.ArtistCredit(
                 discogs_id=239,
                 name='Jesper Dahlbäck',
                 roles=[

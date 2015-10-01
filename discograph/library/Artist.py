@@ -7,7 +7,7 @@ import random
 import traceback
 from abjad.tools import systemtools
 from discograph.library.Bootstrapper import Bootstrapper
-from discograph.library.ArtistReference import ArtistReference
+from discograph.library.mongo.ArtistReference import ArtistReference
 from discograph.library.mongo.MongoModel import MongoModel
 
 

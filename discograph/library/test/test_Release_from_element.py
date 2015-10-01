@@ -153,18 +153,18 @@ class Test(unittest.TestCase):
         expected = stringtools.normalize(u"""
             discograph.library.Release(
                 artists=[
-                    discograph.library.ArtistCredit(
+                    discograph.library.mongo.ArtistCredit(
                         discogs_id=1,
                         name='Persuader, The',
                         ),
                     ],
                 companies=[
-                    discograph.library.CompanyCredit(
+                    discograph.library.mongo.CompanyCredit(
                         entity_type=23,
                         entity_type_name='Recorded At',
                         name='The Globe Studios',
                         ),
-                    discograph.library.CompanyCredit(
+                    discograph.library.mongo.CompanyCredit(
                         entity_type=17,
                         entity_type_name='Pressed By',
                         name='MPO',
@@ -173,7 +173,7 @@ class Test(unittest.TestCase):
                 country='Sweden',
                 discogs_id=1,
                 extra_artists=[
-                    discograph.library.ArtistCredit(
+                    discograph.library.mongo.ArtistCredit(
                         discogs_id=239,
                         name='Jesper Dahlbäck',
                         roles=[
@@ -211,7 +211,7 @@ class Test(unittest.TestCase):
                         ),
                     ],
                 labels=[
-                    discograph.library.LabelCredit(
+                    discograph.library.mongo.LabelCredit(
                         catalog_number='SK032',
                         name='Svek',
                         ),
@@ -617,18 +617,18 @@ class Test(unittest.TestCase):
         expected = stringtools.normalize(u"""
             discograph.library.Release(
                 artists=[
-                    discograph.library.ArtistCredit(
+                    discograph.library.mongo.ArtistCredit(
                         discogs_id=3,
                         name='Josh Wink',
                         ),
                     ],
                 companies=[
-                    discograph.library.CompanyCredit(
+                    discograph.library.mongo.CompanyCredit(
                         entity_type=10,
                         entity_type_name='Manufactured By',
                         name='Columbia Records',
                         ),
-                    discograph.library.CompanyCredit(
+                    discograph.library.mongo.CompanyCredit(
                         entity_type=9,
                         entity_type_name='Distributed By',
                         name='Columbia Records',
@@ -637,7 +637,7 @@ class Test(unittest.TestCase):
                 country='US',
                 discogs_id=3,
                 extra_artists=[
-                    discograph.library.ArtistCredit(
+                    discograph.library.mongo.ArtistCredit(
                         discogs_id=3,
                         name='Josh Wink',
                         roles=[
@@ -662,7 +662,7 @@ class Test(unittest.TestCase):
                         ),
                     ],
                 labels=[
-                    discograph.library.LabelCredit(
+                    discograph.library.mongo.LabelCredit(
                         catalog_number='CK 63628',
                         name='Ruffhouse Records',
                         ),
@@ -674,12 +674,12 @@ class Test(unittest.TestCase):
                 tracklist=[
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=5,
                                 join='&',
                                 name='Heiko Laux',
                                 ),
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=4,
                                 join=',',
                                 name='Johannes Heil',
@@ -691,7 +691,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 anv='K.A.B.',
                                 discogs_id=15525,
                                 join=',',
@@ -704,7 +704,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=7,
                                 join=',',
                                 name='Sylk 130',
@@ -712,7 +712,7 @@ class Test(unittest.TestCase):
                             ],
                         duration='5:25',
                         extra_artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=8,
                                 name='Mood II Swing',
                                 roles=[
@@ -727,7 +727,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=1,
                                 join=',',
                                 name='Persuader, The',
@@ -739,7 +739,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=267132,
                                 join=',',
                                 name='Care Company (2)',
@@ -751,7 +751,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=6981,
                                 join=',',
                                 name='Gez Varley',
@@ -763,7 +763,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=11,
                                 join=',',
                                 name='DJ Dozia',
@@ -775,12 +775,12 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=10702,
                                 join='Meets',
                                 name="Nerio's Dubwork",
                                 ),
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=233190,
                                 join=',',
                                 name='Kathy Lee',
@@ -788,7 +788,7 @@ class Test(unittest.TestCase):
                             ],
                         duration='5:42',
                         extra_artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=23,
                                 name='Alex Hi-Fi',
                                 roles=[
@@ -803,7 +803,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=13,
                                 join=',',
                                 name='Blaze',
@@ -811,7 +811,7 @@ class Test(unittest.TestCase):
                             ],
                         duration='5:47',
                         extra_artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=14,
                                 name='Eight Miles High',
                                 roles=[
@@ -826,12 +826,12 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=67226,
                                 join='Presents',
                                 name='Stacey Pullen',
                                 ),
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=7554,
                                 join=',',
                                 name='Black Odyssey',
@@ -839,7 +839,7 @@ class Test(unittest.TestCase):
                             ],
                         duration='6:06',
                         extra_artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=67226,
                                 name='Stacey Pullen',
                                 roles=[
@@ -854,7 +854,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=3906,
                                 join=',',
                                 name='Christian Smith & John Selway',
@@ -866,7 +866,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=3,
                                 join=',',
                                 name='Josh Wink',
@@ -878,7 +878,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=19,
                                 join=',',
                                 name='Sound Associates',
@@ -890,7 +890,7 @@ class Test(unittest.TestCase):
                         ),
                     discograph.library.Track(
                         artists=[
-                            discograph.library.ArtistCredit(
+                            discograph.library.mongo.ArtistCredit(
                                 discogs_id=20,
                                 join=',',
                                 name='Percy X',
@@ -994,7 +994,7 @@ class Test(unittest.TestCase):
         expected = stringtools.normalize(u"""
             discograph.library.Release(
                 artists=[
-                    discograph.library.ArtistCredit(
+                    discograph.library.mongo.ArtistCredit(
                         discogs_id=12584,
                         name='Felix Kubin',
                         ),
@@ -1010,7 +1010,7 @@ class Test(unittest.TestCase):
                     ],
                 genres=['Electronic'],
                 labels=[
-                    discograph.library.LabelCredit(
+                    discograph.library.mongo.LabelCredit(
                         catalog_number='a19',
                         name='A-Musik',
                         ),
@@ -1138,7 +1138,7 @@ class Test(unittest.TestCase):
         expected = stringtools.normalize(u"""
             discograph.library.Release(
                 artists=[
-                    discograph.library.ArtistCredit(
+                    discograph.library.mongo.ArtistCredit(
                         discogs_id=12584,
                         name='Felix Kubin',
                         ),
@@ -1154,7 +1154,7 @@ class Test(unittest.TestCase):
                     ],
                 genres=['Electronic'],
                 labels=[
-                    discograph.library.LabelCredit(
+                    discograph.library.mongo.LabelCredit(
                         catalog_number='a19',
                         name='A-Musik',
                         ),
