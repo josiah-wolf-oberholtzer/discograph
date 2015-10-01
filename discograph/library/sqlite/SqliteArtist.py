@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 import peewee
-from discograph.library.SQLModel import SQLModel
+from discograph.library.sqlite.SqliteModel import SqliteModel
 
 
-class SQLArtist(SQLModel):
+class SqliteArtist(SqliteModel):
 
     ### PEEWEE FIELDS ###
 
@@ -17,8 +17,8 @@ class SQLArtist(SQLModel):
     ### PUBLIC METHODS ###
 
     def get_relations(self, role_names=None):
-        from discograph.library.SQLRelation import SQLRelation
-        return SQLRelation.search(
+        from discograph.library.sqlite.SqliteRelation import SqliteRelation
+        return SqliteRelation.search(
             entity_id=self.id,
             entity_type=1,
             role_names=role_names,

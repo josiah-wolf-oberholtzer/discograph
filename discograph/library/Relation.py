@@ -290,8 +290,8 @@ class Relation(Model, mongoengine.Document):
     @staticmethod
     def dump_to_sqlite():
         import discograph
-        discograph.SQLRelation.drop_table(fail_silently=True)
-        discograph.SQLRelation.create_table()
+        discograph.SqliteRelation.drop_table(fail_silently=True)
+        discograph.SqliteRelation.create_table()
         count = discograph.Relation.objects.count()
         query = discograph.Relation._get_collection().find()
         rows = []
@@ -310,12 +310,12 @@ class Relation(Model, mongoengine.Document):
             if mongo_document.get('role_name') not in ('Alias', 'Member Of'):
                 break
             if len(rows) == 100:
-                discograph.SQLRelation.insert_many(rows).execute()
+                discograph.SqliteRelation.insert_many(rows).execute()
                 rows = []
                 print('Processing... {} of {} [{:.3f}%]'.format(
                     i, count, (float(i) / count) * 100))
         if rows:
-            discograph.SQLRelation.insert_many(rows).execute()
+            discograph.SqliteRelation.insert_many(rows).execute()
             print('Processing... {} of {} [{:.3f}%]'.format(
                 i, count, (float(i) / count) * 100))
 

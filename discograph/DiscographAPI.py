@@ -60,8 +60,8 @@ class DiscographAPI(object):
 
     def get_artist(self, artist_id):
         import discograph
-        query = discograph.SQLArtist.select()
-        query = query.where(discograph.SQLArtist.id == artist_id)
+        query = discograph.SqliteArtist.select()
+        query = query.where(discograph.SqliteArtist.id == artist_id)
         result = list(query)
         if not result:
             return None
@@ -114,7 +114,7 @@ class DiscographAPI(object):
 
     def get_random_entity(self, role_names=None):
         import discograph
-        relation = discograph.SQLRelation.get_random(role_names=role_names)
+        relation = discograph.SqliteRelation.get_random(role_names=role_names)
         entity_choice = random.randint(1, 2)
         if entity_choice == 1:
             entity_type = relation.entity_one_type
@@ -159,7 +159,7 @@ class DiscographAPI(object):
         data = self.cache_get(cache_key)
         if data is not None:
             return data
-        query = discograph.SQLFTSArtist.search_bm25(search_string).limit(10)
+        query = discograph.SqliteFTSArtist.search_bm25(search_string).limit(10)
         data = []
         for sql_fts_artist in query:
             datum = dict(

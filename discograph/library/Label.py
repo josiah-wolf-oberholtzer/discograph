@@ -137,8 +137,8 @@ class Label(Model, mongoengine.Document):
     @staticmethod
     def dump_to_sqlite():
         import discograph
-        discograph.SQLLabel.drop_table(fail_silently=True)
-        discograph.SQLLabel.create_table()
+        discograph.SqliteLabel.drop_table(fail_silently=True)
+        discograph.SqliteLabel.create_table()
         query = discograph.Label.objects().no_cache().timeout(False)
         query = query.only('discogs_id', 'name')
         count = query.count()
@@ -151,12 +151,12 @@ class Label(Model, mongoengine.Document):
                     random=random.random(),
                     ))
             if len(rows) == 100:
-                discograph.SQLLabel.insert_many(rows).execute()
+                discograph.SqliteLabel.insert_many(rows).execute()
                 rows = []
                 print('Processing... {} of {} [{:.3f}%]'.format(
                     i, count, (float(i) / count) * 100))
         if rows:
-            discograph.SQLLabel.insert_many(rows).execute()
+            discograph.SqliteLabel.insert_many(rows).execute()
             print('Processing... {} of {} [{:.3f}%]'.format(
                 i, count, (float(i) / count) * 100))
 

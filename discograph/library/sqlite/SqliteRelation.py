@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 import peewee
 import random
-from discograph.library.SQLModel import SQLModel
+from discograph.library.sqlite.SqliteModel import SqliteModel
 
 
-class SQLRelation(SQLModel):
+class SqliteRelation(SqliteModel):
 
     ### PEEWEE FIELDS ###
 
@@ -28,22 +28,22 @@ class SQLRelation(SQLModel):
     ### PUBLIC METHODS ###
 
     def get_entity_one(self):
-        from discograph.library.SQLArtist import SQLArtist
-        from discograph.library.SQLLabel import SQLLabel
+        from discograph.library.sqlite.SqliteArtist import SqliteArtist
+        from discograph.library.sqlite.SqliteLabel import SqliteLabel
         entity_id = self.entity_one_id
         entity_type = self.entity_one_type
         if entity_type == 1:
-            return SQLArtist.from_id(entity_id)
-        return SQLLabel.from_id(entity_id)
+            return SqliteArtist.from_id(entity_id)
+        return SqliteLabel.from_id(entity_id)
 
     def get_entity_two(self):
-        from discograph.library.SQLArtist import SQLArtist
-        from discograph.library.SQLLabel import SQLLabel
+        from discograph.library.sqlite.SqliteArtist import SqliteArtist
+        from discograph.library.sqlite.SqliteLabel import SqliteLabel
         entity_id = self.entity_two_id
         entity_type = self.entity_two_type
         if entity_type == 1:
-            return SQLArtist.from_id(entity_id)
-        return SQLLabel.from_id(entity_id)
+            return SqliteArtist.from_id(entity_id)
+        return SqliteLabel.from_id(entity_id)
 
     @classmethod
     def get_random(cls, role_names=None):

@@ -5,9 +5,9 @@ import six
 from discograph.library.Artist import Artist
 from discograph.library.ArtistRole import ArtistRole
 from discograph.library.Label import Label
-from discograph.library.SQLArtist import SQLArtist
-from discograph.library.SQLLabel import SQLLabel
-from discograph.library.SQLRelation import SQLRelation
+from discograph.library.sqlite.SqliteArtist import SqliteArtist
+from discograph.library.sqlite.SqliteLabel import SqliteLabel
+from discograph.library.sqlite.SqliteRelation import SqliteRelation
 
 
 class RelationGrapher(object):
@@ -27,7 +27,7 @@ class RelationGrapher(object):
         max_nodes=None,
         role_names=None,
         ):
-        prototype = (Artist, Label, SQLArtist, SQLLabel)
+        prototype = (Artist, Label, SqliteArtist, SqliteLabel)
         assert isinstance(center_entity, prototype)
         self.center_entity = center_entity
         degree = int(degree)
@@ -179,7 +179,7 @@ class RelationGrapher(object):
                 #    start, stop, len(current_entity_keys_to_visit)
                 #    ))
                 entity_key_slice = current_entity_keys_to_visit[start:stop]
-                relations.extend(SQLRelation.search_multi(
+                relations.extend(SqliteRelation.search_multi(
                     entity_key_slice,
                     role_names=provisional_role_names,
                     ))
@@ -220,16 +220,16 @@ class RelationGrapher(object):
                 label_ids.append(entity_id)
         artists = []
         for i in range(0, len(artist_ids), 999):
-            query = (SQLArtist
+            query = (SqliteArtist
                 .select()
-                .where(SQLArtist.id.in_(artist_ids[i:i + 999]))
+                .where(SqliteArtist.id.in_(artist_ids[i:i + 999]))
                 )
             artists.extend(query)
         labels = []
         for i in range(0, len(artist_ids), 999):
-            query = (SQLLabel
+            query = (SqliteLabel
                 .select()
-                .where(SQLLabel.id.in_(label_ids[i:i + 999]))
+                .where(SqliteLabel.id.in_(label_ids[i:i + 999]))
                 )
             labels.extend(query)
         for artist in artists:
@@ -348,7 +348,7 @@ class RelationGrapher(object):
                 link['target'] = 'label-{}'.format(link['target'][1])
         nodes = tuple(sorted(nodes.values(),
             key=lambda x: (x['type'], x['id'])))
-        if type(self.center_entity) in (Artist, SQLArtist):
+        if type(self.center_entity) in (Artist, SqliteArtist):
             center = 'artist-{}'.format(self.center_entity.discogs_id)
         else:
             center = 'label-{}'.format(self.center_entity.discogs_id)

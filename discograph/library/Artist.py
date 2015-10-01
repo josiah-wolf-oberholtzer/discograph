@@ -147,11 +147,11 @@ class Artist(Model, mongoengine.Document):
     @staticmethod
     def dump_to_sqlite():
         import discograph
-        discograph.SQLFTSArtist.drop_table(True)
-        discograph.SQLArtist.drop_table(True)
-        discograph.SQLArtist.create_table()
-        discograph.SQLFTSArtist.create_table(
-            content=discograph.SQLArtist,
+        discograph.SqliteFTSArtist.drop_table(True)
+        discograph.SqliteArtist.drop_table(True)
+        discograph.SqliteArtist.create_table()
+        discograph.SqliteFTSArtist.create_table(
+            content=discograph.SqliteArtist,
             tokenize='porter',
             )
         query = discograph.Artist.objects().no_cache().timeout(False)
@@ -166,16 +166,16 @@ class Artist(Model, mongoengine.Document):
                     random=random.random(),
                     ))
             if len(rows) == 100:
-                discograph.SQLArtist.insert_many(rows).execute()
+                discograph.SqliteArtist.insert_many(rows).execute()
                 rows = []
                 print('Processing... {} of {} [{:.3f}%]'.format(
                     i, count, (float(i) / count) * 100))
         if rows:
-            discograph.SQLArtist.insert_many(rows).execute()
+            discograph.SqliteArtist.insert_many(rows).execute()
             print('Processing... {} of {} [{:.3f}%]'.format(
                 i, count, (float(i) / count) * 100))
-        discograph.SQLFTSArtist.rebuild()
-        discograph.SQLFTSArtist.optimize()
+        discograph.SqliteFTSArtist.rebuild()
+        discograph.SqliteFTSArtist.optimize()
 
     @classmethod
     def from_element(cls, element):

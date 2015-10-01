@@ -1,5 +1,5 @@
-from discograph.library import *
 from discograph.DiscographAPI import DiscographAPI
+from discograph.library import *
 from discograph.app import app
 
 

@@ -22,7 +22,7 @@ database = sqlite_ext.SqliteExtDatabase(
     )
 
 
-class SQLModel(peewee.Model):
+class SqliteModel(peewee.Model):
 
     ### PEEWEE FIELDS
 
