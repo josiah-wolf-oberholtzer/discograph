@@ -15,8 +15,8 @@ def limit(max_requests=10, period=60):
         @functools.wraps(f)
         def wrapped(*args, **kwargs):
 
-            # DELETE ME
-            max_requests = 2
+            # For testing error handlers:
+            # max_requests = 2
 
             key = 'ratelimit:{}:{}'.format(
                 flask.request.endpoint,

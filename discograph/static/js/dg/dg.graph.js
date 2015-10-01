@@ -32,10 +32,14 @@ var dg = (function(dg){
 
     dg.handleNewGraphData = function(error, json) {
         if (error) {
+            var message = 'Something went wrong!';
+            if (error.status == 429) {
+                message = 'Hey, slow down, buddy. Give it a minute.'
+            }
             console.warn(error, error.status, error.statusText);
-            var text = '<div class="alert alert-warning alert-dismissible" role="alert">';
+            var text = '<div class="alert alert-danger alert-dismissible" role="alert">';
             text += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-            text += '<strong>' + error.status + '!</strong> ' + error.statusText + '!';
+            text += '<strong>' + error.status + '!</strong> ' + message;
             text += '</div>';
             $('#flash').append(text);
             window.history.back();

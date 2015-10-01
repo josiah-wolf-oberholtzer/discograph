@@ -3,6 +3,8 @@
 from flask import Flask
 from flask import g
 from flask import jsonify
+from flask import make_response
+from flask import render_template
 from flask.ext.mobility import Mobility
 from werkzeug.contrib.fixers import ProxyFix
 
@@ -32,6 +34,20 @@ def inject_rate_limit_headers(response):
         h.add('X-RateLimit-Limit', requests)
         h.add('X-RateLimit-Reset', reset)
         return response
+
+
+@app.errorhandler(404)
+def handler_404(error):
+    rendered_template = render_template('404.html')
+    response = make_response(rendered_template)
+    return response
+
+
+@app.errorhandler(500)
+def handler_500(error):
+    rendered_template = render_template('404.html')
+    response = make_response(rendered_template)
+    return response
 
 
 @app.errorhandler(Exception)
