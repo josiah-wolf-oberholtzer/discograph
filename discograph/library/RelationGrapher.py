@@ -2,9 +2,9 @@
 import collections
 import re
 import six
-from discograph.library.Artist import Artist
+from discograph.library.mongo.Artist import Artist
 from discograph.library.mongo.ArtistRole import ArtistRole
-from discograph.library.Label import Label
+from discograph.library.mongo.Label import Label
 from discograph.library.sqlite.SqliteArtist import SqliteArtist
 from discograph.library.sqlite.SqliteLabel import SqliteLabel
 from discograph.library.sqlite.SqliteRelation import SqliteRelation

@@ -55,7 +55,7 @@ class Test(unittest.TestCase):
         artist_document = library.Artist.from_element(artist_element)
         actual = format(artist_document)
         expected = stringtools.normalize('''
-            discograph.library.Artist(
+            discograph.library.mongo.Artist(
                 aliases=[
                     discograph.library.mongo.ArtistReference(
                         name='ADCL',

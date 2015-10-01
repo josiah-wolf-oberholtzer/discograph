@@ -55,7 +55,7 @@ class Test(unittest.TestCase):
         label_document = library.Label.from_element(label_element)
         actual = format(label_document)
         expected = stringtools.normalize(u'''
-            discograph.library.Label(
+            discograph.library.mongo.Label(
                 discogs_id=3,
                 name='Seasons Recordings',
                 sublabels=[

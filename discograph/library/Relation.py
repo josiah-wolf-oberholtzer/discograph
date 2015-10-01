@@ -10,8 +10,8 @@ import random
 from abjad.tools import datastructuretools
 from abjad.tools import systemtools
 from discograph.library.mongo.MongoModel import MongoModel
-from discograph.library.Artist import Artist
-from discograph.library.Label import Label
+from discograph.library.mongo.Artist import Artist
+from discograph.library.mongo.Label import Label
 
 
 class Relation(MongoModel, mongoengine.Document):
