@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 import gzip
 import mongoengine
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 
 
-class Master(Model, mongoengine.Document):
+class Master(MongoModel, mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 

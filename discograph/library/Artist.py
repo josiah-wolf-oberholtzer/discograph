@@ -8,10 +8,10 @@ import traceback
 from abjad.tools import systemtools
 from discograph.library.Bootstrapper import Bootstrapper
 from discograph.library.ArtistReference import ArtistReference
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 
 
-class Artist(Model, mongoengine.Document):
+class Artist(MongoModel, mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 

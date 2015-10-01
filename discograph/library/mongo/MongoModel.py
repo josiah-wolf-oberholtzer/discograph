@@ -2,7 +2,7 @@
 from abjad.tools import systemtools
 
 
-class Model(object):
+class MongoModel(object):
 
     ### SPECIAL METHODS ###
 

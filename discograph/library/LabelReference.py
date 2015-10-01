@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 import mongoengine
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 
 
-class LabelReference(Model, mongoengine.EmbeddedDocument):
+class LabelReference(MongoModel, mongoengine.EmbeddedDocument):
 
     ### MONGOENGINE FIELDS ###
 

@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 import mongoengine
 from discograph.library.Bootstrapper import Bootstrapper
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 
 
-class CompanyCredit(Model, mongoengine.EmbeddedDocument):
+class CompanyCredit(MongoModel, mongoengine.EmbeddedDocument):
 
     ### MONGOENGINE FIELDS ###
 

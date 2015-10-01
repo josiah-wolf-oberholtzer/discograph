@@ -2,10 +2,10 @@
 from abjad.tools import datastructuretools
 import mongoengine
 import re
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 
 
-class ArtistRole(Model, mongoengine.EmbeddedDocument):
+class ArtistRole(MongoModel, mongoengine.EmbeddedDocument):
 
     ### CLASS VARIABLES ###
 

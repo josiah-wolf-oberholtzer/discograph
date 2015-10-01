@@ -8,10 +8,10 @@ import traceback
 from abjad.tools import systemtools
 from discograph.library.Bootstrapper import Bootstrapper
 from discograph.library.LabelReference import LabelReference
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 
 
-class Label(Model, mongoengine.Document):
+class Label(MongoModel, mongoengine.Document):
 
     ### MONGOENGINE FIELDS ###
 

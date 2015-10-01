@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 import mongoengine
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 
 
-class ArtistReference(Model, mongoengine.EmbeddedDocument):
+class ArtistReference(MongoModel, mongoengine.EmbeddedDocument):
 
     ### MONGOENGINE FIELDS ###
 

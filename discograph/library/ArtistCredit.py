@@ -2,10 +2,10 @@
 import mongoengine
 from discograph.library.Bootstrapper import Bootstrapper
 from discograph.library.ArtistRole import ArtistRole
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 
 
-class ArtistCredit(Model, mongoengine.EmbeddedDocument):
+class ArtistCredit(MongoModel, mongoengine.EmbeddedDocument):
 
     ### MONGOENGINE FIELDS ###
 

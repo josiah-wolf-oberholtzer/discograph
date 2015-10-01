@@ -12,11 +12,11 @@ from discograph.library.CompanyCredit import CompanyCredit
 from discograph.library.Format import Format
 from discograph.library.Identifier import Identifier
 from discograph.library.LabelCredit import LabelCredit
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 from discograph.library.Track import Track
 
 
-class Release(Model, mongoengine.Document):
+class Release(MongoModel, mongoengine.Document):
 
     ### CLASS VARIABLES ###
 

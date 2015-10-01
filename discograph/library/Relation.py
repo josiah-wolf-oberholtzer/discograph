@@ -9,12 +9,12 @@ import pymongo.operations
 import random
 from abjad.tools import datastructuretools
 from abjad.tools import systemtools
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 from discograph.library.Artist import Artist
 from discograph.library.Label import Label
 
 
-class Relation(Model, mongoengine.Document):
+class Relation(MongoModel, mongoengine.Document):
 
     ### CLASS VARIABLES ###
 

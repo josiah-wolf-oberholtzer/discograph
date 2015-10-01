@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 import mongoengine
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 
 
-class LabelCredit(Model, mongoengine.EmbeddedDocument):
+class LabelCredit(MongoModel, mongoengine.EmbeddedDocument):
 
     ### MONGOENGINE FIELDS ###
 

@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 import mongoengine
-from discograph.library.Model import Model
+from discograph.library.mongo.MongoModel import MongoModel
 
 
-class Format(Model, mongoengine.EmbeddedDocument):
+class Format(MongoModel, mongoengine.EmbeddedDocument):
 
     ### MONGOENGINE FIELDS ###
 
