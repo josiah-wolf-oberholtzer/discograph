@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import mongoengine
 from discograph.library.Model import Model
 

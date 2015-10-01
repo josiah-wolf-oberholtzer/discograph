@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import mongoengine
 from discograph.library.Bootstrapper import Bootstrapper
 from discograph.library.ArtistCredit import ArtistCredit
