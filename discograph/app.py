@@ -5,10 +5,12 @@ from flask import g
 from flask import jsonify
 from flask import make_response
 from flask import render_template
+from flask import request
 from flask.ext.mobility import Mobility
 from werkzeug.contrib.fixers import ProxyFix
 
 from discograph import api
+from discograph import exceptions
 from discograph import ui
 from discograph.library import DiscographAPI
 
@@ -36,6 +38,13 @@ def inject_rate_limit_headers(response):
         return response
 
 
+@app.errorhandler(400)
+def handler_400(error):
+    rendered_template = render_template('400.html')
+    response = make_response(rendered_template)
+    return response
+
+
 @app.errorhandler(404)
 def handler_404(error):
     rendered_template = render_template('404.html')
@@ -52,15 +61,19 @@ def handler_500(error):
 
 @app.errorhandler(Exception)
 def handle_error(error):
-    print("FLAMINGO XXX")
     status_code = getattr(error, 'status_code', 400)
-    response = jsonify({
-        'success': False,
-        'status': status_code,
-        'message': getattr(error, 'message', 'Error')
-        })
-    response.status_code = status_code
-    return response
+    if request.endpoint.startswith('api'):
+        response = jsonify({
+            'success': False,
+            'status': status_code,
+            'message': getattr(error, 'message', 'Error')
+            })
+        response.status_code = status_code
+        return response
+    elif request.endpoint.startswith('ui'):
+        if status_code == 400:
+            return handler_400(error)
+    return handler_500(error)
 
 
 if __name__ == '__main__':

@@ -46,25 +46,3 @@ def route__api__search(search_string):
 def route__api__ping():
     print('PING', request.remote_addr)
     return jsonify({'ping': True})
-
-
-@blueprint.errorhandler(exceptions.RateLimitError)
-def handle_rate_limit_error(error):
-    print("FLAMINGO YYY")
-    response = jsonify({
-        'type': 'client',
-        'message': error.message,
-        'resource': error.resource})
-    response.status_code = error.status_code or 429
-    return response
-
-
-@blueprint.errorhandler(exceptions.APIError)
-def handle_api_error(error):
-    response = jsonify({
-        'type': 'client',
-        'message': error.message,
-        'resource': error.resource,
-        'field': error.field})
-    response.status_code = error.status_code or 400
-    return response
