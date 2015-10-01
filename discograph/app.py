@@ -8,7 +8,7 @@ from werkzeug.contrib.fixers import ProxyFix
 
 app = Flask(__name__)
 app.debug = True
-app.api = discograph.DiscographAPI(app)
+app.api = discograph.library.DiscographAPI(app)
 app.wsgi_app = ProxyFix(app.wsgi_app)
 Mobility(app)
 
