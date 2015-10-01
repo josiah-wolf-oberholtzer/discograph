@@ -13,27 +13,11 @@
                 <span class="glyphicon glyphicon-new-window"></span>
                 <span id="entity-name">Band Name</span>
             </a>
-        </div>
-        <div class="collapse navbar-collapse" id="nav-bottom-details">
-            <form id="filter" class="navbar-form navbar-right" action="#">
-                <div class="btn-group dropup">
-                    <select id="filter-roles" multiple="multiple" name="roles" class="form-control">
-                    {% for category, roles in multiselect_mapping.items() %}
-                        <optgroup label="{{ category }}">
-                        {% for role in roles %}
-                            {% if role in original_role_names %}
-                            <option value="{{ role }}" selected>{{ role }}</option>
-                            {% else %}
-                            <option value="{{ role }}">{{ role }}</option>
-                            {% endif %}
-                        {% endfor %}
-                        </optgroup>
-                    {% endfor %}
-                    </select>
-                    <button id="filter-reset" type="reset" class="btn btn-default">Reset</button>
-                </div>
-                <button type="submit" class="submit btn btn-default">Filter</button>
-            </form>
+            -->
+            <a id="entity-link" class="truncate navbar-brand hidden" href="#" target="_blank"
+                data-toggle="tooltip" title="visit them on discogs.com">
+                <span id="entity-name">Band Name</span>
+            </a>
         </div>
     </div>
 </nav>

@@ -58,5 +58,5 @@ target/
 
 # discograph
 tmp/
-logs/
 src/
+logs/

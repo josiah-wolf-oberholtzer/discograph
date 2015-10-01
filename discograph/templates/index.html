@@ -8,15 +8,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    <script src="/static/js/vendor/bootstrap-multiselect.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="/static/css/typeahead-bootstrap.css">
     <link rel="stylesheet" href="/static/css/discograph.css"/>
-    <link rel="stylesheet" href="/static/css/bootstrap-multiselect.css"/>
     <meta property="og:description" content=" Disco/graph provides an
     interactive visualization of the relationships between nearly 5 million
-    artists, bands and labels using information derived from the Discogs
+    artists, bands and labels using information derived from the Discogs.com
     database."/>
     <meta property="og:title" content="{{ og_title }}"/>
     <meta property="og:site_name" content="Disco/graph"/>
@@ -63,11 +62,31 @@
 <script src="/static/js/dg/dg.history.js"></script>
 <script src="/static/js/dg/dg.typeahead.js"></script>
 
+{% if initial_json %}
+<script>
+{{ initial_json|safe }}
+</script>
+{% endif %}
+
 <script>
 $(document).ready(function() {
     dg.init();
     $('[data-toggle="tooltip"]').tooltip()
 });
+(function() {
+    var click = $.debounce(300, function() {
+        var url = '/api/random?' + Math.floor(Math.random() * 1000000);
+        d3.json(url, function(error, json) {
+            if (error) { console.warn(error); return; } 
+            if (!dg.graph.isUpdating) { dg.navigateGraph(json.center); }
+        });
+    });
+    $('#brand').on("click touchstart", function(event) {
+        click();
+        $(this).tooltip('hide');
+        event.preventDefault();
+    });
+}());
 </script>
 
 <script>
@@ -79,6 +98,20 @@ $(document).ready(function() {
   ga('require', 'linkid');
   ga('send', 'pageview');
 </script>
+
+<svg id="svg">
+</svg>
+
+{% if not is_a_return_visitor %}
+<div class="alert alert-warning alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <p><strong>Hey friends!</strong> The site's been seeing a lot of traffic, and I'm looking into a server upgrade and some other speed-ups.</p>
+    <p>If a link doesn't respond, or the search bar gives up the ghost, take a second and try again. Heck, a full refresh usually does the trick.</p>
+    <p>Something not working? Send me a <a href="https://github.com/josiah-wolf-oberholtzer/discograph/issues" target="_blank">bug report</a>.
+    Artist information seems incorrect? Fix it on <a href="http://discogs.com" target="_blank">Discogs.com</a>.</p>
+    <p>Meanwhile, <a href="https://soundcloud.com/fright-house-records/love-patron?in=josiah-wolf-oberholtzer/sets/bounce" target="_blank">thank you!</a> -josiah</p>
+</div> 
+{% endif %}
 
 </body>
 </html>

@@ -93,7 +93,7 @@ class DiscographAPI(object):
             return None
         if not on_mobile:
             max_nodes = 75
-            max_links = 150
+            max_links = 200
             degree = 12
         else:
             max_nodes = 25

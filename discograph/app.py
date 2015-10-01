@@ -1,12 +1,15 @@
 #! /usr/bin/env python
 import discograph
+import json
 from flask import Flask, abort, jsonify, make_response, redirect, render_template, request, g
 from flask.ext.mobility import Mobility
+from werkzeug.contrib.fixers import ProxyFix
 
 
 app = Flask(__name__)
 app.debug = True
 app.api = discograph.DiscographAPI(app)
+app.wsgi_app = ProxyFix(app.wsgi_app)
 Mobility(app)
 
 
@@ -32,13 +35,13 @@ default_role_names = [
 @app.route('/')
 def route__index():
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
-    multiselect_mapping = discograph.ArtistRole.get_multiselect_mapping()
+    initial_json = 'var dgData = null;'
     rendered_template = render_template(
         'index.html',
         artist=None,
         application_url=app.api.application_url,
+        initial_json=initial_json,
         is_a_return_visitor=is_a_return_visitor,
-        multiselect_mapping=multiselect_mapping,
         og_title='Disco/graph: visualizing music as a social graph',
         og_url='/',
         on_mobile=request.MOBILE,
@@ -49,33 +52,33 @@ def route__index():
     return response
 
 
-@app.route('/<entity_type>/<int:entity_id>', methods=['GET'])
-def route__entity(entity_type, entity_id):
-    if entity_type not in ('artist', 'label'):
+@app.route('/artist/<int:artist_id>')
+def route__artist_id(artist_id):
+    on_mobile = request.MOBILE
+    data = app.api.get_artist_network(artist_id, on_mobile=on_mobile)
+    if data is None:
         abort(404)
-    if entity_type == 'artist':
-        entity = app.api.get_artist(entity_id)
-    else:
-        entity = app.api.get_label(entity_id)
-    if entity is None:
-        abort(404)
-    original_role_names, original_year = app.api.parse_request_args(
-        request.args)
+    initial_json = json.dumps(
+        data,
+        sort_keys=True,
+        indent=4,
+        separators=(',', ': '),
+        )
+    initial_json = 'var dgData = {};'.format(initial_json)
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
-    key = '{}-{}'.format(entity_type, entity.id)
-    url = '/{}/{}'.format(entity_type, entity.id)
-    title = 'Disco/graph: {}'.format(entity.name)
-    multiselect_mapping = discograph.ArtistRole.get_multiselect_mapping()
+    artist = app.api.get_artist(artist_id)
+    key = 'artist-{}'.format(artist.id)
+    url = '/artist/{}'.format(artist.id)
+    title = 'Disco/graph: {}'.format(artist.name)
     rendered_template = render_template(
         'index.html',
         application_url=app.api.application_url,
+        initial_json=initial_json,
         is_a_return_visitor=is_a_return_visitor,
         key=key,
-        multiselect_mapping=multiselect_mapping,
-        og_title='Disco/graph: The "{}" network'.format(entity.name),
+        og_title='Disco/graph: The "{}" network'.format(artist.name),
         og_url=url,
-        on_mobile=request.MOBILE,
-        original_role_names=original_role_names,
+        on_mobile=on_mobile,
         title=title,
         original_year=original_year,
         )
@@ -94,20 +97,22 @@ def route__random():
     return redirect('/label/{}'.format(entity_id), code=302)
 
 
-@app.route('/api/<entity_type>/network/<int:entity_id>', methods=['GET'])
-#@app.api.limit(requests=100, window=60)
-def route__api__network(entity_type, entity_id):
-    if entity_type not in ('artist', 'label'):
-        abort(404)
-    role_names, year = app.api.parse_request_args(request.args)
-    print('NETWORK SEARCH:', entity_type, entity_id)
-    print('ROLES:         ', role_names)
-    print('YEAR:          ', year)
-    role_names = role_names or default_role_names[:]
-    role_names = set(role_names)
-    role_names.add('Member Of')
-    role_names.add('Alias')
-    role_names = sorted(role_names)
+@app.route('/api/random')
+@app.api.limit(requests=60, window=60)
+def route__api__random():
+    role_names = ['Alias', 'Member Of']
+    entity_type, entity_id = app.api.get_random_entity(role_names=role_names)
+    entity_type = {
+        1: 'artist',
+        2: 'label',
+        }[entity_type]
+    data = {'center': '{}-{}'.format(entity_type, entity_id)}
+    return jsonify(data)
+
+
+@app.route('/api/artist/network/<int:artist_id>')
+@app.api.limit(requests=60, window=60)
+def route__api__artist__network__artist_id(artist_id):
     on_mobile = request.MOBILE
     data = app.api.get_network(
         entity_type,
@@ -120,11 +125,18 @@ def route__api__network(entity_type, entity_id):
     return jsonify(data)
 
 
-@app.route('/api/search/<search_string>', methods=['GET'])
-#@app.api.limit(requests=200, window=60)
+@app.route('/api/search/<search_string>')
+@app.api.limit(requests=120, window=60)
 def route__api__search(search_string):
     data = app.api.search_entities(search_string)
     return jsonify(data)
+
+
+@app.route('/api/ping')
+@app.api.limit(requests=200, window=60)
+def route__api__ping():
+    print('PING', request.remote_addr)
+    return jsonify({'ping': True})
 
 
 @app.after_request

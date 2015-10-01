@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import random
 import peewee
+import random
 from discograph.library.SQLModel import SQLModel
 
 
@@ -26,6 +27,32 @@ class SQLRelation(SQLModel):
             )
 
     ### PUBLIC METHODS ###
+
+    def get_entity_one(self):
+        from discograph.library.SQLArtist import SQLArtist
+        from discograph.library.SQLLabel import SQLLabel
+        entity_id = self.entity_one_id
+        entity_type = self.entity_one_type
+        if entity_type == 1:
+            return SQLArtist.from_id(entity_id)
+        return SQLLabel.from_id(entity_id)
+
+    def get_entity_two(self):
+        from discograph.library.SQLArtist import SQLArtist
+        from discograph.library.SQLLabel import SQLLabel
+        entity_id = self.entity_two_id
+        entity_type = self.entity_two_type
+        if entity_type == 1:
+            return SQLArtist.from_id(entity_id)
+        return SQLLabel.from_id(entity_id)
+
+    @classmethod
+    def get_random(cls, role_names=None):
+        n = random.random()
+        where_clause = (cls.random > n)
+        if role_names:
+            where_clause &= (cls.role_name.in_(role_names))
+        return cls.select().where(where_clause).order_by(cls.random).get()
 
     @classmethod
     def bootstrap(cls):
@@ -124,31 +151,27 @@ class SQLRelation(SQLModel):
                 artist_ids.append(entity_id)
             else:
                 label_ids.append(entity_id)
-        relations = []
-        if artist_ids:
-            artist_where_clause = build_where_clause(artist_ids, 1)
-            artist_query = cls.select().where(artist_where_clause)
-            relations.extend(list(artist_query))
-        if label_ids:
-            label_where_clause = build_where_clause(label_ids, 2)
-            label_query = cls.select().where(label_where_clause)
-            relations.extend(list(label_query))
-        return relations
-
-    def get_entity_one(self):
-        from discograph.library.SQLArtist import SQLArtist
-        from discograph.library.SQLLabel import SQLLabel
-        entity_id = self.entity_one_id
-        entity_type = self.entity_one_type
-        if entity_type == 1:
-            return SQLArtist.from_id(entity_id)
-        return SQLLabel.from_id(entity_id)
-
-    def get_entity_two(self):
-        from discograph.library.SQLArtist import SQLArtist
-        from discograph.library.SQLLabel import SQLLabel
-        entity_id = self.entity_two_id
-        entity_type = self.entity_two_type
-        if entity_type == 1:
-            return SQLArtist.from_id(entity_id)
-        return SQLLabel.from_id(entity_id)
+        artist_where_clause = (
+            (cls.entity_one_type == 1) &
+            (cls.entity_one_id.in_(artist_ids))
+            ) | (
+            (cls.entity_two_type == 1) &
+            (cls.entity_two_id.in_(artist_ids))
+            )
+        if role_names:
+            artist_where_clause &= (cls.role_name.in_(role_names))
+        artist_query = cls.select().where(artist_where_clause)
+        label_where_clause = (
+            (cls.entity_one_type == 1) &
+            (cls.entity_one_id.in_(label_ids))
+            ) | (
+            (cls.entity_two_type == 1) &
+            (cls.entity_two_id.in_(label_ids))
+            )
+        if role_names:
+            label_where_clause &= (cls.role_name.in_(role_names))
+        label_query = cls.select().where(label_where_clause)
+        if query_only:
+            return artist_query, label_query
+        return list(_._data for _ in artist_query) + \
+            list(_._data for _ in label_query)
