@@ -34,60 +34,60 @@ class Test(unittest.TestCase):
         relations = library.Relation.from_artist(artist_document)
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=2,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=100000000,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=2,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=100000001,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=2,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=100000002,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=2,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=100000003,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=2,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=100000004,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 role_name='Alias',
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=200000000,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=2,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 role_name='Member Of',
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=200000001,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=2,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 role_name='Member Of',
                 )
             ''')

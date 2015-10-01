@@ -29,26 +29,26 @@ class Test(unittest.TestCase):
         relations = library.Relation.from_release(release_document)
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 country='Sweden',
                 entity_one_id=1,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=-3,
-                entity_two_type=discograph.library.Relation.EntityType.LABEL,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 genres=['Electronic'],
                 release_id=1,
                 role_name='Released On',
                 styles=['Deep House'],
                 year=1999,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.WRITING_AND_ARRANGEMENT,
                 country='Sweden',
                 entity_one_id=239,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=1,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=1,
                 role_name='Music By',
@@ -171,29 +171,29 @@ class Test(unittest.TestCase):
         relations = library.Relation.from_release(release_document)
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=195,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
-                entity_two_type=discograph.library.Relation.EntityType.LABEL,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 release_id=103,
                 role_name='Compiled On',
                 year=1999,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=196,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
-                entity_two_type=discograph.library.Relation.EntityType.LABEL,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 release_id=103,
                 role_name='Compiled On',
                 year=1999,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.RELATION,
                 entity_one_id=197,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
-                entity_two_type=discograph.library.Relation.EntityType.LABEL,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 release_id=103,
                 role_name='Compiled On',
                 year=1999,
@@ -341,26 +341,26 @@ class Test(unittest.TestCase):
         relations = library.Relation.from_release(release_document)
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.PRODUCTION,
                 country='Germany',
                 entity_one_id=22,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=22,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
                 role_name='Producer',
                 styles=['Abstract', 'Ambient'],
                 year=1995,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.INSTRUMENTS,
                 country='Germany',
                 entity_one_id=25,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=22,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
                 role_name='Performer',
@@ -368,26 +368,26 @@ class Test(unittest.TestCase):
                 subcategory=discograph.library.mongo.ArtistRole.Subcategory.OTHER_MUSICAL,
                 year=1995,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.VOCAL,
                 country='Germany',
                 entity_one_id=415403,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=22,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
                 role_name='Voice',
                 styles=['Abstract', 'Ambient'],
                 year=1995,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.INSTRUMENTS,
                 country='Germany',
                 entity_one_id=519207,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=22,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
                 role_name='Performer',
@@ -395,26 +395,26 @@ class Test(unittest.TestCase):
                 subcategory=discograph.library.mongo.ArtistRole.Subcategory.OTHER_MUSICAL,
                 year=1995,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.VISUAL,
                 country='Germany',
                 entity_one_id=539207,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=22,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
                 role_name='Cover',
                 styles=['Abstract', 'Ambient'],
                 year=1995,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.VISUAL,
                 country='Germany',
                 entity_one_id=539207,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=22,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
                 role_name='Design',
@@ -676,169 +676,169 @@ class Test(unittest.TestCase):
         relations = library.Relation.from_release(release_document)
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r"""
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=64,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=65,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=66,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=67,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=69,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=70,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=71,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=1014,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=4210,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=36400,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=222489,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.FEATURING_AND_PRESENTING,
                 country='US',
                 entity_one_id=36400,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=36400,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='Featuring',
                 styles=['Trance'],
                 year=2000,
                 )
-            discograph.library.Relation(
+            discograph.library.mongo.Relation(
                 category=discograph.library.mongo.ArtistRole.Category.FEATURING_AND_PRESENTING,
                 country='US',
                 entity_one_id=36400,
-                entity_one_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=222489,
-                entity_two_type=discograph.library.Relation.EntityType.ARTIST,
+                entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
                 role_name='Featuring',
