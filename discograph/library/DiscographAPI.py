@@ -22,7 +22,11 @@ class DiscographAPI(object):
 
     def __init__(self, app=None):
         import discograph
-        config_path = os.path.join(discograph.__path__[0], 'discograph.cfg')
+        config_path = os.path.join(
+            discograph.__path__[0],
+            'configuration',
+            'discograph.cfg',
+            )
         parser = ConfigParser()
         parser.read(config_path)
         if parser.has_option('url', 'application_url'):
