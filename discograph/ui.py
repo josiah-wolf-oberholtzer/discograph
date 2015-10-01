@@ -1,0 +1,75 @@
+# -*- encoding: utf-8 -*-
+import json
+from flask import Blueprint
+from flask import make_response
+from flask import redirect
+from flask import request
+from flask import render_template
+
+from discograph import exceptions
+from discograph import helpers
+
+
+blueprint = Blueprint('ui', __name__, template_folder='templates')
+
+
+@blueprint.route('/')
+def route__index():
+    is_a_return_visitor = request.cookies.get('is_a_return_visitor')
+    initial_json = 'var dgData = null;'
+    rendered_template = render_template(
+        'index.html',
+        artist=None,
+        application_url=helpers.discograph_api.application_url,
+        initial_json=initial_json,
+        is_a_return_visitor=is_a_return_visitor,
+        og_title='Disco/graph: visualizing music as a social graph',
+        og_url='/',
+        on_mobile=request.MOBILE,
+        title='Disco/graph: Visualizing music as a social graph',
+        )
+    response = make_response(rendered_template)
+    response.set_cookie('is_a_return_visitor', 'true')
+    return response
+
+
+@blueprint.route('/artist/<int:artist_id>')
+def route__artist_id(artist_id):
+    on_mobile = request.MOBILE
+    data = helpers.discograph_api.get_artist_network(artist_id, on_mobile=on_mobile)
+    if data is None:
+        raise exceptions.APIError()
+    initial_json = json.dumps(
+        data,
+        sort_keys=True,
+        indent=4,
+        separators=(',', ': '),
+        )
+    initial_json = 'var dgData = {};'.format(initial_json)
+    is_a_return_visitor = request.cookies.get('is_a_return_visitor')
+    artist = helpers.discograph_api.get_artist(artist_id)
+    key = 'artist-{}'.format(artist.id)
+    url = '/artist/{}'.format(artist.id)
+    title = 'Disco/graph: {}'.format(artist.name)
+    rendered_template = render_template(
+        'index.html',
+        application_url=helpers.discograph_api.application_url,
+        initial_json=initial_json,
+        is_a_return_visitor=is_a_return_visitor,
+        key=key,
+        og_title='Disco/graph: The "{}" network'.format(artist.name),
+        og_url=url,
+        on_mobile=on_mobile,
+        title=title,
+        )
+    response = make_response(rendered_template)
+    response.set_cookie('is_a_return_visitor', 'true')
+    return response
+
+
+@blueprint.route('/random')
+def route__random():
+    entity_type, entity_id = helpers.discograph_api.get_random_entity()
+    if entity_type == 1:
+        return redirect('/artist/{}'.format(entity_id), code=302)
+    return redirect('/label/{}'.format(entity_id), code=302)

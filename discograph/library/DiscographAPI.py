@@ -16,7 +16,7 @@ class DiscographAPI(object):
 
     ### INITIALIZER ###
 
-    def __init__(self, app=None):
+    def __init__(self):
         import discograph
         config_path = os.path.join(
             discograph.__path__[0],
@@ -36,7 +36,6 @@ class DiscographAPI(object):
         cache_path = os.path.join(discograph.__path__[0], cache_path)
         if not os.path.exists(cache_path):
             os.makedirs(cache_path)
-        self._app = app
         self._cache = FileSystemCache(
             cache_path,
             default_timeout=60 * 60 * 48,
@@ -144,10 +143,6 @@ class DiscographAPI(object):
         return data
 
     ### PUBLIC PROPERTIES ###
-
-    @property
-    def app(self):
-        return self._app
 
     @property
     def application_url(self):

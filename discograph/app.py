@@ -1,14 +1,21 @@
 #! /usr/bin/env python
 # -*- encoding: utf-8 -*-
-from flask import Flask, g
+from flask import Flask
+from flask import g
+from flask import jsonify
 from flask.ext.mobility import Mobility
 from werkzeug.contrib.fixers import ProxyFix
-from discograph.endpoints import endpoints
 
+from discograph import api
+from discograph import ui
+from discograph.library import DiscographAPI
+
+
+discograph_api = DiscographAPI()
 
 app = Flask(__name__)
-app.register_blueprint(endpoints)
-app.debug = True
+app.register_blueprint(api.blueprint, url_prefix='/api')
+app.register_blueprint(ui.blueprint)
 app.wsgi_app = ProxyFix(app.wsgi_app)
 Mobility(app)
 
@@ -25,6 +32,19 @@ def inject_rate_limit_headers(response):
         h.add('X-RateLimit-Limit', requests)
         h.add('X-RateLimit-Reset', reset)
         return response
+
+
+@app.errorhandler(Exception)
+def handle_error(error):
+    print("FLAMINGO XXX")
+    status_code = getattr(error, 'status_code', 400)
+    response = jsonify({
+        'success': False,
+        'status': status_code,
+        'message': getattr(error, 'message', 'Error')
+        })
+    response.status_code = status_code
+    return response
 
 
 if __name__ == '__main__':

@@ -14,6 +14,10 @@ def limit(max_requests=10, period=60):
     def decorator(f):
         @functools.wraps(f)
         def wrapped(*args, **kwargs):
+
+            # DELETE ME
+            max_requests = 2
+
             key = 'ratelimit:{}:{}'.format(
                 flask.request.endpoint,
                 flask.request.remote_addr,
