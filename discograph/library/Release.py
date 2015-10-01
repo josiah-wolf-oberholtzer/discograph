@@ -9,8 +9,8 @@ from abjad.tools import systemtools
 from discograph.library.Bootstrapper import Bootstrapper
 from discograph.library.mongo.ArtistCredit import ArtistCredit
 from discograph.library.mongo.CompanyCredit import CompanyCredit
-from discograph.library.Format import Format
-from discograph.library.Identifier import Identifier
+from discograph.library.mongo.Format import Format
+from discograph.library.mongo.Identifier import Identifier
 from discograph.library.mongo.LabelCredit import LabelCredit
 from discograph.library.mongo.MongoModel import MongoModel
 from discograph.library.Track import Track

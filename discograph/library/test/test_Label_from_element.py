@@ -59,10 +59,10 @@ class Test(unittest.TestCase):
                 discogs_id=3,
                 name='Seasons Recordings',
                 sublabels=[
-                    discograph.library.LabelReference(
+                    discograph.library.mongo.LabelReference(
                         name='Seasons Classics',
                         ),
-                    discograph.library.LabelReference(
+                    discograph.library.mongo.LabelReference(
                         name='Seasons Limited',
                         ),
                     ],

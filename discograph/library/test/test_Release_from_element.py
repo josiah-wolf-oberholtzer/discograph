@@ -185,7 +185,7 @@ class Test(unittest.TestCase):
                         ),
                     ],
                 formats=[
-                    discograph.library.Format(
+                    discograph.library.mongo.Format(
                         descriptions=['12"', '33 ⅓ RPM'],
                         name='Vinyl',
                         quantity=2,
@@ -193,19 +193,19 @@ class Test(unittest.TestCase):
                     ],
                 genres=['Electronic'],
                 identifiers=[
-                    discograph.library.Identifier(
+                    discograph.library.mongo.Identifier(
                         type_='Matrix / Runout',
                         value='MPO SK 032 A1 G PHRUPMASTERGENERAL T27 LONDON',
                         ),
-                    discograph.library.Identifier(
+                    discograph.library.mongo.Identifier(
                         type_='Matrix / Runout',
                         value='MPO SK 032 B1',
                         ),
-                    discograph.library.Identifier(
+                    discograph.library.mongo.Identifier(
                         type_='Matrix / Runout',
                         value='MPO SK 032 C1',
                         ),
-                    discograph.library.Identifier(
+                    discograph.library.mongo.Identifier(
                         type_='Matrix / Runout',
                         value='MPO SK 032 D1',
                         ),
@@ -648,7 +648,7 @@ class Test(unittest.TestCase):
                         ),
                     ],
                 formats=[
-                    discograph.library.Format(
+                    discograph.library.mongo.Format(
                         descriptions=['Compilation', 'Mixed'],
                         name='CD',
                         quantity=1,
@@ -656,7 +656,7 @@ class Test(unittest.TestCase):
                     ],
                 genres=['Electronic'],
                 identifiers=[
-                    discograph.library.Identifier(
+                    discograph.library.mongo.Identifier(
                         type_='Barcode',
                         value='074646362822',
                         ),
@@ -1002,7 +1002,7 @@ class Test(unittest.TestCase):
                 country='Germany',
                 discogs_id=138522,
                 formats=[
-                    discograph.library.Format(
+                    discograph.library.mongo.Format(
                         descriptions=['Mini'],
                         name='CD',
                         quantity=1,
@@ -1146,7 +1146,7 @@ class Test(unittest.TestCase):
                 country='Germany',
                 discogs_id=138522,
                 formats=[
-                    discograph.library.Format(
+                    discograph.library.mongo.Format(
                         descriptions=['Mini'],
                         name='CD',
                         quantity=1,
