@@ -1,19 +1,16 @@
 #! /usr/bin/env python
 # -*- encoding: utf-8 -*-
-import discograph
 from flask import Flask, g
 from flask.ext.mobility import Mobility
 from werkzeug.contrib.fixers import ProxyFix
+from discograph.endpoints import endpoints
 
 
 app = Flask(__name__)
+app.register_blueprint(endpoints)
 app.debug = True
-app.api = discograph.library.DiscographAPI(app)
 app.wsgi_app = ProxyFix(app.wsgi_app)
 Mobility(app)
-
-
-import endpoints
 
 
 @app.after_request
