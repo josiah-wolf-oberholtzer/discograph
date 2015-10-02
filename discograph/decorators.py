@@ -4,7 +4,7 @@ import functools
 import redis
 import time
 
-import exceptions
+from discograph import exceptions
 
 
 redis_client = redis.StrictRedis()
