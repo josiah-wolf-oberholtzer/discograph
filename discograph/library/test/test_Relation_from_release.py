@@ -30,7 +30,7 @@ class Test(unittest.TestCase):
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.CreditRole.Category.RELATION,
                 country='Sweden',
                 entity_one_id=1,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -43,7 +43,7 @@ class Test(unittest.TestCase):
                 year=1999,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.WRITING_AND_ARRANGEMENT,
+                category=discograph.library.mongo.CreditRole.Category.WRITING_AND_ARRANGEMENT,
                 country='Sweden',
                 entity_one_id=239,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -172,7 +172,7 @@ class Test(unittest.TestCase):
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.CreditRole.Category.RELATION,
                 entity_one_id=195,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
@@ -181,7 +181,7 @@ class Test(unittest.TestCase):
                 year=1999,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.CreditRole.Category.RELATION,
                 entity_one_id=196,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
@@ -190,7 +190,7 @@ class Test(unittest.TestCase):
                 year=1999,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.CreditRole.Category.RELATION,
                 entity_one_id=197,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
@@ -342,7 +342,7 @@ class Test(unittest.TestCase):
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.PRODUCTION,
+                category=discograph.library.mongo.CreditRole.Category.PRODUCTION,
                 country='Germany',
                 entity_one_id=22,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -355,7 +355,7 @@ class Test(unittest.TestCase):
                 year=1995,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.INSTRUMENTS,
+                category=discograph.library.mongo.CreditRole.Category.INSTRUMENTS,
                 country='Germany',
                 entity_one_id=25,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -365,11 +365,11 @@ class Test(unittest.TestCase):
                 release_id=5,
                 role_name='Performer',
                 styles=['Abstract', 'Ambient'],
-                subcategory=discograph.library.mongo.ArtistRole.Subcategory.OTHER_MUSICAL,
+                subcategory=discograph.library.mongo.CreditRole.Subcategory.OTHER_MUSICAL,
                 year=1995,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.VOCAL,
+                category=discograph.library.mongo.CreditRole.Category.VOCAL,
                 country='Germany',
                 entity_one_id=415403,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -382,7 +382,7 @@ class Test(unittest.TestCase):
                 year=1995,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.INSTRUMENTS,
+                category=discograph.library.mongo.CreditRole.Category.INSTRUMENTS,
                 country='Germany',
                 entity_one_id=519207,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -392,11 +392,11 @@ class Test(unittest.TestCase):
                 release_id=5,
                 role_name='Performer',
                 styles=['Abstract', 'Ambient'],
-                subcategory=discograph.library.mongo.ArtistRole.Subcategory.OTHER_MUSICAL,
+                subcategory=discograph.library.mongo.CreditRole.Subcategory.OTHER_MUSICAL,
                 year=1995,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.VISUAL,
+                category=discograph.library.mongo.CreditRole.Category.VISUAL,
                 country='Germany',
                 entity_one_id=539207,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -409,7 +409,7 @@ class Test(unittest.TestCase):
                 year=1995,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.VISUAL,
+                category=discograph.library.mongo.CreditRole.Category.VISUAL,
                 country='Germany',
                 entity_one_id=539207,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -677,7 +677,7 @@ class Test(unittest.TestCase):
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r"""
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -690,7 +690,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -703,7 +703,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -716,7 +716,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -729,7 +729,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -742,7 +742,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -755,7 +755,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -768,7 +768,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -781,7 +781,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -794,7 +794,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -807,7 +807,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.DJ_MIX,
+                category=discograph.library.mongo.CreditRole.Category.DJ_MIX,
                 country='US',
                 entity_one_id=64,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -820,7 +820,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.FEATURING_AND_PRESENTING,
+                category=discograph.library.mongo.CreditRole.Category.FEATURING_AND_PRESENTING,
                 country='US',
                 entity_one_id=36400,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
@@ -833,7 +833,7 @@ class Test(unittest.TestCase):
                 year=2000,
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.FEATURING_AND_PRESENTING,
+                category=discograph.library.mongo.CreditRole.Category.FEATURING_AND_PRESENTING,
                 country='US',
                 entity_one_id=36400,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,

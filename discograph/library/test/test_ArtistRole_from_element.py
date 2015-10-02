@@ -14,14 +14,14 @@ class Test(unittest.TestCase):
             'Shekere [Xequere, Original Musician], Guiro [Original Musician], '
             'Claves [Original Musician]'
             )
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(
+            library.CreditRole(
                 name='Shekere',
                 detail='Xequere, Original Musician',
                 ),
-            library.ArtistRole(name='Guiro', detail='Original Musician'),
-            library.ArtistRole(name='Claves', detail='Original Musician'),
+            library.CreditRole(name='Guiro', detail='Original Musician'),
+            library.CreditRole(name='Claves', detail='Original Musician'),
             ]
 
     def test_2(self):
@@ -30,13 +30,13 @@ class Test(unittest.TestCase):
             'Co-producer, Arranged By, Directed By, Other [Guided By], '
             'Other [Created By]'
             )
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(name='Co-producer'),
-            library.ArtistRole(name='Arranged By'),
-            library.ArtistRole(name='Directed By'),
-            library.ArtistRole(name='Other', detail='Guided By'),
-            library.ArtistRole(name='Other', detail='Created By'),
+            library.CreditRole(name='Co-producer'),
+            library.CreditRole(name='Arranged By'),
+            library.CreditRole(name='Directed By'),
+            library.CreditRole(name='Other', detail='Guided By'),
+            library.CreditRole(name='Other', detail='Created By'),
             ]
 
     def test_3(self):
@@ -45,13 +45,13 @@ class Test(unittest.TestCase):
             'Organ [Original Musician], '
             'Electric Piano [Rhodes, Original Musician]'
             )
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(
+            library.CreditRole(
                 name='Organ',
                 detail='Original Musician',
                 ),
-            library.ArtistRole(
+            library.CreditRole(
                 name='Electric Piano',
                 detail='Rhodes, Original Musician',
                 ),
@@ -60,9 +60,9 @@ class Test(unittest.TestCase):
     def test_4(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = "Photography By ['hats' And 'spray' Photos By]"
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(
+            library.CreditRole(
                 name='Photography By',
                 detail="'hats' And 'spray' Photos By",
                 ),
@@ -71,35 +71,35 @@ class Test(unittest.TestCase):
     def test_5(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Strings '
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(name='Strings'),
+            library.CreditRole(name='Strings'),
             ]
 
     def test_6(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Piano, Synthesizer [Moog], Programmed By'
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(name='Piano'),
-            library.ArtistRole(name='Synthesizer', detail='Moog'),
-            library.ArtistRole(name='Programmed By'),
+            library.CreditRole(name='Piano'),
+            library.CreditRole(name='Synthesizer', detail='Moog'),
+            library.CreditRole(name='Programmed By'),
             ]
 
     def test_7(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Percussion [Misc.]'
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(name='Percussion', detail='Misc.'),
+            library.CreditRole(name='Percussion', detail='Misc.'),
             ]
 
     def test_8(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Painting [Uncredited; Detail Of <i>"The Transfiguration"</i>]'
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(
+            library.CreditRole(
                 name='Painting',
                 detail='Uncredited; Detail Of <i>"The Transfiguration"</i>',
                 ),
@@ -108,27 +108,27 @@ class Test(unittest.TestCase):
     def test_9(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Composed By, Words By [elemented By], Producer'
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(name='Composed By'),
-            library.ArtistRole(name='Words By', detail='elemented By'),
-            library.ArtistRole(name='Producer'),
+            library.CreditRole(name='Composed By'),
+            library.CreditRole(name='Words By', detail='elemented By'),
+            library.CreditRole(name='Producer'),
             ]
 
     def test_10(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Engineer [Remix] [Assistant], Producer'
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(name='Engineer', detail='Remix, Assistant'),
-            library.ArtistRole(name='Producer'),
+            library.CreditRole(name='Engineer', detail='Remix, Assistant'),
+            library.CreditRole(name='Producer'),
             ]
 
     def test_11(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Performer [Enigmatic [K] Voice, Moog, Korg Vocoder], Lyrics By'
-        roles = library.ArtistRole.from_element(element)
+        roles = library.CreditRole.from_element(element)
         assert roles == [
-            library.ArtistRole(name='Performer', detail='Enigmatic [K] Voice, Moog, Korg Vocoder'),
-            library.ArtistRole(name='Lyrics By'),
+            library.CreditRole(name='Performer', detail='Enigmatic [K] Voice, Moog, Korg Vocoder'),
+            library.CreditRole(name='Lyrics By'),
             ]

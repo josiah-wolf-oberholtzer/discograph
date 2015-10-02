@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 import mongoengine
 from discograph.library.Bootstrapper import Bootstrapper
-from discograph.library.mongo.ArtistRole import ArtistRole
+from discograph.library.mongo.CreditRole import CreditRole
 from discograph.library.mongo.MongoModel import MongoModel
 
 
@@ -13,7 +13,7 @@ class ArtistCredit(MongoModel, mongoengine.EmbeddedDocument):
     name = mongoengine.StringField()
     discogs_id = mongoengine.IntField()
     join = mongoengine.StringField()
-    roles = mongoengine.EmbeddedDocumentListField('ArtistRole')
+    roles = mongoengine.EmbeddedDocumentListField('CreditRole')
     tracks = mongoengine.StringField()
 
     ### PUBLIC METHODS ###
@@ -37,6 +37,6 @@ ArtistCredit._tags_to_fields_mapping = {
     'id': ('discogs_id', Bootstrapper.element_to_integer),
     'join': ('join', Bootstrapper.element_to_string),
     'name': ('name', Bootstrapper.element_to_string),
-    'role': ('roles', ArtistRole.from_element),
+    'role': ('roles', CreditRole.from_element),
     'tracks': ('tracks', Bootstrapper.element_to_string),
     }

@@ -177,7 +177,7 @@ class Test(unittest.TestCase):
                         discogs_id=239,
                         name='Jesper Dahlbäck',
                         roles=[
-                            discograph.library.mongo.ArtistRole(
+                            discograph.library.mongo.CreditRole(
                                 detail='All Tracks By',
                                 name='Music By',
                                 ),
@@ -641,7 +641,7 @@ class Test(unittest.TestCase):
                         discogs_id=3,
                         name='Josh Wink',
                         roles=[
-                            discograph.library.mongo.ArtistRole(
+                            discograph.library.mongo.CreditRole(
                                 name='DJ Mix',
                                 ),
                             ],
@@ -716,7 +716,7 @@ class Test(unittest.TestCase):
                                 discogs_id=8,
                                 name='Mood II Swing',
                                 roles=[
-                                    discograph.library.mongo.ArtistRole(
+                                    discograph.library.mongo.CreditRole(
                                         name='Remix',
                                         ),
                                     ],
@@ -792,7 +792,7 @@ class Test(unittest.TestCase):
                                 discogs_id=23,
                                 name='Alex Hi-Fi',
                                 roles=[
-                                    discograph.library.mongo.ArtistRole(
+                                    discograph.library.mongo.CreditRole(
                                         name='Remix',
                                         ),
                                     ],
@@ -815,7 +815,7 @@ class Test(unittest.TestCase):
                                 discogs_id=14,
                                 name='Eight Miles High',
                                 roles=[
-                                    discograph.library.mongo.ArtistRole(
+                                    discograph.library.mongo.CreditRole(
                                         name='Remix',
                                         ),
                                     ],
@@ -843,7 +843,7 @@ class Test(unittest.TestCase):
                                 discogs_id=67226,
                                 name='Stacey Pullen',
                                 roles=[
-                                    discograph.library.mongo.ArtistRole(
+                                    discograph.library.mongo.CreditRole(
                                         name='Presenter',
                                         ),
                                     ],

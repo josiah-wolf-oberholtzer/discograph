@@ -85,7 +85,7 @@ class Relation(MongoModel, mongoengine.Document):
     @classmethod
     def _get_categories(cls, role_name):
         from discograph import library
-        categories = library.ArtistRole._available_credit_roles.get(
+        categories = library.CreditRole.all_credit_roles.get(
             role_name, None)
         if not categories:
             return None, None
@@ -142,10 +142,10 @@ class Relation(MongoModel, mongoengine.Document):
         if 'hash_id' in keyword_argument_names:
             keyword_argument_names.remove('hash_id')
         keyword_argument_callables = dict(
-            category=library.ArtistRole.Category,
+            category=library.CreditRole.Category,
             entity_one_type=self.EntityType,
             entity_two_type=self.EntityType,
-            subcategory=library.ArtistRole.Subcategory,
+            subcategory=library.CreditRole.Subcategory,
             )
         for keyword_argument_name in keyword_argument_names[:]:
             value = getattr(self, keyword_argument_name)
@@ -477,7 +477,7 @@ class Relation(MongoModel, mongoengine.Document):
             entity_two = cls.model_to_tuple(entity_two)
             for role in credit.roles:
                 role_name = role.name
-                if role_name not in library.ArtistRole._available_credit_roles:
+                if role_name not in library.CreditRole.all_credit_roles:
                     continue
                 elif role_name in aggregate_role_names:
                     if role_name not in aggregate_roles:
@@ -498,7 +498,7 @@ class Relation(MongoModel, mongoengine.Document):
                 entity_two = cls.model_to_tuple(entity_two)
                 for role in credit.roles:
                     role_name = role.name
-                    if role_name not in library.ArtistRole._available_credit_roles:
+                    if role_name not in library.CreditRole.all_credit_roles:
                         continue
                     entity_one = cls.model_to_tuple(credit)
                     triples.add((entity_one, role_name, entity_two))

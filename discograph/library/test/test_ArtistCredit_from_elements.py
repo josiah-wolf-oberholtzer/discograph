@@ -62,7 +62,7 @@ class Test(unittest.TestCase):
                 discogs_id=239,
                 name='Jesper Dahlbäck',
                 roles=[
-                    discograph.library.mongo.ArtistRole(
+                    discograph.library.mongo.CreditRole(
                         detail='All Tracks By',
                         name='Music By',
                         ),

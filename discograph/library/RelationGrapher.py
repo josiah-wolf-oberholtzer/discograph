@@ -3,7 +3,7 @@ import collections
 import re
 import six
 from discograph.library.mongo.Artist import Artist
-from discograph.library.mongo.ArtistRole import ArtistRole
+from discograph.library.mongo.CreditRole import CreditRole
 from discograph.library.mongo.Label import Label
 from discograph.library.sqlite.SqliteArtist import SqliteArtist
 from discograph.library.sqlite.SqliteLabel import SqliteLabel
@@ -49,7 +49,7 @@ class RelationGrapher(object):
             elif not isinstance(role_names, collections.Iterable):
                 role_names = (role_names,)
             role_names = tuple(role_names)
-            assert all(_ in ArtistRole._available_credit_roles
+            assert all(_ in CreditRole.all_credit_roles
                 for _ in role_names)
         self.role_names = role_names
 

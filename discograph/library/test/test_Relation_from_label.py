@@ -69,7 +69,7 @@ class Test(unittest.TestCase):
         actual = '\n'.join(format(_) for _ in relations)
         expected = stringtools.normalize(r'''
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.CreditRole.Category.RELATION,
                 entity_one_id=66542,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 entity_two_id=3,
@@ -77,7 +77,7 @@ class Test(unittest.TestCase):
                 role_name='Sublabel Of',
                 )
             discograph.library.mongo.Relation(
-                category=discograph.library.mongo.ArtistRole.Category.RELATION,
+                category=discograph.library.mongo.CreditRole.Category.RELATION,
                 entity_one_id=297127,
                 entity_one_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 entity_two_id=3,

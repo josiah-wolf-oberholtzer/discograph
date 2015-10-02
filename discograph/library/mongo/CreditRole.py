@@ -5,7 +5,7 @@ import re
 from discograph.library.mongo.MongoModel import MongoModel
 
 
-class ArtistRole(MongoModel, mongoengine.EmbeddedDocument):
+class CreditRole(MongoModel, mongoengine.EmbeddedDocument):
 
     ### CLASS VARIABLES ###
 
@@ -35,7 +35,7 @@ class ArtistRole(MongoModel, mongoengine.EmbeddedDocument):
 
     _bracket_pattern = re.compile('\[(.+?)\]')
 
-    _available_credit_roles = {
+    all_credit_roles = {
 
         "Alias": (Category.RELATION,),
         "Member Of": (Category.RELATION,),
@@ -731,9 +731,9 @@ class ArtistRole(MongoModel, mongoengine.EmbeddedDocument):
 
     @classmethod
     def from_element(cls, element):
-        artist_roles = []
+        credit_roles = []
         if element is None or not element.text:
-            return artist_roles
+            return credit_roles
         current_text = ''
         bracket_depth = 0
         for character in element.text:
@@ -744,14 +744,14 @@ class ArtistRole(MongoModel, mongoengine.EmbeddedDocument):
             elif not bracket_depth and character == ',':
                 current_text = current_text.strip()
                 if current_text:
-                    artist_roles.append(cls.from_text(current_text))
+                    credit_roles.append(cls.from_text(current_text))
                 current_text = ''
                 continue
             current_text += character
         current_text = current_text.strip()
         if current_text:
-            artist_roles.append(cls.from_text(current_text))
-        return artist_roles
+            credit_roles.append(cls.from_text(current_text))
+        return credit_roles
 
     @classmethod
     def from_text(cls, text):
