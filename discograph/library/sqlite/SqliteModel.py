@@ -4,7 +4,7 @@ import os
 import peewee
 import random
 from abjad.tools import systemtools
-from playhouse import sqlite_ext
+from playhouse import apsw_ext
 
 
 database_path = os.path.join(
@@ -12,7 +12,7 @@ database_path = os.path.join(
     'data',
     'discograph.sqlite',
     )
-database = sqlite_ext.SqliteExtDatabase(
+database = apsw_ext.APSWDatabase(
     database_path,
     pragmas=(
         ('journal_mode', 'WAL'),
