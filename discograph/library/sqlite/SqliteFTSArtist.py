@@ -4,4 +4,6 @@ from playhouse import sqlite_ext
 
 
 class SqliteFTSArtist(SqliteArtist, sqlite_ext.FTSModel):
-    pass
+
+    class Meta:
+        db_table = 'sqlftsartist'
