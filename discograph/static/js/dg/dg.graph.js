@@ -1,4 +1,4 @@
-var dg = (function(dg){ 
+var dg = (function(dg){
 
     dg.graph = {
         cache: d3.map(),
@@ -84,7 +84,7 @@ var dg = (function(dg){
             var textOff = dg.graph.textSelection.filter("*:not(.node-" + key + ")");
             var nodeOn = dg.graph.nodeSelection.filter(".node-" + key);
             var linkKeys = nodeOn.data()[0].links;
-            var linkOff = dg.graph.linkSelection.filter(function(d) { 
+            var linkOff = dg.graph.linkSelection.filter(function(d) {
                 return linkKeys.indexOf(d.key) == -1;
             });
         } else {
@@ -114,7 +114,7 @@ var dg = (function(dg){
             .show(0);
 
         var haloOn = dg.graph.haloSelection.filter(".node-" + key);
-        var linkOn = dg.graph.linkSelection.filter(function(d) { 
+        var linkOn = dg.graph.linkSelection.filter(function(d) {
             return 0 <= linkKeys.indexOf(d.key);
         });
         var textOn = dg.graph.textSelection.filter(".node-" + key);
@@ -156,7 +156,7 @@ var dg = (function(dg){
             .attr("class", function(d) { return "hull hull-" + d.key });
         hullEnter.append("path");
     }
-    
+
     function onHullExit(hullExit) {
         hullExit.remove();
     }
@@ -193,7 +193,7 @@ var dg = (function(dg){
             });
         linkEnter.append("path")
             .attr("class", "outer")
-            .append("title").text(function(d) { 
+            .append("title").text(function(d) {
                 var source = d.nodes[0].name,
                     role = d.role,
                     target = d.nodes[2].name;
@@ -228,9 +228,9 @@ var dg = (function(dg){
         var nodeEnter = nodeEnter.append("g")
             //.filter(function(d, i) { return !d.isIntermediate ? this : null })
             .attr("class", function(d) { return "node node-" + d.key; })
-            .style("fill", function(d) { 
+            .style("fill", function(d) {
                 if (d.type == 'artist') {
-                    return dg.color.heatmap(d); 
+                    return dg.color.heatmap(d);
                 } else {
                     return dg.color.greyscale(d);
                 }
@@ -242,7 +242,7 @@ var dg = (function(dg){
 
     function onNodeEnterElementConstruction(nodeEnter) {
 
-        var artistEnter = nodeEnter.select(function(d) { 
+        var artistEnter = nodeEnter.select(function(d) {
             return d.type == 'artist' ? this : null;
         });
         artistEnter
@@ -263,7 +263,7 @@ var dg = (function(dg){
             .attr("class", "inner")
             .attr("r", getInnerRadius);
 
-        var labelEnter = nodeEnter.select(function(d) { 
+        var labelEnter = nodeEnter.select(function(d) {
             return d.type == 'label' ? this : null;
         });
         labelEnter
@@ -285,11 +285,11 @@ var dg = (function(dg){
     }
 
     function onNodeEnterEventBindings(nodeEnter) {
-        nodeEnter.on("dblclick", function(d) { 
-            //console.log('dblclick', d.name); 
+        nodeEnter.on("dblclick", function(d) {
+            //console.log('dblclick', d.name);
             if (!dg.graph.isUpdating) { dg.navigateGraph(d.key); }
         });
-        nodeEnter.on("mousedown", function(d) { 
+        nodeEnter.on("mousedown", function(d) {
             //console.log('mousedown', d.name);
             if (!dg.graph.isUpdating) {
                 dg.graph.nodes.forEach(function(n) { n.fixed = false; });
@@ -298,14 +298,14 @@ var dg = (function(dg){
             }
             d3.event.stopPropagation(); // What is this for?
         });
-        nodeEnter.on("mouseover", function(d) { 
+        nodeEnter.on("mouseover", function(d) {
             //console.log('mouseover', d.name);
             var selection = dg.graph.nodeSelection.select(function(n) {
                 return n.key == d.key ? this : null;
             });
             selection.moveToFront();
         });
-        nodeEnter.on("touchstart", function(d) { 
+        nodeEnter.on("touchstart", function(d) {
             //console.log('touchstart', d.name);
             var thisTime = $.now();
             var lastTime = d.lastTouchTime;
@@ -344,9 +344,9 @@ var dg = (function(dg){
     function onNodeUpdate(nodeSelection) {
         nodeSelection.transition()
             .duration(1000)
-            .style("fill", function(d) { 
+            .style("fill", function(d) {
                 if (d.type == 'artist') {
-                    return dg.color.heatmap(d); 
+                    return dg.color.heatmap(d);
                 } else {
                     return dg.color.greyscale(d);
                 }
@@ -374,7 +374,7 @@ var dg = (function(dg){
             .attr("class", "outer")
             .attr("dx", function(d) { return getOuterRadius(d) + 3; })
             .attr("dy", ".35em")
-            .text(function(d) { 
+            .text(function(d) {
                 var name = d.name;
                 if (50 < name.length) {
                     name = name.slice(0, 50) + "...";
@@ -385,7 +385,7 @@ var dg = (function(dg){
             .attr("class", "inner")
             .attr("dx", function(d) { return getOuterRadius(d) + 3; })
             .attr("dy", ".35em")
-            .text(function(d) { 
+            .text(function(d) {
                 var name = d.name;
                 if (50 < name.length) {
                     name = name.slice(0, 50) + "...";
@@ -409,7 +409,7 @@ var dg = (function(dg){
             return !d.isIntermediate;
         })
         var links = dg.graph.links.filter(function(d) {
-            return d.isPrimary;
+            return !d.isSpline;
         })
 
         dg.graph.haloSelection = dg.graph.haloSelection.data(nodes, keyFunc);
@@ -417,7 +417,7 @@ var dg = (function(dg){
         dg.graph.textSelection = dg.graph.textSelection.data(nodes, keyFunc);
         dg.graph.linkSelection = dg.graph.linkSelection.data(links, keyFunc);
 
-        var hullNodes = dg.graph.nodeMap.values().filter(function(d) { 
+        var hullNodes = dg.graph.nodeMap.values().filter(function(d) {
                 return d.cluster !== undefined;
             });
         var hullData = d3.nest().key(function(d) { return d.cluster; })
@@ -449,8 +449,8 @@ var dg = (function(dg){
         dg.selectNode(dg.graph.centerNodeKey);
     }
 
-    function translate(d) { 
-        return "translate(" + d.x + "," + d.y + ")"; 
+    function translate(d) {
+        return "translate(" + d.x + "," + d.y + ")";
     };
 
     function splineInner(name, sX, sY, sR, cX, cY) {
@@ -514,14 +514,14 @@ var dg = (function(dg){
             return "M" + d3.geom.hull(getHullVertices(d.values)).join("L") + "Z"; });
     }
 
-    getHullVertices = function(nodes) { 
+    getHullVertices = function(nodes) {
         var vertices = [];
         nodes.forEach(function(d) {
             var radius = d.radius;
-            vertices.push([d.x + radius, d.y + radius]); 
-            vertices.push([d.x + radius, d.y - radius]); 
-            vertices.push([d.x - radius, d.y + radius]); 
-            vertices.push([d.x - radius, d.y - radius]); 
+            vertices.push([d.x + radius, d.y + radius]);
+            vertices.push([d.x + radius, d.y - radius]);
+            vertices.push([d.x - radius, d.y + radius]);
+            vertices.push([d.x - radius, d.y - radius]);
         });
         return vertices;
     }
@@ -538,31 +538,33 @@ var dg = (function(dg){
         var newLinkMap = d3.map();
         json.links.forEach(function(link) {
             var role = link.role.toLocaleLowerCase().replace(/\s+/g, "-");
-            var key = link.key;
             var source = link.source,
-                target = link.target,
-                intermediate = {key: key, isIntermediate: true, size: 0};
-            var siLink = {
-                isPrimary: true,
-                isSpline: true,
-                key: "(i)-" + key,
-                role: link.role,
-                source: source, 
-                target: key, 
-                nodes: [source, intermediate, target],
-            };
-            var itLink = {
-                isPrimary: false,
-                isSpline: true,
-                key: key + "-(i)",
-                source: key, 
-                target: target, 
-            };
-            link.intermediate = key;
-            newNodeMap.set(key, intermediate);
+                target = link.target;
+            if (true) {
+                var intermediate = {
+                    key: link.key,
+                    isIntermediate: true,
+                    size: 0,
+                    };
+                var s2iLink = {
+                    isSpline: true,
+                    key: source + "-" + role + "-[" + target + "]",
+                    source: source,
+                    target: link.key,
+                };
+                var i2tLink = {
+                    isSpline: true,
+                    key: "[" + source + "]-" + role + "-" + target,
+                    source: link.key,
+                    target: target,
+                };
+                link.nodes = [source, intermediate, target],
+                link.intermediate = link.key;
+                newNodeMap.set(link.key, intermediate);
+                newLinkMap.set(s2iLink.key, s2iLink);
+                newLinkMap.set(i2tLink.key, i2tLink);
+            }
             newLinkMap.set(link.key, link);
-            newLinkMap.set(siLink.key, siLink);
-            newLinkMap.set(itLink.key, itLink);
         });
 
         // NODES
@@ -728,7 +730,7 @@ var dg = (function(dg){
         });
 
         var defs = dg.graph.svgSelection.append("defs");
-        
+
         defs.append("marker")
             .attr("id", "arrowhead")
             .attr("viewBox", "-5 -5 10 10")
@@ -832,7 +834,7 @@ var dg = (function(dg){
             .linkStrength(2)
             .friction(0.9)
             .linkDistance(function(d, i) {
-                return d.isSpline ? 50 : 100; 
+                return d.isSpline ? 50 : 100;
             })
             .charge(-300)
             .chargeDistance(500)
@@ -840,7 +842,6 @@ var dg = (function(dg){
             .theta(0.1)
             .alpha(0.1)
             ;
-
     }
 
     return dg;
