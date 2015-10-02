@@ -2,8 +2,6 @@
 from __future__ import print_function
 import gzip
 import mongoengine
-import os
-import random
 import traceback
 from abjad.tools import systemtools
 from discograph.library.Bootstrapper import Bootstrapper
@@ -107,58 +105,6 @@ class Label(MongoModel, mongoengine.Document):
                 document.name,
                 )
             print(message)
-
-    @classmethod
-    def dump_to_csv(cls, file_path=None):
-        import discograph
-        if file_path is None:
-            file_path = os.path.join(
-                discograph.__path__[0],
-                'data',
-                '{}.csv'.format(cls.__name__.lower()),
-                )
-        query = cls.objects().no_cache().timeout(False)
-        count = query.count()
-        file_pointer = open(file_path, 'w')
-        progress_indicator = systemtools.ProgressIndicator(
-            message='Processing', total=count)
-        with file_pointer, progress_indicator:
-            line = 'id;name\n'
-            file_pointer.write(line)
-            for document in query:
-                discogs_id = document.discogs_id
-                name = document.name
-                if discogs_id and name:
-                    name = name.replace('"', r'\"')
-                    line = '{};"{}"\n'.format(discogs_id, name)
-                    file_pointer.write(line)
-                progress_indicator.advance()
-
-    @staticmethod
-    def dump_to_sqlite():
-        import discograph
-        discograph.SqliteLabel.drop_table(fail_silently=True)
-        discograph.SqliteLabel.create_table()
-        query = discograph.Label.objects().no_cache().timeout(False)
-        query = query.only('discogs_id', 'name')
-        count = query.count()
-        rows = []
-        for i, mongo_document in enumerate(query, 1):
-            if mongo_document.discogs_id and mongo_document.name:
-                rows.append(dict(
-                    id=mongo_document.discogs_id,
-                    name=mongo_document.name,
-                    random=random.random(),
-                    ))
-            if len(rows) == 100:
-                discograph.SqliteLabel.insert_many(rows).execute()
-                rows = []
-                print('Processing... {} of {} [{:.3f}%]'.format(
-                    i, count, (float(i) / count) * 100))
-        if rows:
-            discograph.SqliteLabel.insert_many(rows).execute()
-            print('Processing... {} of {} [{:.3f}%]'.format(
-                i, count, (float(i) / count) * 100))
 
     @classmethod
     def from_element(cls, element):
