@@ -2,7 +2,6 @@
 import collections
 import itertools
 import mongoengine
-import os
 import pprint
 import pymongo.errors
 import pymongo.operations
@@ -238,86 +237,6 @@ class Relation(MongoModel, mongoengine.Document):
             total = item['total']
             result[role] = total
         return result
-
-    @classmethod
-    def dump_to_csv(cls, file_path=None):
-        import discograph
-        if file_path is None:
-            file_path = os.path.join(
-                discograph.__path__[0],
-                'data',
-                '{}.csv'.format(cls.__name__.lower()),
-                )
-        count = cls.objects.count()
-        query = cls._get_collection().find(no_cursor_timeout=True)
-        file_pointer = open(file_path, 'w')
-        progress_indicator = systemtools.ProgressIndicator(
-            message='Processing', total=count)
-        with file_pointer, progress_indicator:
-            #line = ','.join([
-            #    'id',
-            #    'entity_one_id',
-            #    'entity_one_type',
-            #    'entity_two_id',
-            #    'entity_two_type',
-            #    'release_id',
-            #    'role_name',
-            #    'year',
-            #    ]) + '\n'
-            #file_pointer.write(line)
-            iterator = iter(query)
-            for i in range(count):
-                try:
-                    document = next(iterator)
-                except Exception:
-                    print('ERROR:', i)
-                    print()
-                    continue
-                data = [
-                    i,
-                    document['entity_one_id'],
-                    document['entity_one_type'],
-                    document['entity_two_id'],
-                    document['entity_two_type'],
-                    ]
-                data.append(document.get('release_id', None) or '')
-                data.append('"{}"'.format(document['role_name']))
-                data.append(document.get('year', None) or '')
-                line = ';'.join(str(_) for _ in data) + '\n'
-                file_pointer.write(line)
-                progress_indicator.advance()
-
-    @staticmethod
-    def dump_to_sqlite():
-        import discograph
-        discograph.SqliteRelation.drop_table(fail_silently=True)
-        discograph.SqliteRelation.create_table()
-        count = discograph.Relation.objects.count()
-        query = discograph.Relation._get_collection().find()
-        rows = []
-        for i, mongo_document in enumerate(query, 1):
-            rows.append(dict(
-                id=i,
-                entity_one_id=mongo_document.get('entity_one_id'),
-                entity_one_type=mongo_document.get('entity_one_type'),
-                entity_two_id=mongo_document.get('entity_two_id'),
-                entity_two_type=mongo_document.get('entity_two_type'),
-                year=mongo_document.get('year'),
-                release_id=mongo_document.get('release_id'),
-                role_name=mongo_document.get('role_name'),
-                random=random.random(),
-                ))
-            if mongo_document.get('role_name') not in ('Alias', 'Member Of'):
-                break
-            if len(rows) == 100:
-                discograph.SqliteRelation.insert_many(rows).execute()
-                rows = []
-                print('Processing... {} of {} [{:.3f}%]'.format(
-                    i, count, (float(i) / count) * 100))
-        if rows:
-            discograph.SqliteRelation.insert_many(rows).execute()
-            print('Processing... {} of {} [{:.3f}%]'.format(
-                i, count, (float(i) / count) * 100))
 
     @classmethod
     def from_artist(cls, artist):
