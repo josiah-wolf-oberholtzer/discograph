@@ -194,9 +194,9 @@ var dg = (function(dg){
         linkEnter.append("path")
             .attr("class", "outer")
             .append("title").text(function(d) {
-                var source = d.nodes[0].name,
+                var source = d.source.name,
                     role = d.role,
-                    target = d.nodes[2].name;
+                    target = d.target.name;
                 if (role == "Alias") {
                     return source + " ↔ (" + role + ") ↔ " + target;
                 } else {
@@ -465,14 +465,14 @@ var dg = (function(dg){
     }
 
     function spline(d) {
-        var sR = d.nodes[0].radius;
-        var sX = d.nodes[0].x;
-        var sY = d.nodes[0].y;
-        var tR = d.nodes[2].radius;
-        var tX = d.nodes[2].x;
-        var tY = d.nodes[2].y;
-        var cX = d.nodes[1].x;
-        var cY = d.nodes[1].y;
+        var sR = d.source.radius;
+        var sX = d.source.x;
+        var sY = d.source.y;
+        var tR = d.target.radius;
+        var tX = d.target.x;
+        var tY = d.target.y;
+        var cX = d.intermediate.x;
+        var cY = d.intermediate.y;
         sXY = splineInner("Source", sX, sY, sR, cX, cY);
         tXY = splineInner("Source", tX, tY, tR, cX, cY);
         return (
@@ -495,17 +495,17 @@ var dg = (function(dg){
         });
         dg.graph.linkSelection.select(".inner")
             .attr("d", spline)
-            .attr("x1", function(d) { return d.nodes[0].x; })
-            .attr("y1", function(d) { return d.nodes[0].y; })
-            .attr("x2", function(d) { return d.nodes[2].x; })
-            .attr("y2", function(d) { return d.nodes[2].y; });
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
 
         dg.graph.linkSelection.select(".outer")
             .attr("d", spline)
-            .attr("x1", function(d) { return d.nodes[0].x; })
-            .attr("y1", function(d) { return d.nodes[0].y; })
-            .attr("x2", function(d) { return d.nodes[2].x; })
-            .attr("y2", function(d) { return d.nodes[2].y; });
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
 
         dg.graph.haloSelection.attr("transform", translate);
         dg.graph.nodeSelection.attr("transform", translate);
@@ -558,7 +558,6 @@ var dg = (function(dg){
                     source: link.key,
                     target: target,
                 };
-                link.nodes = [source, intermediate, target],
                 link.intermediate = link.key;
                 newNodeMap.set(link.key, intermediate);
                 newLinkMap.set(s2iLink.key, s2iLink);
@@ -612,9 +611,8 @@ var dg = (function(dg){
             if (!dg.graph.linkMap.has(entry.key)) {
                 entry.value.source = dg.graph.nodeMap.get(entry.value.source);
                 entry.value.target = dg.graph.nodeMap.get(entry.value.target);
-                if (entry.value.nodes !== undefined) {
-                    entry.value.nodes[0] = dg.graph.nodeMap.get(entry.value.nodes[0]);
-                    entry.value.nodes[2] = dg.graph.nodeMap.get(entry.value.nodes[2]);
+                if (entry.value.intermediate !== undefined) {
+                    entry.value.intermediate = dg.graph.nodeMap.get(entry.value.intermediate);
                 }
                 dg.graph.linkMap.set(entry.key, entry.value);
             }
@@ -632,16 +630,15 @@ var dg = (function(dg){
         // CALCULATE NEIGHBORHOODS
         var linkNeighborhoodMap = d3.map()
         dg.graph.linkMap.values().forEach(function(link) {
-            if (link.nodes !== undefined) {
-                if (!linkNeighborhoodMap.has(link.nodes[0].key)) {
-                    linkNeighborhoodMap.set(link.nodes[0].key, []);
-                }
-                linkNeighborhoodMap.get(link.nodes[0].key).push(link.key);
-                if (!linkNeighborhoodMap.has(link.nodes[2].key)) {
-                    linkNeighborhoodMap.set(link.nodes[2].key, []);
-                }
-                linkNeighborhoodMap.get(link.nodes[2].key).push(link.key);
+            if (link.isSpline) { return; }
+            if (!linkNeighborhoodMap.has(link.source.key)) {
+                linkNeighborhoodMap.set(link.source.key, []);
             }
+            linkNeighborhoodMap.get(link.source.key).push(link.key);
+            if (!linkNeighborhoodMap.has(link.target.key)) {
+                linkNeighborhoodMap.set(link.target.key, []);
+            }
+            linkNeighborhoodMap.get(link.target.key).push(link.key);
         });
         linkNeighborhoodMap.entries().forEach(function(entry) {
             dg.graph.nodeMap.get(entry.key).links = entry.value;
