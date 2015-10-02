@@ -40,12 +40,22 @@ class SqliteEntity(SqliteModel):
             if len(rows) == 100:
                 cls.insert_many(rows).execute()
                 rows = []
-                print('Processing... {} of {} [{:.3f}%]'.format(
-                    i, count, (float(i) / count) * 100))
+                print('[{}] Processing {}... {} of {} [{:.3f}%]'.format(
+                    cls.__name__,
+                    mongo_class.__name__,
+                    i,
+                    count,
+                    (float(i) / count) * 100),
+                    )
         if rows:
             cls.insert_many(rows).execute()
-            print('Processing... {} of {} [{:.3f}%]'.format(
-                i, count, (float(i) / count) * 100))
+            print('[{}] Processing {}... {} of {} [{:.3f}%]'.format(
+                cls.__name__,
+                mongo_class.__name__,
+                i,
+                count,
+                (float(i) / count) * 100),
+                )
 
     ### PUBLIC METHODS ###
 

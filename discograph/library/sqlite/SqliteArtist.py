@@ -25,7 +25,7 @@ class SqliteArtist(SqliteModel):
         discograph.SqliteArtist.create_table()
         discograph.SqliteFTSArtist.create_table(
             content=discograph.SqliteArtist,
-            tokenize='porter',
+            tokenize='unicode61',
             )
         query = discograph.Artist.objects().no_cache().timeout(False)
         query = query.only('discogs_id', 'name')
@@ -41,12 +41,20 @@ class SqliteArtist(SqliteModel):
             if len(rows) == 100:
                 discograph.SqliteArtist.insert_many(rows).execute()
                 rows = []
-                print('Processing... {} of {} [{:.3f}%]'.format(
-                    i, count, (float(i) / count) * 100))
+                print('[{}] Processing... {} of {} [{:.3f}%]'.format(
+                    discograph.SqliteArtist.__name__,
+                    i,
+                    count,
+                    (float(i) / count) * 100),
+                    )
         if rows:
             discograph.SqliteArtist.insert_many(rows).execute()
-            print('Processing... {} of {} [{:.3f}%]'.format(
-                i, count, (float(i) / count) * 100))
+            print('[{}] Processing... {} of {} [{:.3f}%]'.format(
+                discograph.SqliteArtist.__name__,
+                i,
+                count,
+                (float(i) / count) * 100),
+                )
         discograph.SqliteFTSArtist.rebuild()
         discograph.SqliteFTSArtist.optimize()
 
