@@ -465,21 +465,25 @@ var dg = (function(dg){
     }
 
     function spline(d) {
-        var sR = d.source.radius;
         var sX = d.source.x;
         var sY = d.source.y;
-        var tR = d.target.radius;
         var tX = d.target.x;
         var tY = d.target.y;
-        var cX = d.intermediate.x;
-        var cY = d.intermediate.y;
-        sXY = splineInner("Source", sX, sY, sR, cX, cY);
-        tXY = splineInner("Source", tX, tY, tR, cX, cY);
-        return (
-            "M " + sXY[0] + "," + sXY[1] + " " +
-            "S " + cX + "," + cY + " " +
-            " " + tXY[0] + "," + tXY[1] + " "
-            );
+        var tR = d.target.radius;
+        var sR = d.source.radius;
+        if (d.intermediate) {
+            var cX = d.intermediate.x;
+            var cY = d.intermediate.y;
+            sXY = splineInner("Source", sX, sY, sR, cX, cY);
+            tXY = splineInner("Source", tX, tY, tR, cX, cY);
+            return (
+                "M " + sXY[0] + "," + sXY[1] + " " +
+                "S " + cX + "," + cY + " " +
+                " " + tXY[0] + "," + tXY[1] + " "
+                );
+        } else {
+            return "M " + [sX, sY] + " L " + [tX, tY];
+        }
     }
 
     dg.tick = function(e) {
@@ -537,10 +541,10 @@ var dg = (function(dg){
 
         var newLinkMap = d3.map();
         json.links.forEach(function(link) {
-            var role = link.role.toLocaleLowerCase().replace(/\s+/g, "-");
             var source = link.source,
                 target = link.target;
-            if (true) {
+            if (link.role != 'Alias') {
+                var role = link.role.toLocaleLowerCase().replace(/\s+/g, "-");
                 var intermediate = {
                     key: link.key,
                     isIntermediate: true,
@@ -828,14 +832,20 @@ var dg = (function(dg){
             .links(dg.graph.links)
             .size(dg.graph.dimensions)
             .on("tick", dg.tick)
-            .linkStrength(2)
+            .linkStrength(1.5)
             .friction(0.9)
             .linkDistance(function(d, i) {
-                return d.isSpline ? 50 : 100;
+                if (d.isSpline) {
+                    return 50;
+                } else if (d.role != 'Alias') {
+                    return 100;
+                } else {
+                    return 150;
+                }
             })
             .charge(-300)
-            .chargeDistance(500)
-            .gravity(0.15)
+            .chargeDistance(1000)
+            .gravity(0.2)
             .theta(0.1)
             .alpha(0.1)
             ;
