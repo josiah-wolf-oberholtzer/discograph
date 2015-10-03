@@ -87,7 +87,7 @@ function dg_graph_setupForceLayout() {
         .nodes(dg.graph.nodes)
         .links(dg.graph.links)
         .size(dg.graph.dimensions)
-        .on("tick", dg.tick)
+        .on("tick", dg_graph_tick)
         .linkStrength(1.5)
         .friction(0.9)
         .linkDistance(function(d, i) {
@@ -246,7 +246,7 @@ function dg_typeahead_navigate() {
     };
 }
 
-dg_graph_handleAsyncError = function(error) {
+function dg_graph_handleAsyncError(error) {
     var message = 'Something went wrong!';
     var status = error.status;
     if (status == 0) {
@@ -263,7 +263,7 @@ dg_graph_handleAsyncError = function(error) {
     window.history.back();
 }
 
-dg_graph_handleAsyncData = function(json) {
+function dg_graph_handleAsyncData(json) {
     var key = json.center;
     if (!dg.graph.cache.has(key)) {
         dg.graph.cache.set(key, JSON.parse(JSON.stringify(json)));
@@ -356,7 +356,9 @@ function dg_graph_onHaloEnter(haloEnter) {
         .attr("r", function(d) { return dg_graph_getOuterRadius(d) + 40; });
 }
 
-function dg_graph_onHaloExit(haloExit) { haloExit.remove(); }
+function dg_graph_onHaloExit(haloExit) { 
+    haloExit.remove();
+}
 
 function dg_graph_onHullEnter(hullEnter) {
     var hullEnter = hullEnter.append("g")
@@ -364,7 +366,9 @@ function dg_graph_onHullEnter(hullEnter) {
     hullEnter.append("path");
 }
 
-function dg_graph_onHullExit(hullExit) { hullExit.remove(); }
+function dg_graph_onHullExit(hullExit) { 
+    hullExit.remove();
+}
 
 function dg_graph_onLinkEnter(linkEnter) {
     var linkEnter = linkEnter.append("g")
@@ -424,7 +428,9 @@ function dg_graph_onLinkEnterEventBindings(linkEnter) {
     });
 }
 
-function dg_graph_onLinkExit(linkExit) { linkExit.remove(); }
+function dg_graph_onLinkExit(linkExit) {
+    linkExit.remove();
+}
 
 function dg_graph_onNodeEnter(nodeEnter) {
     var nodeEnter = nodeEnter.append("g")
@@ -521,7 +527,9 @@ function dg_graph_onNodeEnterEventBindings(nodeEnter) {
     });
 }
 
-function dg_graph_onNodeExit(nodeExit) { nodeExit.remove(); }
+function dg_graph_onNodeExit(nodeExit) {
+    nodeExit.remove();
+}
 
 function dg_graph_onNodeUpdate(nodeSelection) {
     nodeSelection.transition()
@@ -539,7 +547,8 @@ function dg_graph_onNodeUpdate(nodeSelection) {
         .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
 }
 
-function dg_graph_onTextUpdate(textSelection) { }
+function dg_graph_onTextUpdate(textSelection) {
+}
 
 function dg_graph_onTextEnter(textEnter) {
     var textEnter = textEnter.append("g")
@@ -569,7 +578,9 @@ function dg_graph_onTextEnter(textEnter) {
         })
 }
 
-function dg_graph_onTextExit(textExit) { textExit.remove(); }
+function dg_graph_onTextExit(textExit) {
+    textExit.remove();
+}
 
 function dg_graph_startForceLayout() {
     dg.graph.forceLayout.start();
@@ -608,7 +619,7 @@ function dg_graph_startForceLayout() {
 
 function dg_graph_translate(d) {
     return "translate(" + d.x + "," + d.y + ")";
-};
+}
 
 function dg_graph_splineInner(name, sX, sY, sR, cX, cY) {
     var dX = (sX - cX),
@@ -643,7 +654,7 @@ function dg_graph_spline(d) {
     }
 }
 
-dg.tick = function(e) {
+function dg_graph_tick(e) {
     var k = e.alpha * 0.5;
     dg.graph.nodes.filter(function(d) {
         return d.key == dg.graph.centerNodeKey && !d.fixed;
@@ -675,7 +686,7 @@ dg.tick = function(e) {
         return "M" + d3.geom.hull(dg_graph_getHullVertices(d.values)).join("L") + "Z"; });
 }
 
-var dg_graph_getHullVertices = function(nodes) {
+function dg_graph_getHullVertices(nodes) { 
     var vertices = [];
     nodes.forEach(function(d) {
         var radius = d.radius;
@@ -885,7 +896,7 @@ function dg_graph_init() {
         dg.graph.nodes.forEach(function(n) { n.fixed = false; });
         dg_graph_selectNode(null);
     });
-    dg_graph_setupDefs(dg.graph.svgSelection):
+    dg_graph_setupDefs(dg.graph.svgSelection);
     dg.graph.haloLayer = dg.graph.svgSelection.append("g").attr("id", "haloLayer");
     dg.graph.linkLayer = dg.graph.svgSelection.append("g").attr("id", "linkLayer");
     dg.graph.nodeLayer = dg.graph.svgSelection.append("g").attr("id", "nodeLayer");
