@@ -41,7 +41,9 @@ def route__api__search(search_string):
 @decorators.limit(max_requests=60, period=60)
 def route__api__random():
     role_names = ['Alias', 'Member Of']
-    entity_type, entity_id = helpers.discograph_api.get_random_entity(role_names=role_names)
+    entity_type, entity_id = helpers.discograph_api.get_random_entity(
+        role_names=role_names,
+        )
     entity_type = {
         1: 'artist',
         2: 'label',

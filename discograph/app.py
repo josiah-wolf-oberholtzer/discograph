@@ -14,10 +14,6 @@ from werkzeug.contrib.fixers import ProxyFix
 from discograph import api
 from discograph import exceptions
 from discograph import ui
-from discograph.library import DiscographAPI
-
-
-discograph_api = DiscographAPI()
 
 app = Flask(__name__)
 app.debug = True

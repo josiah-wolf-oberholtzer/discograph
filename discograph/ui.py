@@ -57,18 +57,19 @@ def route__entity_type__entity_id(entity_type, entity_id):
         separators=(',', ': '),
         )
     initial_json = 'var dgData = {};'.format(initial_json)
+    entity_name = [_['name'] for _ in data['nodes']
+        if _['key'] == data['center']][0]
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
-    entity = helpers.discograph_api.get_entity(entity_id, entity_type)
     key = '{}-{}'.format(entity_type, entity_id)
     url = '/{}/{}'.format(entity_type, entity_id)
-    title = 'Disco/graph: {}'.format(entity.name)
+    title = 'Disco/graph: {}'.format(entity_name)
     rendered_template = render_template(
         'index.html',
         application_url=helpers.discograph_api.application_url,
         initial_json=initial_json,
         is_a_return_visitor=is_a_return_visitor,
         key=key,
-        og_title='Disco/graph: The "{}" network'.format(entity.name),
+        og_title='Disco/graph: The "{}" network'.format(entity_name),
         og_url=url,
         on_mobile=on_mobile,
         title=title,
