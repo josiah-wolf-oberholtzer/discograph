@@ -30,21 +30,24 @@ var dg = (function(dg){
 
     /* GRAPH METHODS */
 
-    dg.handleNewGraphData = function(error, json) {
-        if (error) {
-            var message = 'Something went wrong!';
-            if (error.status == 429) {
-                message = 'Hey, slow down, buddy. Give it a minute.'
-            }
-            console.warn(error, error.status, error.statusText);
-            var text = '<div class="alert alert-danger alert-dismissible" role="alert">';
-            text += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-            text += '<strong>' + error.status + '!</strong> ' + message;
-            text += '</div>';
-            $('#flash').append(text);
-            window.history.back();
-            return;
+    dg.handleAsyncError = function(error) {
+        var message = 'Something went wrong!';
+        var status = error.status;
+        if (status == 0) {
+            status = 404;
         }
+        if (status == 429) {
+            message = 'Hey, slow down, buddy. Give it a minute.'
+        } 
+        var text = '<div class="alert alert-danger alert-dismissible" role="alert">';
+        text += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+        text += '<strong>' + status + '!</strong> ' + message;
+        text += '</div>';
+        $('#flash').append(text);
+        window.history.back();
+    }
+
+    dg.handleNewGraphData = function(json) {
         var key = json.center;
         if (!dg.graph.cache.has(key)) {
             dg.graph.cache.set(key, JSON.parse(JSON.stringify(json)));
@@ -682,10 +685,15 @@ var dg = (function(dg){
             ;
         if (dg.graph.cache.has(key)) {
             var json = JSON.parse(JSON.stringify(dg.graph.cache.get(key)));
-            dg.handleNewGraphData(null, json);
+            dg.handleNewGraphData(json);
         } else {
             var url = "/api/" + entityType + "/network/" + entityId;
-            d3.json(url, dg.handleNewGraphData);
+            $.ajax({
+                dataType: 'json',
+                error: dg.handleAsyncError,
+                success: dg.handleNewGraphData,
+                url: url,
+            });
         }
     }
 

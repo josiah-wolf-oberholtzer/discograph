@@ -4,7 +4,7 @@ var dg = (function(dg){
         dg.typeahead.init();
         if (dgData) {
             dg.history.pushState(dgData.center);
-            dg.handleNewGraphData(null, dgData);
+            dg.handleNewGraphData(dgData);
         }
         console.log('discograph initialized.')
     }
