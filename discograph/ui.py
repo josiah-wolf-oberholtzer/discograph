@@ -40,8 +40,9 @@ def route__entity_type__entity_id(entity_type, entity_id):
             message='Bad Entity Type',
             )
     on_mobile = request.MOBILE
-    data = helpers.discograph_api.get_artist_network(
+    data = helpers.discograph_api.get_network(
         entity_id,
+        entity_type,
         on_mobile=on_mobile,
         )
     if data is None:

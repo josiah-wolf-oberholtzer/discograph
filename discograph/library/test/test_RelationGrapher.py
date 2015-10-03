@@ -13,7 +13,7 @@ class Test(unittest.TestCase):
             degree=1,
             role_names=role_names,
             )
-        nodes, links = grapher.collect_entities_2()
+        nodes, links = grapher.collect_entities()
 
         assert nodes == {
             (1, 32550): {
@@ -112,7 +112,7 @@ class Test(unittest.TestCase):
             degree=2,
             role_names=role_names,
             )
-        nodes, links = grapher.collect_entities_2()
+        nodes, links = grapher.collect_entities()
 
         assert nodes == {
             (1, 23446): {
@@ -443,7 +443,7 @@ class Test(unittest.TestCase):
             degree=1,
             role_names=role_names,
             )
-        network = grapher.get_network_2()
+        network = grapher.get_network()
         assert network == {
             'center': 'artist-152882',
             'links': (
@@ -525,7 +525,7 @@ class Test(unittest.TestCase):
             max_nodes=5,
             role_names=role_names,
             )
-        network = grapher.get_network_2()
+        network = grapher.get_network()
         assert network == {
             'center': 'artist-152882',
             'links': (
@@ -654,7 +654,7 @@ class Test(unittest.TestCase):
             max_links=4,
             role_names=role_names,
             )
-        network = grapher.get_network_2()
+        network = grapher.get_network()
         assert network == {
             'center': 'artist-152882',
             'links': (
@@ -753,7 +753,7 @@ class Test(unittest.TestCase):
             degree=1,
             role_names=role_names,
             )
-        nodes, links = grapher.collect_entities_2()
+        nodes, links = grapher.collect_entities()
         assert nodes == {
             (1, 328670): {
                 'aliases': {263345, 7156, 500061, 635045},
@@ -943,5 +943,5 @@ class Test(unittest.TestCase):
             max_nodes=100,
             max_links=200,
             )
-        nodes, links = grapher.collect_entities_2()
+        nodes, links = grapher.collect_entities()
         assert len(nodes) == 100

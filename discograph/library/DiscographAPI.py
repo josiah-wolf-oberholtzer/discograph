@@ -56,15 +56,15 @@ class DiscographAPI(object):
     def cache_set(self, cache_key, data):
         self.cache.set(cache_key, data)
 
-    def get_artist_network(self, artist_id, on_mobile=False):
+    def get_network(self, entity_id, entity_type, on_mobile=False):
         import discograph
-        cache_key = 'discograph:/api/artist/network/{}'.format(artist_id)
+        cache_key = 'discograph:/api/artist/network/{}'.format(entity_id)
         if on_mobile:
             cache_key = '{}/mobile'.format(cache_key)
         data = self.cache_get(cache_key)
         if data is not None:
             return data
-        artist = self.get_entity(artist_id, 1)
+        artist = self.get_entity(entity_id, 1)
         if artist is None:
             return None
         role_names = [
@@ -97,7 +97,7 @@ class DiscographAPI(object):
             role_names=role_names,
             )
         with systemtools.Timer(exit_message='Network query time:'):
-            data = relation_grapher.get_network_2()
+            data = relation_grapher.get_network()
         self.cache_set(cache_key, data)
         return data
 

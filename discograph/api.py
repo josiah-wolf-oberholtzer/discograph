@@ -11,11 +11,20 @@ from discograph import helpers
 blueprint = Blueprint('api', __name__, template_folder='templates')
 
 
-@blueprint.route('/artist/network/<int:artist_id>')
+@blueprint.route('/<entity_type>/network/<int:entity_id>')
 @decorators.limit(max_requests=60, period=60)
-def route__api__artist__network__artist_id(artist_id):
+def route__api__entity_type__network__entity_id(entity_type, entity_id):
+    if entity_type != 'artist':
+        raise exceptions.APIError(
+            status_code=404,
+            message='Bad Entity Type',
+            )
     on_mobile = request.MOBILE
-    data = helpers.discograph_api.get_artist_network(artist_id, on_mobile=on_mobile)
+    data = helpers.discograph_api.get_network(
+        entity_id,
+        entity_type,
+        on_mobile=on_mobile,
+        )
     if data is None:
         raise exceptions.APIError()
     return jsonify(data)

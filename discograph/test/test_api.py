@@ -17,6 +17,10 @@ class TestCase(unittest.TestCase):
         response = self.app.get('/api/artist/network/999999999999')
         assert response.status == '400 BAD REQUEST'
 
+    def test_network_3(self):
+        response = self.app.get('/api/label/network/1')
+        assert response.status == '404 NOT FOUND'
+
     def test_search_01(self):
         response = self.app.get('/api/search/Morris')
         assert response.status == '200 OK'

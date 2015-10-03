@@ -127,7 +127,7 @@ class RelationGrapher(object):
         node['links'] = set()
         return node
 
-    def collect_entities_2(self):
+    def collect_entities(self):
         original_role_names = self.role_names or ()
         provisional_role_names = set(original_role_names)
         provisional_role_names.update(['Alias', 'Member Of'])
@@ -312,8 +312,8 @@ class RelationGrapher(object):
             self.prune_link(link, nodes, links,
                 update_missing_count=update_missing_count)
 
-    def get_network_2(self):
-        nodes, links = self.collect_entities_2()
+    def get_network(self):
+        nodes, links = self.collect_entities()
         cluster_count = 0
         cluster_map = {}
         for node in nodes.values():
