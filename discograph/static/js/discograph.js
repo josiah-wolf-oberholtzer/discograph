@@ -1,8 +1,6 @@
 var dg = (function(dg){
 
 dg.graph = {
-    cache: d3.map(),
-    cacheHistory: [],
     centerNodeKey: null,
     dimensions: [0, 0],
     isUpdating: false,
@@ -175,6 +173,18 @@ function dg_history_pushState(entityKey, params) {
     ga('set', 'page', url);
 }
 
+function dg_history_replaceState(entityKey, params) {
+    var entityType = entityKey.split("-")[0];
+    var entityId = entityKey.split("-")[1];
+    var title = document.title;
+    var url = "/" + entityType + "/" + entityId;
+    if (params) { url += "?" + $.param(params); }
+    var state = {key: entityKey, params: params};
+    window.history.replaceState(state, title, url);
+    ga('send', 'pageview', url);
+    ga('set', 'page', url);
+}
+
 var dg_typeahead_bloodhound = new Bloodhound({
     datumTokenizer: Bloodhound.tokenizers.whitespace,
     queryTokenizer: Bloodhound.tokenizers.whitespace,
@@ -265,15 +275,8 @@ function dg_graph_handleAsyncError(error) {
 
 function dg_graph_handleAsyncData(json, pushHistory, params) {
     var key = json.center;
-    if (pushHistory) {
+    if (pushHistory === true) {
         dg_history_pushState(key, params);
-    }
-    if (!dg.graph.cache.has(key)) {
-        dg.graph.cache.set(key, JSON.parse(JSON.stringify(json)));
-        dg.graph.cacheHistory.push(key);
-        if (50 <= dg.graph.cache.size()) {
-            dg.graph.cache.remove(dg.graph.cacheHistory.shift());
-        }
     }
     var name = json.nodes.filter(function(d) { return d.key == key; })
     if (name.length) {
@@ -909,7 +912,8 @@ function dg_init() {
     dg_graph_init();
     dg_typeahead_init();
     if (dgData) {
-        dg_graph_handleAsyncData(dgData, true);
+        dg_history_replaceState(dgData.center);
+        dg_graph_handleAsyncData(dgData, false);
     }
     $('[data-toggle="tooltip"]').tooltip();
     (function() {
