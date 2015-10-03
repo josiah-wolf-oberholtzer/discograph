@@ -23,7 +23,7 @@ def route__api__entity_type__network__entity_id(entity_type, entity_id):
         on_mobile=on_mobile,
         )
     if data is None:
-        raise exceptions.APIError(message='No Data', status_code=500)
+        raise exceptions.APIError(message='No Data', status_code=400)
     return jsonify(data)
 
 
