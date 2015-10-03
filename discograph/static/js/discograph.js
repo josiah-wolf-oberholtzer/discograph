@@ -1,5 +1,33 @@
 var dg = (function(dg){
 
+dg.graph = {
+    cache: d3.map(),
+    cacheHistory: [],
+    centerNodeKey: null,
+    dimensions: [0, 0],
+    isUpdating: false,
+    json: null,
+    linkMap: d3.map(),
+    links: [],
+    newNodeCoords: [0, 0],
+    nodeMap: d3.map(),
+    nodes: [],
+    selectedNodeKey: null,
+    maxDistance: 0,
+    // selections
+    svgSelection: null,
+    haloSelection: null,
+    hullSelection: null,
+    nodeSelection: null,
+    linkSelection: null,
+    textSelection: null,
+    // layers
+    haloLayer: null,
+    textLayer: null,
+    nodeLayer: null,
+    linkLayer: null,
+};
+
 function dg_graph_setupDefs(svgSelection) {
     var defs = svgSelection.append("defs");
     // ARROWHEAD
@@ -106,34 +134,6 @@ function dg_graph_setupForceLayout() {
         .alpha(0.1);
 }
 
-dg.graph = {
-    cache: d3.map(),
-    cacheHistory: [],
-    centerNodeKey: null,
-    dimensions: [0, 0],
-    isUpdating: false,
-    json: null,
-    linkMap: d3.map(),
-    links: [],
-    newNodeCoords: [0, 0],
-    nodeMap: d3.map(),
-    nodes: [],
-    selectedNodeKey: null,
-    maxDistance: 0,
-    // selections
-    svgSelection: null,
-    haloSelection: null,
-    hullSelection: null,
-    nodeSelection: null,
-    linkSelection: null,
-    textSelection: null,
-    // layers
-    haloLayer: null,
-    textLayer: null,
-    nodeLayer: null,
-    linkLayer: null,
-};
-
 function dg_color_greyscale(d) {
     var hue = 0;
     var saturation = 0;
@@ -160,7 +160,7 @@ function dg_history_onPopState(event) {
     var url = "/" + entityType + "/" + entityId;
     ga('send', 'pageview', url);
     ga('set', 'page', url);
-    dg_graph_update(event.state.key);
+    dg_graph_navigate(event.state.key, false);
 }
 
 function dg_history_pushState(entityKey, params) {
@@ -168,7 +168,7 @@ function dg_history_pushState(entityKey, params) {
     var entityId = entityKey.split("-")[1];
     var title = document.title;
     var url = "/" + entityType + "/" + entityId;
-    if (params) { url += "?" + $.params(params); }
+    if (params) { url += "?" + $.param(params); }
     var state = {key: entityKey, params: params};
     window.history.pushState(state, title, url);
     ga('send', 'pageview', url);
@@ -194,7 +194,7 @@ function dg_typeahead_init() {
     var loadingElement = $("#search .loading");
     inputElement.typeahead(
         {
-            hint: true, 
+            hint: true,
             highlight: true,
             minLength: 2,
         }, {
@@ -239,7 +239,7 @@ function dg_typeahead_init() {
 function dg_typeahead_navigate() {
     var datum = $("#typeahead").data("selectedKey");
     if (datum) {
-        dg_graph_navigate(datum);
+        dg_graph_navigate(datum, true);
         $("#typeahead").typeahead("close");
         $("#typeahead").blur();
         $('.navbar-toggle').click();
@@ -254,17 +254,20 @@ function dg_graph_handleAsyncError(error) {
     }
     if (status == 429) {
         message = 'Hey, slow down, buddy. Give it a minute.'
-    } 
+    }
     var text = '<div class="alert alert-danger alert-dismissible" role="alert">';
     text += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
     text += '<strong>' + status + '!</strong> ' + message;
     text += '</div>';
     $('#flash').append(text);
-    window.history.back();
+    //window.history.back();
 }
 
-function dg_graph_handleAsyncData(json) {
+function dg_graph_handleAsyncData(json, pushHistory, params) {
     var key = json.center;
+    if (pushHistory) {
+        dg_history_pushState(key, params);
+    }
     if (!dg.graph.cache.has(key)) {
         dg.graph.cache.set(key, JSON.parse(JSON.stringify(json)));
         dg.graph.cacheHistory.push(key);
@@ -286,9 +289,40 @@ function dg_graph_handleAsyncData(json) {
         .addClass("glyphicon-random");
 }
 
-function dg_graph_navigate(key) {
-    dg_history_pushState(key);
-    dg_graph_update(key);
+function dg_graph_navigate(key, pushHistory) {
+    var entityType = key.split("-")[0];
+    var entityId = key.split("-")[1];
+    dg.graph.isUpdating = true;
+    var foundNode = dg.graph.nodeSelection
+        .filter(function(d) { return d.key == key; });
+    if (foundNode.length == 1) {
+        foundNode.each(function(d) {
+            dg.graph.newNodeCoords = [d.x, d.y];
+        });
+    } else {
+        dg.graph.newNodeCoords = [
+            dg.graph.dimensions[0] / 2,
+            dg.graph.dimensions[1] / 2,
+        ];
+    }
+    dg.graph.svgSelection
+        .transition()
+        .duration(250)
+        .style("opacity", 0.333);
+    $("#page-loading")
+        .removeClass("glyphicon-random")
+        .addClass("glyphicon-animate glyphicon-refresh")
+        ;
+    var url = "/api/" + entityType + "/network/" + entityId;
+    $.ajax({
+        cache: true,
+        dataType: 'json',
+        error: dg_graph_handleAsyncError,
+        success: function(data) {
+            dg_graph_handleAsyncData(data, pushHistory);
+            },
+        url: url,
+    });
 }
 
 function dg_graph_selectNode(key) {
@@ -356,7 +390,7 @@ function dg_graph_onHaloEnter(haloEnter) {
         .attr("r", function(d) { return dg_graph_getOuterRadius(d) + 40; });
 }
 
-function dg_graph_onHaloExit(haloExit) { 
+function dg_graph_onHaloExit(haloExit) {
     haloExit.remove();
 }
 
@@ -366,7 +400,7 @@ function dg_graph_onHullEnter(hullEnter) {
     hullEnter.append("path");
 }
 
-function dg_graph_onHullExit(hullExit) { 
+function dg_graph_onHullExit(hullExit) {
     hullExit.remove();
 }
 
@@ -494,7 +528,7 @@ function dg_graph_onNodeEnterElementConstruction(nodeEnter) {
 
 function dg_graph_onNodeEnterEventBindings(nodeEnter) {
     nodeEnter.on("dblclick", function(d) {
-        if (!dg.graph.isUpdating) { dg_graph_navigate(d.key); }
+        if (!dg.graph.isUpdating) { dg_graph_navigate(d.key, true); }
     });
     nodeEnter.on("mousedown", function(d) {
         if (!dg.graph.isUpdating) {
@@ -521,7 +555,7 @@ function dg_graph_onNodeEnterEventBindings(nodeEnter) {
                 dg_graph_selectNode(d.key);
             }
         } else if ((thisTime - lastTime) < 500) {
-            if (!dg.graph.isUpdating) { dg_graph_navigate(d.key); }
+            if (!dg.graph.isUpdating) { dg_graph_navigate(d.key, true); }
         }
         d3.event.stopPropagation(); // What is this for?
     });
@@ -686,7 +720,7 @@ function dg_graph_tick(e) {
         return "M" + d3.geom.hull(dg_graph_getHullVertices(d.values)).join("L") + "Z"; });
 }
 
-function dg_graph_getHullVertices(nodes) { 
+function dg_graph_getHullVertices(nodes) {
     var vertices = [];
     nodes.forEach(function(d) {
         var radius = d.radius;
@@ -824,44 +858,6 @@ function dg_graph_updateForceLayout() {
     dg.graph.centerNodeKey = json.center;
 }
 
-function dg_graph_update(key) {
-    var entityType = key.split("-")[0];
-    var entityId = key.split("-")[1];
-    dg.graph.isUpdating = true;
-    var foundNode = dg.graph.nodeSelection
-        .filter(function(d) { return d.key == key; });
-    if (foundNode.length == 1) {
-        foundNode.each(function(d) {
-            dg.graph.newNodeCoords = [d.x, d.y];
-        });
-    } else {
-        dg.graph.newNodeCoords = [
-            dg.graph.dimensions[0] / 2,
-            dg.graph.dimensions[1] / 2,
-        ];
-    }
-    dg.graph.svgSelection
-        .transition()
-        .duration(250)
-        .style("opacity", 0.333);
-    $("#page-loading")
-        .removeClass("glyphicon-random")
-        .addClass("glyphicon-animate glyphicon-refresh")
-        ;
-    if (dg.graph.cache.has(key)) {
-        var json = JSON.parse(JSON.stringify(dg.graph.cache.get(key)));
-        dg_graph_handleAsyncData(json);
-    } else {
-        var url = "/api/" + entityType + "/network/" + entityId;
-        $.ajax({
-            dataType: 'json',
-            error: dg_graph_handleAsyncError,
-            success: dg_graph_handleAsyncData,
-            url: url,
-        });
-    }
-}
-
 function dg_graph_init() {
     d3.selection.prototype.moveToFront = function() {
         return this.each(function(){ this.parentNode.appendChild(this); });
@@ -913,16 +909,17 @@ function dg_init() {
     dg_graph_init();
     dg_typeahead_init();
     if (dgData) {
-        dg_history_pushState(dgData.center);
-        dg_graph_handleAsyncData(dgData);
+        dg_graph_handleAsyncData(dgData, true);
     }
     $('[data-toggle="tooltip"]').tooltip();
     (function() {
         var click = $.debounce(300, function() {
             var url = '/api/random?' + Math.floor(Math.random() * 1000000);
             d3.json(url, function(error, json) {
-                if (error) { console.warn(error); return; } 
-                if (!dg.graph.isUpdating) { dg_graph_navigate(json.center); }
+                if (error) { console.warn(error); return; }
+                if (!dg.graph.isUpdating) {
+                    dg_graph_navigate(json.center, true);
+                }
             });
         });
         $('#brand').on("click touchstart", function(event) {
