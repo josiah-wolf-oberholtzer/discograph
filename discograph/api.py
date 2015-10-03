@@ -11,19 +11,6 @@ from discograph import helpers
 blueprint = Blueprint('api', __name__, template_folder='templates')
 
 
-@blueprint.route('/random')
-@decorators.limit(max_requests=60, period=60)
-def route__api__random():
-    role_names = ['Alias', 'Member Of']
-    entity_type, entity_id = helpers.discograph_api.get_random_entity(role_names=role_names)
-    entity_type = {
-        1: 'artist',
-        2: 'label',
-        }[entity_type]
-    data = {'center': '{}-{}'.format(entity_type, entity_id)}
-    return jsonify(data)
-
-
 @blueprint.route('/artist/network/<int:artist_id>')
 @decorators.limit(max_requests=60, period=60)
 def route__api__artist__network__artist_id(artist_id):
@@ -41,8 +28,14 @@ def route__api__search(search_string):
     return jsonify(data)
 
 
-@blueprint.route('/ping')
-@decorators.limit(max_requests=200, period=60)
-def route__api__ping():
-    print('PING', request.remote_addr)
-    return jsonify({'ping': True})
+@blueprint.route('/random')
+@decorators.limit(max_requests=60, period=60)
+def route__api__random():
+    role_names = ['Alias', 'Member Of']
+    entity_type, entity_id = helpers.discograph_api.get_random_entity(role_names=role_names)
+    entity_type = {
+        1: 'artist',
+        2: 'label',
+        }[entity_type]
+    data = {'center': '{}-{}'.format(entity_type, entity_id)}
+    return jsonify(data)
