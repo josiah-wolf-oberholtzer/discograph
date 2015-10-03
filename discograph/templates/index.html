@@ -41,22 +41,22 @@
 
 <svg id="svg"></svg>
 
-<script src="/static/js/dg/dg.js"></script>
-<script src="/static/js/dg/dg.color.js"></script>
-<script src="/static/js/dg/dg.graph.js"></script>
-<script src="/static/js/dg/dg.history.js"></script>
-<script src="/static/js/dg/dg.typeahead.js"></script>
-
 {% if initial_json %}
 <script>
 {{ initial_json|safe }}
 </script>
 {% endif %}
 
+<script src="/static/js/dg.js"></script>
+<script src="/static/js/dg.color.js"></script>
+<script src="/static/js/dg.graph.js"></script>
+<script src="/static/js/dg.history.js"></script>
+<script src="/static/js/dg.typeahead.js"></script>
+
 <script>
 $(document).ready(function() {
     dg.init();
-    $('[data-toggle="tooltip"]').tooltip()
+   $('[data-toggle="tooltip"]').tooltip()
 });
 (function() {
     var click = $.debounce(300, function() {
