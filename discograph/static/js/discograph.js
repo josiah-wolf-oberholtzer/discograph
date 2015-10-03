@@ -1,5 +1,111 @@
 var dg = (function(dg){
 
+function dg_graph_setupDefs(svgSelection) {
+    var defs = svgSelection.append("defs");
+    // ARROWHEAD
+    defs.append("marker")
+        .attr("id", "arrowhead")
+        .attr("viewBox", "-5 -5 10 10")
+        .attr("refX", 4)
+        .attr("refY", 0)
+        .attr("markerWidth", 8)
+        .attr("markerHeight", 8)
+        .attr("markerUnits", "strokeWidth")
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M 0,0 m -5,-5 L 5,0 L -5,5 L -2.5,0 L -5,-5 Z")
+        .attr("stroke-linecap", "round")
+        .attr("stroke-linejoin", "round");
+    // AGGREGATE
+    defs.append("marker")
+        .attr("id", "aggregate")
+        .attr("viewBox", "-5 -5 10 10")
+        .attr("refX", 5)
+        .attr("refY", 0)
+        .attr("markerWidth", 8)
+        .attr("markerHeight", 8)
+        .attr("markerUnits", "strokeWidth")
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M 0,0 m 5,0 L 0,-3 L -5,0 L 0,3 L 5,0 Z")
+        .attr("fill", "#fff")
+        .attr("stroke", "#000")
+        .attr("stroke-linecap", "round")
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-width", 1.5);
+    // GAUSSIAN BLUR
+    var filter = defs.append("filter")
+        .attr("id", "drop-shadow")
+        .attr("y", "-50%")
+        .attr("x", "-50%")
+        .attr("height", "300%")
+        .attr("width", "300%");
+    filter.append("feGaussianBlur")
+        .attr("in", "SourceAlpha")
+        .attr("stdDeviation", 3)
+        .attr("result", "blur");
+    filter.append("feOffset")
+        .attr("in", "blur")
+        .attr("dx", 4)
+        .attr("dy", 4)
+        .attr("result", "offsetBlur");
+    var feComponentTransfer = filter.append("feComponentTransfer")
+        .attr("in", "offsetBlur")
+        .attr("result", "lightenedBlur");
+    feComponentTransfer.append("feFuncA")
+        .attr("type", "linear")
+        .attr("slope", 0.25)
+        .attr("intercept", 0);
+    var feMerge = filter.append("feMerge");
+    feMerge.append("feMergeNode")
+        .attr("in", "lightenedBlur")
+    feMerge.append("feMergeNode")
+        .attr("in", "SourceGraphic");
+    // RADIAL GRADIENT
+    var gradient = defs.append('radialGradient')
+        .attr('id', 'radial-gradient');
+    gradient.append('stop')
+        .attr('offset', '0%')
+        .attr('stop-color', '#333')
+        .attr('stop-opacity', '100%');
+    gradient.append('stop')
+        .attr('offset', '50%')
+        .attr('stop-color', '#333')
+        .attr('stop-opacity', '33%');
+    gradient.append('stop')
+        .attr('offset', '75%')
+        .attr('stop-color', '#333')
+        .attr('stop-opacity', '11%');
+    gradient.append('stop')
+        .attr('offset', '100%')
+        .attr('stop-color', '#333')
+        .attr('stop-opacity', '0%');
+}
+
+function dg_graph_setupForceLayout() {
+    return d3.layout.force()
+        .nodes(dg.graph.nodes)
+        .links(dg.graph.links)
+        .size(dg.graph.dimensions)
+        .on("tick", dg.tick)
+        .linkStrength(1.5)
+        .friction(0.9)
+        .linkDistance(function(d, i) {
+            if (d.isSpline) {
+                return 50;
+            } else if (d.role != 'Alias') {
+                return 100;
+            } else {
+                return 150;
+            }
+        })
+        .charge(-300)
+        .chargeDistance(1000)
+        .gravity(0.2)
+        .theta(0.1)
+        .alpha(0.1);
+}
+
 dg.graph = {
     cache: d3.map(),
     cacheHistory: [],
@@ -28,14 +134,14 @@ dg.graph = {
     linkLayer: null,
 };
 
-var dg_color_greyscale = function(d) {
+function dg_color_greyscale(d) {
     var hue = 0;
     var saturation = 0;
     var lightness = (d.distance / (dg.graph.maxDistance + 1));
     return d3.hsl(hue, saturation, lightness).toString();
 }
 
-var dg_color_heatmap = function(d) {
+function dg_color_heatmap(d) {
     var hue = ((d.distance / 12) * 360) % 360;
     var variation_a = ((d.id % 5) - 2) / 20;
     var variation_b = ((d.id % 9) - 4) / 80;
@@ -44,7 +150,7 @@ var dg_color_heatmap = function(d) {
     return d3.hsl(hue, saturation, lightness).toString();
 }
 
-var dg_history_onPopState = function(event) {
+function dg_history_onPopState(event) {
     if (!event || !event.state || !event.state.key) {
         return;
     }
@@ -54,10 +160,10 @@ var dg_history_onPopState = function(event) {
     var url = "/" + entityType + "/" + entityId;
     ga('send', 'pageview', url);
     ga('set', 'page', url);
-    dg.updateGraph(event.state.key);
+    dg_graph_update(event.state.key);
 }
 
-var dg_history_pushState = function(entityKey, params) {
+function dg_history_pushState(entityKey, params) {
     var entityType = entityKey.split("-")[0];
     var entityId = entityKey.split("-")[1];
     var title = document.title;
@@ -83,7 +189,7 @@ var dg_typeahead_bloodhound = new Bloodhound({
     },
 });
 
-var dg_typeahead_init = function() {
+function dg_typeahead_init() {
     var inputElement = $("#typeahead");
     var loadingElement = $("#search .loading");
     inputElement.typeahead(
@@ -130,19 +236,17 @@ var dg_typeahead_init = function() {
     });
 }
 
-var dg_typeahead_navigate = function() {
+function dg_typeahead_navigate() {
     var datum = $("#typeahead").data("selectedKey");
     if (datum) {
-        dg.navigateGraph(datum);
+        dg_graph_navigate(datum);
         $("#typeahead").typeahead("close");
         $("#typeahead").blur();
         $('.navbar-toggle').click();
     };
 }
 
-/* GRAPH METHODS */
-
-dg.handleAsyncError = function(error) {
+dg_graph_handleAsyncError = function(error) {
     var message = 'Something went wrong!';
     var status = error.status;
     if (status == 0) {
@@ -159,7 +263,7 @@ dg.handleAsyncError = function(error) {
     window.history.back();
 }
 
-dg.handleNewGraphData = function(json) {
+dg_graph_handleAsyncData = function(json) {
     var key = json.center;
     if (!dg.graph.cache.has(key)) {
         dg.graph.cache.set(key, JSON.parse(JSON.stringify(json)));
@@ -174,25 +278,21 @@ dg.handleNewGraphData = function(json) {
     }
     $(document).attr("body").id = key;
     dg.graph.json = json;
-    dg.updateForceLayout();
-    dg.startForceLayout();
-    setTimeout(function() {
-        dg.graph.isUpdating = false;
-    }, 2000);
+    dg_graph_updateForceLayout();
+    dg_graph_startForceLayout();
+    setTimeout(function() { dg.graph.isUpdating = false; }, 2000);
     $("#page-loading")
         .removeClass("glyphicon-animate glyphicon-refresh")
-        .addClass("glyphicon-random")
-        ;
+        .addClass("glyphicon-random");
 }
 
-dg.navigateGraph = function(key) {
+function dg_graph_navigate(key) {
     dg_history_pushState(key);
-    dg.updateGraph(key);
+    dg_graph_update(key);
 }
 
-dg.selectNode = function(key) {
+function dg_graph_selectNode(key) {
     dg.graph.selectedNodeKey = key;
-
     if (key !== null) {
         var haloOff = dg.graph.haloSelection.filter("*:not(.node-" + key + ")");
         var nodeOff = dg.graph.nodeSelection.filter("*:not(.node-" + key + ")");
@@ -208,18 +308,15 @@ dg.selectNode = function(key) {
         var linkOff = dg.graph.linkSelection;
         var textOff = dg.graph.textSelection;
     }
-
     haloOff.select(".halo").style("fill-opacity", 0.);
     linkOff.style("opacity", 0.25);
     nodeOff.select(".more").style("fill", "#fff");
     nodeOff.style("stroke", "#fff");
     textOff.select(".icon").remove();
-
     if (key === null) {
         $('#entity-link').hide(0);
         return;
     }
-
     var node = dg.graph.nodeMap.get(key);
     var url = 'http://discogs.com/' + node.type + '/' + node.id;
     $('#entity-name').text(node.name);
@@ -227,63 +324,56 @@ dg.selectNode = function(key) {
         .attr('href', url)
         .removeClass('hidden')
         .show(0);
-
     var haloOn = dg.graph.haloSelection.filter(".node-" + key);
     var linkOn = dg.graph.linkSelection.filter(function(d) {
         return 0 <= linkKeys.indexOf(d.key);
     });
     var textOn = dg.graph.textSelection.filter(".node-" + key);
-
     haloOn.select(".halo").style("fill-opacity", 0.1);
     linkOn.style("opacity", 1);
     nodeOn.moveToFront();
     nodeOn.select(".more").style("fill", "#000");
     nodeOn.style("stroke", "#000")
     textOn.moveToFront();
-
 }
 
-function getOuterRadius(d) {
+function dg_graph_getOuterRadius(d) {
     if (0 < d.size) {
         return 12 + (Math.sqrt(d.size) * 2);
     }
     return 9 + (Math.sqrt(d.size) * 2);
 }
 
-function getInnerRadius(d) {
+function dg_graph_getInnerRadius(d) {
     return 9 + (Math.sqrt(d.size) * 2);
 }
 
-function onHaloEnter(haloEnter) {
+function dg_graph_onHaloEnter(haloEnter) {
     var haloEnter = haloEnter.append("g")
         .attr("class", function(d) { return "node node-" + d.key; })
     haloEnter.append("circle")
         .attr("class", "halo")
-        .attr("r", function(d) { return getOuterRadius(d) + 40; });
+        .attr("r", function(d) { return dg_graph_getOuterRadius(d) + 40; });
 }
 
-function onHaloExit(haloExit) {
-    haloExit.remove();
-}
+function dg_graph_onHaloExit(haloExit) { haloExit.remove(); }
 
-function onHullEnter(hullEnter) {
+function dg_graph_onHullEnter(hullEnter) {
     var hullEnter = hullEnter.append("g")
         .attr("class", function(d) { return "hull hull-" + d.key });
     hullEnter.append("path");
 }
 
-function onHullExit(hullExit) {
-    hullExit.remove();
-}
+function dg_graph_onHullExit(hullExit) { hullExit.remove(); }
 
-function onLinkEnter(linkEnter) {
+function dg_graph_onLinkEnter(linkEnter) {
     var linkEnter = linkEnter.append("g")
         .attr("class", function(d) { return "link link-" + d.key; });
-    onLinkEnterElementConstruction(linkEnter);
-    onLinkEnterEventBindings(linkEnter);
+    dg_graph_onLinkEnterElementConstruction(linkEnter);
+    dg_graph_onLinkEnterEventBindings(linkEnter);
 }
 
-function onLinkEnterElementConstruction(linkEnter) {
+function dg_graph_onLinkEnterElementConstruction(linkEnter) {
     var aggregateRoleNames = [
         "Member Of", "Sublable Of",
         "Released On", "Compiled On",
@@ -320,7 +410,7 @@ function onLinkEnterElementConstruction(linkEnter) {
         });
 }
 
-function onLinkEnterEventBindings(linkEnter) {
+function dg_graph_onLinkEnterEventBindings(linkEnter) {
     linkEnter.on("mouseover", function(d) {
         d3.select(this).select(".inner")
             .transition()
@@ -334,12 +424,9 @@ function onLinkEnterEventBindings(linkEnter) {
     });
 }
 
+function dg_graph_onLinkExit(linkExit) { linkExit.remove(); }
 
-function onLinkExit(linkExit) {
-    linkExit.remove();
-}
-
-function onNodeEnter(nodeEnter) {
+function dg_graph_onNodeEnter(nodeEnter) {
     var nodeEnter = nodeEnter.append("g")
         //.filter(function(d, i) { return !d.isIntermediate ? this : null })
         .attr("class", function(d) { return "node node-" + d.key; })
@@ -351,11 +438,11 @@ function onNodeEnter(nodeEnter) {
             }
         })
         .call(dg.graph.forceLayout.drag);
-    onNodeEnterElementConstruction(nodeEnter);
-    onNodeEnterEventBindings(nodeEnter);
+    dg_graph_onNodeEnterElementConstruction(nodeEnter);
+    dg_graph_onNodeEnterEventBindings(nodeEnter);
 }
 
-function onNodeEnterElementConstruction(nodeEnter) {
+function dg_graph_onNodeEnterElementConstruction(nodeEnter) {
 
     var artistEnter = nodeEnter.select(function(d) {
         return d.type == 'artist' ? this : null;
@@ -366,17 +453,17 @@ function onNodeEnterElementConstruction(nodeEnter) {
         .attr("cx", 5)
         .attr("cy", 5)
         .attr("r", function(d) {
-            return 7 + getOuterRadius(d)
+            return 7 + dg_graph_getOuterRadius(d)
         });
     artistEnter
         .select(function(d, i) {return 0 < d.size ? this : null; })
         .append("circle")
         .attr("class", "outer")
-        .attr("r", getOuterRadius);
+        .attr("r", dg_graph_getOuterRadius);
     artistEnter
         .append("circle")
         .attr("class", "inner")
-        .attr("r", getInnerRadius);
+        .attr("r", dg_graph_getInnerRadius);
 
     var labelEnter = nodeEnter.select(function(d) {
         return d.type == 'label' ? this : null;
@@ -384,10 +471,10 @@ function onNodeEnterElementConstruction(nodeEnter) {
     labelEnter
         .append("rect")
         .attr("class", "inner")
-        .attr("height", function(d) { return 2 * getInnerRadius(d); })
-        .attr("width", function(d) { return 2 * getInnerRadius(d); })
-        .attr("x", function(d) { return -1 * getInnerRadius(d); })
-        .attr("y", function(d) { return -1 * getInnerRadius(d); });
+        .attr("height", function(d) { return 2 * dg_graph_getInnerRadius(d); })
+        .attr("width", function(d) { return 2 * dg_graph_getInnerRadius(d); })
+        .attr("x", function(d) { return -1 * dg_graph_getInnerRadius(d); })
+        .attr("y", function(d) { return -1 * dg_graph_getInnerRadius(d); });
     nodeEnter.append("path")
         .attr("class", "more")
         .attr("d", d3.svg.symbol().type("cross").size(64))
@@ -399,64 +486,44 @@ function onNodeEnterElementConstruction(nodeEnter) {
         .text(function(d) { return d.name; });
 }
 
-function onNodeEnterEventBindings(nodeEnter) {
+function dg_graph_onNodeEnterEventBindings(nodeEnter) {
     nodeEnter.on("dblclick", function(d) {
-        //console.log('dblclick', d.name);
-        if (!dg.graph.isUpdating) { dg.navigateGraph(d.key); }
+        if (!dg.graph.isUpdating) { dg_graph_navigate(d.key); }
     });
     nodeEnter.on("mousedown", function(d) {
-        //console.log('mousedown', d.name);
         if (!dg.graph.isUpdating) {
             dg.graph.nodes.forEach(function(n) { n.fixed = false; });
             d.fixed = true;
-            dg.selectNode(d.key);
+            dg_graph_selectNode(d.key);
         }
         d3.event.stopPropagation(); // What is this for?
     });
     nodeEnter.on("mouseover", function(d) {
-        //console.log('mouseover', d.name);
         var selection = dg.graph.nodeSelection.select(function(n) {
             return n.key == d.key ? this : null;
         });
         selection.moveToFront();
     });
     nodeEnter.on("touchstart", function(d) {
-        //console.log('touchstart', d.name);
         var thisTime = $.now();
         var lastTime = d.lastTouchTime;
         d.lastTouchTime = thisTime;
         if (!lastTime || (500 < (thisTime - lastTime))) {
-            // Single touch.
             if (!dg.graph.isUpdating) {
                 dg.graph.nodes.forEach(function(n) { n.fixed = false; });
                 d.fixed = true;
-                dg.selectNode(d.key);
+                dg_graph_selectNode(d.key);
             }
         } else if ((thisTime - lastTime) < 500) {
-            // Double touch.
-            if (!dg.graph.isUpdating) { dg.navigateGraph(d.key); }
+            if (!dg.graph.isUpdating) { dg_graph_navigate(d.key); }
         }
         d3.event.stopPropagation(); // What is this for?
     });
 }
 
-function foo() {
-    nodeEnter.on("mousedown", function(d) {
-        console.log('mousedown', d.name);
-    });
-    nodeEnter.on("mouseover", function(d) {
-        console.log('mouseover', d.name);
-    });
-    nodeEnter.on("dblclick", function(d) {
-        console.log('dblclick', d.name);
-    });
-}
+function dg_graph_onNodeExit(nodeExit) { nodeExit.remove(); }
 
-function onNodeExit(nodeExit) {
-    nodeExit.remove();
-}
-
-function onNodeUpdate(nodeSelection) {
+function dg_graph_onNodeUpdate(nodeSelection) {
     nodeSelection.transition()
         .duration(1000)
         .style("fill", function(d) {
@@ -472,22 +539,15 @@ function onNodeUpdate(nodeSelection) {
         .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
 }
 
-function onTextUpdate(textSelection) {
-    /*
-    textSelection.selectAll('text')
-        .transition()
-        .duration(1000)
-        .style("opacity", 0.1)
-    */
-}
+function dg_graph_onTextUpdate(textSelection) { }
 
-function onTextEnter(textEnter) {
+function dg_graph_onTextEnter(textEnter) {
     var textEnter = textEnter.append("g")
         .filter(function(d, i) { return !d.isIntermediate ? this : null })
         .attr("class", function(d) { return "node node-" + d.key; })
     textEnter.append("text")
         .attr("class", "outer")
-        .attr("dx", function(d) { return getOuterRadius(d) + 3; })
+        .attr("dx", function(d) { return dg_graph_getOuterRadius(d) + 3; })
         .attr("dy", ".35em")
         .text(function(d) {
             var name = d.name;
@@ -498,7 +558,7 @@ function onTextEnter(textEnter) {
         });
     textEnter.append("text")
         .attr("class", "inner")
-        .attr("dx", function(d) { return getOuterRadius(d) + 3; })
+        .attr("dx", function(d) { return dg_graph_getOuterRadius(d) + 3; })
         .attr("dy", ".35em")
         .text(function(d) {
             var name = d.name;
@@ -509,66 +569,48 @@ function onTextEnter(textEnter) {
         })
 }
 
-function onTextExit(textExit) {
-    textExit.remove();
-}
+function dg_graph_onTextExit(textExit) { textExit.remove(); }
 
-dg.startForceLayout = function() {
+function dg_graph_startForceLayout() {
     dg.graph.forceLayout.start();
-
     dg.graph.nodes.forEach(function(n) { n.fixed = false; });
-
     var keyFunc = function(d) { return d.key }
-
-    var nodes = dg.graph.nodes.filter(function(d) {
-        return !d.isIntermediate;
-    })
-    var links = dg.graph.links.filter(function(d) {
-        return !d.isSpline;
-    })
-
+    var nodes = dg.graph.nodes.filter(function(d) { return !d.isIntermediate; })
+    var links = dg.graph.links.filter(function(d) { return !d.isSpline; })
     dg.graph.haloSelection = dg.graph.haloSelection.data(nodes, keyFunc);
     dg.graph.nodeSelection = dg.graph.nodeSelection.data(nodes, keyFunc);
     dg.graph.textSelection = dg.graph.textSelection.data(nodes, keyFunc);
     dg.graph.linkSelection = dg.graph.linkSelection.data(links, keyFunc);
-
     var hullNodes = dg.graph.nodeMap.values().filter(function(d) {
             return d.cluster !== undefined;
         });
     var hullData = d3.nest().key(function(d) { return d.cluster; })
         .entries(hullNodes)
         .filter(function(d) { return 1 < d.values.length; });
-
     dg.graph.hullSelection = dg.graph.hullSelection.data(hullData);
-
-    onHaloEnter(dg.graph.haloSelection.enter());
-    onHaloExit(dg.graph.haloSelection.exit());
-
-    onHullEnter(dg.graph.hullSelection.enter());
-    onHullExit(dg.graph.hullSelection.exit());
-
-    onNodeEnter(dg.graph.nodeSelection.enter());
-    onNodeExit(dg.graph.nodeSelection.exit());
-    onNodeUpdate(dg.graph.nodeSelection);
-
-    onTextEnter(dg.graph.textSelection.enter());
-    onTextExit(dg.graph.textSelection.exit());
-    onTextUpdate(dg.graph.textSelection);
-
-    onLinkEnter(dg.graph.linkSelection.enter());
-    onLinkExit(dg.graph.linkSelection.exit());
-
+    dg_graph_onHaloEnter(dg.graph.haloSelection.enter());
+    dg_graph_onHaloExit(dg.graph.haloSelection.exit());
+    dg_graph_onHullEnter(dg.graph.hullSelection.enter());
+    dg_graph_onHullExit(dg.graph.hullSelection.exit());
+    dg_graph_onNodeEnter(dg.graph.nodeSelection.enter());
+    dg_graph_onNodeExit(dg.graph.nodeSelection.exit());
+    dg_graph_onNodeUpdate(dg.graph.nodeSelection);
+    dg_graph_onTextEnter(dg.graph.textSelection.enter());
+    dg_graph_onTextExit(dg.graph.textSelection.exit());
+    dg_graph_onTextUpdate(dg.graph.textSelection);
+    dg_graph_onLinkEnter(dg.graph.linkSelection.enter());
+    dg_graph_onLinkExit(dg.graph.linkSelection.exit());
     dg.graph.svgSelection.transition()
         .duration(1000)
         .style("opacity", 1);
-    dg.selectNode(dg.graph.centerNodeKey);
+    dg_graph_selectNode(dg.graph.centerNodeKey);
 }
 
-function translate(d) {
+function dg_graph_translate(d) {
     return "translate(" + d.x + "," + d.y + ")";
 };
 
-function splineInner(name, sX, sY, sR, cX, cY) {
+function dg_graph_splineInner(name, sX, sY, sR, cX, cY) {
     var dX = (sX - cX),
         dY = (sY - cY);
     var angle = Math.atan(dY / dX);
@@ -579,7 +621,7 @@ function splineInner(name, sX, sY, sR, cX, cY) {
     return [sX, sY];
 }
 
-function spline(d) {
+function dg_graph_spline(d) {
     var sX = d.source.x;
     var sY = d.source.y;
     var tX = d.target.x;
@@ -589,8 +631,8 @@ function spline(d) {
     if (d.intermediate) {
         var cX = d.intermediate.x;
         var cY = d.intermediate.y;
-        sXY = splineInner("Source", sX, sY, sR, cX, cY);
-        tXY = splineInner("Source", tX, tY, tR, cX, cY);
+        sXY = dg_graph_splineInner("Source", sX, sY, sR, cX, cY);
+        tXY = dg_graph_splineInner("Source", tX, tY, tR, cX, cY);
         return (
             "M " + sXY[0] + "," + sXY[1] + " " +
             "S " + cX + "," + cY + " " +
@@ -613,27 +655,27 @@ dg.tick = function(e) {
         d.y += dy;
     });
     dg.graph.linkSelection.select(".inner")
-        .attr("d", spline)
+        .attr("d", dg_graph_spline)
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
 
     dg.graph.linkSelection.select(".outer")
-        .attr("d", spline)
+        .attr("d", dg_graph_spline)
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
 
-    dg.graph.haloSelection.attr("transform", translate);
-    dg.graph.nodeSelection.attr("transform", translate);
-    dg.graph.textSelection.attr("transform", translate);
+    dg.graph.haloSelection.attr("transform", dg_graph_translate);
+    dg.graph.nodeSelection.attr("transform", dg_graph_translate);
+    dg.graph.textSelection.attr("transform", dg_graph_translate);
     dg.graph.hullSelection.select("path").attr("d", function(d) {
-        return "M" + d3.geom.hull(getHullVertices(d.values)).join("L") + "Z"; });
+        return "M" + d3.geom.hull(dg_graph_getHullVertices(d.values)).join("L") + "Z"; });
 }
 
-getHullVertices = function(nodes) {
+var dg_graph_getHullVertices = function(nodes) {
     var vertices = [];
     nodes.forEach(function(d) {
         var radius = d.radius;
@@ -645,12 +687,12 @@ getHullVertices = function(nodes) {
     return vertices;
 }
 
-dg.updateForceLayout = function() {
+function dg_graph_updateForceLayout() {
     var json = dg.graph.json;
 
     var newNodeMap = d3.map();
     json.nodes.forEach(function(node) {
-        node.radius = getOuterRadius(node);
+        node.radius = dg_graph_getOuterRadius(node);
         newNodeMap.set(node.key, node);
     });
 
@@ -771,7 +813,7 @@ dg.updateForceLayout = function() {
     dg.graph.centerNodeKey = json.center;
 }
 
-dg.updateGraph = function(key) {
+function dg_graph_update(key) {
     var entityType = key.split("-")[0];
     var entityId = key.split("-")[1];
     dg.graph.isUpdating = true;
@@ -797,26 +839,23 @@ dg.updateGraph = function(key) {
         ;
     if (dg.graph.cache.has(key)) {
         var json = JSON.parse(JSON.stringify(dg.graph.cache.get(key)));
-        dg.handleNewGraphData(json);
+        dg_graph_handleAsyncData(json);
     } else {
         var url = "/api/" + entityType + "/network/" + entityId;
         $.ajax({
             dataType: 'json',
-            error: dg.handleAsyncError,
-            success: dg.handleNewGraphData,
+            error: dg_graph_handleAsyncError,
+            success: dg_graph_handleAsyncData,
             url: url,
         });
     }
 }
 
-dg.graph.init = function() {
-
+function dg_graph_init() {
     d3.selection.prototype.moveToFront = function() {
         return this.each(function(){ this.parentNode.appendChild(this); });
     };
-
     window.addEventListener("popstate", dg_history_onPopState);
-
     var w = window,
         d = document,
         e = d.documentElement,
@@ -839,143 +878,32 @@ dg.graph.init = function() {
             .attr("height", dg.graph.dimensions[1]);
         dg.graph.forceLayout.size(dg.graph.dimensions).start();
     });
-
     dg.graph.svgSelection = d3.select("#svg")
         .attr("width", dg.graph.dimensions[0])
         .attr("height", dg.graph.dimensions[1]);
-
     dg.graph.svgSelection.on("mousedown", function() {
         dg.graph.nodes.forEach(function(n) { n.fixed = false; });
-        dg.selectNode(null);
+        dg_graph_selectNode(null);
     });
-
-    var defs = dg.graph.svgSelection.append("defs");
-
-    defs.append("marker")
-        .attr("id", "arrowhead")
-        .attr("viewBox", "-5 -5 10 10")
-        .attr("refX", 4)
-        .attr("refY", 0)
-        .attr("markerWidth", 8)
-        .attr("markerHeight", 8)
-        .attr("markerUnits", "strokeWidth")
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M 0,0 m -5,-5 L 5,0 L -5,5 L -2.5,0 L -5,-5 Z")
-        //.attr("fill", "#666")
-        .attr("stroke-linecap", "round")
-        .attr("stroke-linejoin", "round")
-        ;
-
-    defs.append("marker")
-        .attr("id", "aggregate")
-        .attr("viewBox", "-5 -5 10 10")
-        .attr("refX", 5)
-        .attr("refY", 0)
-        .attr("markerWidth", 8)
-        .attr("markerHeight", 8)
-        .attr("markerUnits", "strokeWidth")
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M 0,0 m 5,0 L 0,-3 L -5,0 L 0,3 L 5,0 Z")
-        .attr("fill", "#fff")
-        .attr("stroke", "#000")
-        .attr("stroke-linecap", "round")
-        .attr("stroke-linejoin", "round")
-        .attr("stroke-width", 1.5)
-        ;
-
-    var filter = defs.append("filter")
-        .attr("id", "drop-shadow")
-        .attr("y", "-50%")
-        .attr("x", "-50%")
-        .attr("height", "300%")
-        .attr("width", "300%");
-    filter.append("feGaussianBlur")
-        .attr("in", "SourceAlpha")
-        .attr("stdDeviation", 3)
-        .attr("result", "blur");
-    filter.append("feOffset")
-        .attr("in", "blur")
-        .attr("dx", 4)
-        .attr("dy", 4)
-        .attr("result", "offsetBlur");
-    var feComponentTransfer = filter.append("feComponentTransfer")
-        .attr("in", "offsetBlur")
-        .attr("result", "lightenedBlur");
-    feComponentTransfer.append("feFuncA")
-        .attr("type", "linear")
-        .attr("slope", 0.25)
-        .attr("intercept", 0);
-    var feMerge = filter.append("feMerge");
-    feMerge.append("feMergeNode")
-        .attr("in", "lightenedBlur")
-    feMerge.append("feMergeNode")
-        .attr("in", "SourceGraphic");
-
-    var gradient = defs.append('radialGradient')
-        .attr('id', 'radial-gradient');
-    gradient.append('stop')
-        .attr('offset', '0%')
-        .attr('stop-color', '#333')
-        .attr('stop-opacity', '100%');
-    gradient.append('stop')
-        .attr('offset', '50%')
-        .attr('stop-color', '#333')
-        .attr('stop-opacity', '33%');
-    gradient.append('stop')
-        .attr('offset', '75%')
-        .attr('stop-color', '#333')
-        .attr('stop-opacity', '11%');
-    gradient.append('stop')
-        .attr('offset', '100%')
-        .attr('stop-color', '#333')
-        .attr('stop-opacity', '0%');
-
-    dg.graph.haloLayer = dg.graph.svgSelection.append("g")
-        .attr("id", "haloLayer");
-    dg.graph.linkLayer = dg.graph.svgSelection.append("g")
-        .attr("id", "linkLayer");
-    dg.graph.nodeLayer = dg.graph.svgSelection.append("g")
-        .attr("id", "nodeLayer");
-    dg.graph.textLayer = dg.graph.svgSelection.append("g")
-        .attr("id", "textLayer");
+    dg_graph_setupDefs(dg.graph.svgSelection):
+    dg.graph.haloLayer = dg.graph.svgSelection.append("g").attr("id", "haloLayer");
+    dg.graph.linkLayer = dg.graph.svgSelection.append("g").attr("id", "linkLayer");
+    dg.graph.nodeLayer = dg.graph.svgSelection.append("g").attr("id", "nodeLayer");
+    dg.graph.textLayer = dg.graph.svgSelection.append("g").attr("id", "textLayer");
     dg.graph.haloSelection = dg.graph.haloLayer.selectAll(".node");
     dg.graph.hullSelection = dg.graph.haloLayer.selectAll(".hull");
     dg.graph.linkSelection = dg.graph.linkLayer.selectAll(".link");
     dg.graph.nodeSelection = dg.graph.nodeLayer.selectAll(".node");
     dg.graph.textSelection = dg.graph.textLayer.selectAll(".node");
-
-    dg.graph.forceLayout = d3.layout.force()
-        .nodes(dg.graph.nodes)
-        .links(dg.graph.links)
-        .size(dg.graph.dimensions)
-        .on("tick", dg.tick)
-        .linkStrength(1.5)
-        .friction(0.9)
-        .linkDistance(function(d, i) {
-            if (d.isSpline) {
-                return 50;
-            } else if (d.role != 'Alias') {
-                return 100;
-            } else {
-                return 150;
-            }
-        })
-        .charge(-300)
-        .chargeDistance(1000)
-        .gravity(0.2)
-        .theta(0.1)
-        .alpha(0.1)
-        ;
+    dg.graph.forceLayout = dg_graph_setupForceLayout();
 }
 
-dg.init = function() {
-    dg.graph.init();
+function dg_init() {
+    dg_graph_init();
     dg_typeahead_init();
     if (dgData) {
         dg_history_pushState(dgData.center);
-        dg.handleNewGraphData(dgData);
+        dg_graph_handleAsyncData(dgData);
     }
     $('[data-toggle="tooltip"]').tooltip();
     (function() {
@@ -983,7 +911,7 @@ dg.init = function() {
             var url = '/api/random?' + Math.floor(Math.random() * 1000000);
             d3.json(url, function(error, json) {
                 if (error) { console.warn(error); return; } 
-                if (!dg.graph.isUpdating) { dg.navigateGraph(json.center); }
+                if (!dg.graph.isUpdating) { dg_graph_navigate(json.center); }
             });
         });
         $('#brand').on("click touchstart", function(event) {
@@ -994,6 +922,8 @@ dg.init = function() {
     }());
     console.log('discograph initialized.');
 }
+
+dg.init = dg_init;
 
 return dg;
 
