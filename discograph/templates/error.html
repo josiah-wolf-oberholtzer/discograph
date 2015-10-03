@@ -14,9 +14,11 @@
 <div class="container">
     <div class="jumbotron">
         <div class="container">
-            <h1>404</h1>
-            <p>Got lost?</p>
-            <p>Don't worry about it.</p>
+            <h1>
+                <strong>{{ error.status_code|default('LOL') }}</strong>
+                <em>{{ error.message|default('Whoops') }}</em>
+            </h1>
+            <p>But who cares?</p>
             <p><a href="/">Keep digging.</a></p>
         </div>
     </div>

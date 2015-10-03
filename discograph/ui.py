@@ -33,12 +33,20 @@ def route__index():
     return response
 
 
-@blueprint.route('/artist/<int:artist_id>')
-def route__artist_id(artist_id):
+@blueprint.route('/<entity_type>/<int:entity_id>')
+def route__entity_type__entity_id(entity_type, entity_id):
+    if entity_type != 'artist':
+        raise exceptions.APIError(
+            code=404,
+            message='Bad Entity Type',
+            )
     on_mobile = request.MOBILE
-    data = helpers.discograph_api.get_artist_network(artist_id, on_mobile=on_mobile)
+    data = helpers.discograph_api.get_artist_network(
+        entity_id,
+        on_mobile=on_mobile,
+        )
     if data is None:
-        raise exceptions.APIError()
+        raise exceptions.APIError(message='No Data')
     initial_json = json.dumps(
         data,
         sort_keys=True,
@@ -47,7 +55,7 @@ def route__artist_id(artist_id):
         )
     initial_json = 'var dgData = {};'.format(initial_json)
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
-    artist = helpers.discograph_api.get_artist(artist_id)
+    artist = helpers.discograph_api.get_artist(entity_id)
     key = 'artist-{}'.format(artist.id)
     url = '/artist/{}'.format(artist.id)
     title = 'Disco/graph: {}'.format(artist.name)

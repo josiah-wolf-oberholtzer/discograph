@@ -10,7 +10,6 @@ from flask.ext.mobility import Mobility
 from werkzeug.contrib.fixers import ProxyFix
 
 from discograph import api
-from discograph import exceptions
 from discograph import ui
 from discograph.library import DiscographAPI
 
@@ -18,6 +17,7 @@ from discograph.library import DiscographAPI
 discograph_api = DiscographAPI()
 
 app = Flask(__name__)
+app.debug = True
 app.register_blueprint(api.blueprint, url_prefix='/api')
 app.register_blueprint(ui.blueprint)
 app.wsgi_app = ProxyFix(app.wsgi_app)
@@ -38,27 +38,6 @@ def inject_rate_limit_headers(response):
         return response
 
 
-@app.errorhandler(400)
-def handler_400(error):
-    rendered_template = render_template('400.html')
-    response = make_response(rendered_template)
-    return response
-
-
-@app.errorhandler(404)
-def handler_404(error):
-    rendered_template = render_template('404.html')
-    response = make_response(rendered_template)
-    return response
-
-
-@app.errorhandler(500)
-def handler_500(error):
-    rendered_template = render_template('404.html')
-    response = make_response(rendered_template)
-    return response
-
-
 @app.errorhandler(Exception)
 def handle_error(error):
     status_code = getattr(error, 'status_code', 400)
@@ -68,12 +47,14 @@ def handle_error(error):
             'status': status_code,
             'message': getattr(error, 'message', 'Error')
             })
-        response.status_code = status_code
-        return response
-    elif request.endpoint.startswith('ui'):
-        if status_code == 400:
-            return handler_400(error)
-    return handler_500(error)
+    else:
+        rendered_template = render_template(
+            'error.html',
+            error=error,
+            )
+        response = make_response(rendered_template)
+    response.status_code = status_code
+    return response
 
 
 if __name__ == '__main__':
