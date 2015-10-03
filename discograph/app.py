@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 # -*- encoding: utf-8 -*-
+import traceback
+
 from flask import Flask
 from flask import g
 from flask import jsonify
@@ -10,6 +12,7 @@ from flask.ext.mobility import Mobility
 from werkzeug.contrib.fixers import ProxyFix
 
 from discograph import api
+from discograph import exceptions
 from discograph import ui
 from discograph.library import DiscographAPI
 
@@ -40,6 +43,8 @@ def inject_rate_limit_headers(response):
 
 @app.errorhandler(Exception)
 def handle_error(error):
+    if app.debug:
+        traceback.print_exc()
     status_code = getattr(error, 'status_code', 400)
     if request.endpoint.startswith('api'):
         response = jsonify({
@@ -48,11 +53,34 @@ def handle_error(error):
             'message': getattr(error, 'message', 'Error')
             })
     else:
-        rendered_template = render_template(
-            'error.html',
-            error=error,
-            )
+        rendered_template = render_template('error.html', error=error)
         response = make_response(rendered_template)
+    response.status_code = status_code
+    return response
+
+
+@app.errorhandler(404)
+def handle_error_404(error):
+    status_code = 404
+    error = exceptions.APIError(
+        message='Not Found',
+        status_code=status_code,
+        )
+    rendered_template = render_template('error.html', error=error)
+    response = make_response(rendered_template)
+    response.status_code = status_code
+    return response
+
+
+@app.errorhandler(500)
+def handle_error_500(error):
+    status_code = 500
+    error = exceptions.APIError(
+        message='Something Broke',
+        status_code=status_code,
+        )
+    rendered_template = render_template('error.html', error=error)
+    response = make_response(rendered_template)
     response.status_code = status_code
     return response
 
