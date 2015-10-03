@@ -1,5 +1,33 @@
 var dg = (function(dg){
 
+dg.graph = {
+    cache: d3.map(),
+    cacheHistory: [],
+    centerNodeKey: null,
+    dimensions: [0, 0],
+    isUpdating: false,
+    json: null,
+    linkMap: d3.map(),
+    links: [],
+    newNodeCoords: [0, 0],
+    nodeMap: d3.map(),
+    nodes: [],
+    selectedNodeKey: null,
+    maxDistance: 0,
+    // selections
+    svgSelection: null,
+    haloSelection: null,
+    hullSelection: null,
+    nodeSelection: null,
+    linkSelection: null,
+    textSelection: null,
+    // layers
+    haloLayer: null,
+    textLayer: null,
+    nodeLayer: null,
+    linkLayer: null,
+};
+
 var dg_color_greyscale = function(d) {
     var hue = 0;
     var saturation = 0;
@@ -111,34 +139,6 @@ var dg_typeahead_navigate = function() {
         $('.navbar-toggle').click();
     };
 }
-
-dg.graph = {
-    cache: d3.map(),
-    cacheHistory: [],
-    centerNodeKey: null,
-    dimensions: [0, 0],
-    isUpdating: false,
-    json: null,
-    linkMap: d3.map(),
-    links: [],
-    newNodeCoords: [0, 0],
-    nodeMap: d3.map(),
-    nodes: [],
-    selectedNodeKey: null,
-    maxDistance: 0,
-    // selections
-    svgSelection: null,
-    haloSelection: null,
-    hullSelection: null,
-    nodeSelection: null,
-    linkSelection: null,
-    textSelection: null,
-    // layers
-    haloLayer: null,
-    textLayer: null,
-    nodeLayer: null,
-    linkLayer: null,
-};
 
 /* GRAPH METHODS */
 
@@ -977,9 +977,28 @@ dg.init = function() {
         dg_history_pushState(dgData.center);
         dg.handleNewGraphData(dgData);
     }
-    console.log('discograph initialized.')
+    $('[data-toggle="tooltip"]').tooltip();
+    (function() {
+        var click = $.debounce(300, function() {
+            var url = '/api/random?' + Math.floor(Math.random() * 1000000);
+            d3.json(url, function(error, json) {
+                if (error) { console.warn(error); return; } 
+                if (!dg.graph.isUpdating) { dg.navigateGraph(json.center); }
+            });
+        });
+        $('#brand').on("click touchstart", function(event) {
+            click();
+            $(this).tooltip('hide');
+            event.preventDefault();
+        });
+    }());
+    console.log('discograph initialized.');
 }
 
 return dg;
 
 }(dg || {}));
+
+$(document).ready(function() {
+    dg.init();
+});
