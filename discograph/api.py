@@ -15,10 +15,7 @@ blueprint = Blueprint('api', __name__, template_folder='templates')
 @decorators.limit(max_requests=60, period=60)
 def route__api__entity_type__network__entity_id(entity_type, entity_id):
     if entity_type != 'artist':
-        raise exceptions.APIError(
-            status_code=404,
-            message='Bad Entity Type',
-            )
+        raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     on_mobile = request.MOBILE
     data = helpers.discograph_api.get_network(
         entity_id,
@@ -26,7 +23,7 @@ def route__api__entity_type__network__entity_id(entity_type, entity_id):
         on_mobile=on_mobile,
         )
     if data is None:
-        raise exceptions.APIError()
+        raise exceptions.APIError(message='No Data', status_code=500)
     return jsonify(data)
 
 

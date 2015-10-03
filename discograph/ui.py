@@ -35,10 +35,7 @@ def route__index():
 @blueprint.route('/<entity_type>/<int:entity_id>')
 def route__entity_type__entity_id(entity_type, entity_id):
     if entity_type != 'artist':
-        raise exceptions.APIError(
-            status_code=404,
-            message='Bad Entity Type',
-            )
+        raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     on_mobile = request.MOBILE
     data = helpers.discograph_api.get_network(
         entity_id,
@@ -46,10 +43,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
         on_mobile=on_mobile,
         )
     if data is None:
-        raise exceptions.APIError(
-            message='No Data',
-            status_code=500,
-            )
+        raise exceptions.APIError(message='No Data', status_code=500)
     initial_json = json.dumps(
         data,
         sort_keys=True,
@@ -84,4 +78,6 @@ def route__random():
     entity_type, entity_id = helpers.discograph_api.get_random_entity()
     if entity_type == 1:
         return redirect('/artist/{}'.format(entity_id), status_code=302)
-    return redirect('/label/{}'.format(entity_id), status_code=302)
+    elif entity_type == 2:
+        return redirect('/label/{}'.format(entity_id), status_code=302)
+    raise exceptions.APIError(message='Bad Entity Type', status_code=404)
