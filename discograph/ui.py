@@ -57,7 +57,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
         )
     initial_json = 'var dgData = {};'.format(initial_json)
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
-    entity = helpers.discograph_api.get_artist(entity_id)
+    entity = helpers.discograph_api.get_entity(entity_id, entity_type)
     key = '{}-{}'.format(entity_type, entity_id)
     url = '/{}/{}'.format(entity_type, entity_id)
     title = 'Disco/graph: {}'.format(entity.name)

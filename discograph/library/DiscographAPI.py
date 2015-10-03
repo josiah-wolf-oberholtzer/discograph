@@ -56,15 +56,6 @@ class DiscographAPI(object):
     def cache_set(self, cache_key, data):
         self.cache.set(cache_key, data)
 
-    def get_artist(self, artist_id):
-        import discograph
-        query = discograph.SqliteArtist.select()
-        query = query.where(discograph.SqliteArtist.id == artist_id)
-        result = list(query)
-        if not result:
-            return None
-        return result[0]
-
     def get_artist_network(self, artist_id, on_mobile=False):
         import discograph
         cache_key = 'discograph:/api/artist/network/{}'.format(artist_id)
@@ -73,7 +64,7 @@ class DiscographAPI(object):
         data = self.cache_get(cache_key)
         if data is not None:
             return data
-        artist = self.get_artist(artist_id)
+        artist = self.get_entity(artist_id, 1)
         if artist is None:
             return None
         role_names = [
@@ -109,6 +100,20 @@ class DiscographAPI(object):
             data = relation_grapher.get_network_2()
         self.cache_set(cache_key, data)
         return data
+
+    def get_entity(self, entity_id, entity_type):
+        import discograph
+        if entity_type == 'artist':
+            entity_type = 1
+        elif entity_type == 'label':
+            entity_type = 2
+        where_clause = discograph.SqliteEntity.entity_id == entity_id
+        where_clause &= discograph.SqliteEntity.entity_type == entity_type
+        query = discograph.SqliteEntity.select().where(where_clause)
+        found = list(query)
+        if not found:
+            return None
+        return found[0]
 
     def get_random_entity(self, role_names=None):
         import discograph

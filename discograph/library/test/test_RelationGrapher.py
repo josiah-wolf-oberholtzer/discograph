@@ -6,7 +6,7 @@ import unittest
 class Test(unittest.TestCase):
 
     def test_01(self):
-        artist = discograph.SqliteArtist.get(name='Morris Day')
+        artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
         role_names = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -105,7 +105,7 @@ class Test(unittest.TestCase):
             }
 
     def test_02(self):
-        artist = discograph.SqliteArtist.get(name='Morris Day')
+        artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
         role_names = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -436,7 +436,7 @@ class Test(unittest.TestCase):
             }
 
     def test_03(self):
-        artist = discograph.SqliteArtist.get(name='Morris Day')
+        artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
         role_names = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -517,7 +517,7 @@ class Test(unittest.TestCase):
             }
 
     def test_04(self):
-        artist = discograph.SqliteArtist.get(name='Morris Day')
+        artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
         role_names = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -646,7 +646,7 @@ class Test(unittest.TestCase):
             }
 
     def test_05(self):
-        artist = discograph.SqliteArtist.get(name='Morris Day')
+        artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
         role_names = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -746,7 +746,7 @@ class Test(unittest.TestCase):
             }
 
     def test_06(self):
-        artist = discograph.SqliteArtist.get(id=910459)
+        artist = discograph.SqliteEntity.get(entity_type=1, entity_id=910459)
         role_names = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -934,7 +934,7 @@ class Test(unittest.TestCase):
             }
 
     def test_07(self):
-        artist = discograph.SqliteArtist.get(id=882758)  # 167 1-degree links
+        artist = discograph.SqliteEntity.get(entity_type=1, entity_id=882758)
         role_names = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,

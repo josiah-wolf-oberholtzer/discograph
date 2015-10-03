@@ -4,9 +4,9 @@ import re
 import six
 from discograph.library.mongo.Artist import Artist
 from discograph.library.mongo.CreditRole import CreditRole
-from discograph.library.mongo.Label import Label
 from discograph.library.sqlite.SqliteArtist import SqliteArtist
 from discograph.library.sqlite.SqliteLabel import SqliteLabel
+from discograph.library.sqlite.SqliteEntity import SqliteEntity
 from discograph.library.sqlite.SqliteRelation import SqliteRelation
 
 
@@ -27,8 +27,11 @@ class RelationGrapher(object):
         max_nodes=None,
         role_names=None,
         ):
-        prototype = (Artist, Label, SqliteArtist, SqliteLabel)
-        assert isinstance(center_entity, prototype)
+        assert isinstance(center_entity, SqliteEntity)
+        if center_entity.entity_type == 1:
+            center_entity = SqliteArtist.get(id=center_entity.entity_id)
+        elif center_entity.entity_type == 2:
+            center_entity = SqliteLabel.get(id=center_entity.entity_id)
         self.center_entity = center_entity
         degree = int(degree)
         assert 0 < degree
