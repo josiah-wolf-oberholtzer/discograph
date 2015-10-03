@@ -1,5 +1,46 @@
 var dg = (function(dg){
 
+var dg_color_greyscale = function(d) {
+    var hue = 0;
+    var saturation = 0;
+    var lightness = (d.distance / (dg.graph.maxDistance + 1));
+    return d3.hsl(hue, saturation, lightness).toString();
+}
+
+var dg_color_heatmap = function(d) {
+    var hue = ((d.distance / 12) * 360) % 360;
+    var variation_a = ((d.id % 5) - 2) / 20;
+    var variation_b = ((d.id % 9) - 4) / 80;
+    var saturation = 0.67 + variation_a;
+    var lightness = 0.5 + variation_b;
+    return d3.hsl(hue, saturation, lightness).toString();
+}
+
+var dg_history_onPopState = function(event) {
+    if (!event || !event.state || !event.state.key) {
+        return;
+    }
+    var entityKey = event.state.key;
+    var entityType = entityKey.split("-")[0];
+    var entityId = entityKey.split("-")[1];
+    var url = "/" + entityType + "/" + entityId;
+    ga('send', 'pageview', url);
+    ga('set', 'page', url);
+    dg.updateGraph(event.state.key);
+}
+
+var dg_history_pushState = function(entityKey, params) {
+    var entityType = entityKey.split("-")[0];
+    var entityId = entityKey.split("-")[1];
+    var title = document.title;
+    var url = "/" + entityType + "/" + entityId;
+    if (params) { url += "?" + $.params(params); }
+    var state = {key: entityKey, params: params};
+    window.history.pushState(state, title, url);
+    ga('send', 'pageview', url);
+    ga('set', 'page', url);
+}
+
 var dg_typeahead_bloodhound = new Bloodhound({
     datumTokenizer: Bloodhound.tokenizers.whitespace,
     queryTokenizer: Bloodhound.tokenizers.whitespace,
@@ -69,49 +110,6 @@ var dg_typeahead_navigate = function() {
         $("#typeahead").blur();
         $('.navbar-toggle').click();
     };
-}
-
-dg.color = {
-    greyscale: function(d) {
-        var hue = 0;
-        var saturation = 0;
-        var lightness = (d.distance / (dg.graph.maxDistance + 1));
-        return d3.hsl(hue, saturation, lightness).toString();
-    },
-    heatmap: function(d) {
-        var hue = ((d.distance / 12) * 360) % 360;
-        var variation_a = ((d.id % 5) - 2) / 20;
-        var variation_b = ((d.id % 9) - 4) / 80;
-        var saturation = 0.67 + variation_a;
-        var lightness = 0.5 + variation_b;
-        return d3.hsl(hue, saturation, lightness).toString();
-    },
-}
-
-dg.history = {
-    onPopState: function(event) {
-        if (!event || !event.state || !event.state.key) {
-            return;
-        }
-        var entityKey = event.state.key;
-        var entityType = entityKey.split("-")[0];
-        var entityId = entityKey.split("-")[1];
-        var url = "/" + entityType + "/" + entityId;
-        ga('send', 'pageview', url);
-        ga('set', 'page', url);
-        dg.updateGraph(event.state.key);
-    },
-    pushState: function(entityKey, params) {
-        var entityType = entityKey.split("-")[0];
-        var entityId = entityKey.split("-")[1];
-        var title = document.title;
-        var url = "/" + entityType + "/" + entityId;
-        if (params) { url += "?" + $.params(params); }
-        var state = {key: entityKey, params: params};
-        window.history.pushState(state, title, url);
-        ga('send', 'pageview', url);
-        ga('set', 'page', url);
-    },
 }
 
 dg.graph = {
@@ -188,7 +186,7 @@ dg.handleNewGraphData = function(json) {
 }
 
 dg.navigateGraph = function(key) {
-    dg.history.pushState(key);
+    dg_history_pushState(key);
     dg.updateGraph(key);
 }
 
@@ -347,9 +345,9 @@ function onNodeEnter(nodeEnter) {
         .attr("class", function(d) { return "node node-" + d.key; })
         .style("fill", function(d) {
             if (d.type == 'artist') {
-                return dg.color.heatmap(d);
+                return dg_color_heatmap(d);
             } else {
-                return dg.color.greyscale(d);
+                return dg_color_greyscale(d);
             }
         })
         .call(dg.graph.forceLayout.drag);
@@ -463,9 +461,9 @@ function onNodeUpdate(nodeSelection) {
         .duration(1000)
         .style("fill", function(d) {
             if (d.type == 'artist') {
-                return dg.color.heatmap(d);
+                return dg_color_heatmap(d);
             } else {
-                return dg.color.greyscale(d);
+                return dg_color_greyscale(d);
             }
         })
     nodeSelection.selectAll(".more")
@@ -812,13 +810,12 @@ dg.updateGraph = function(key) {
 }
 
 dg.graph.init = function() {
-    dg.color.colorFunc = dg.color.heatmap;
 
     d3.selection.prototype.moveToFront = function() {
         return this.each(function(){ this.parentNode.appendChild(this); });
     };
 
-    window.addEventListener("popstate", dg.history.onPopState);
+    window.addEventListener("popstate", dg_history_onPopState);
 
     var w = window,
         d = document,
@@ -977,7 +974,7 @@ dg.init = function() {
     dg.graph.init();
     dg_typeahead_init();
     if (dgData) {
-        dg.history.pushState(dgData.center);
+        dg_history_pushState(dgData.center);
         dg.handleNewGraphData(dgData);
     }
     console.log('discograph initialized.')
