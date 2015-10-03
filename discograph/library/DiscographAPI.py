@@ -58,28 +58,25 @@ class DiscographAPI(object):
 
     def get_network(self, entity_id, entity_type, on_mobile=False):
         import discograph
-        cache_key = 'discograph:/api/artist/network/{}'.format(entity_id)
+        assert entity_type in ('artist', 'label')
+        cache_key = 'discograph:/api/{}/network/{}'.format(entity_type, entity_id)
         if on_mobile:
             cache_key = '{}/mobile'.format(cache_key)
         data = self.cache_get(cache_key)
         if data is not None:
             return data
-        artist = self.get_entity(entity_id, 1)
-        if artist is None:
+        if entity_type == 'artist':
+            entity_type = 1
+        elif entity_type == 'label':
+            entity_type = 2
+        else:
+            raise ValueError(entity_type)
+        entity = self.get_entity(entity_id, 1)
+        if entity is None:
             return None
         role_names = [
             'Alias',
             'Member Of',
-            #'Producer',
-            #'Guitar',
-            #'Bass Guitar',
-            #'Rhythm Guitar',
-            #'Electric Guitar',
-            #'Lead Guitar',
-            #'Drums',
-            #'Vocals',
-            #'Lead Vocals',
-            #'Backing Vocals',
             ]
         if not on_mobile:
             max_nodes = 75
@@ -90,7 +87,7 @@ class DiscographAPI(object):
             max_links = 75
             degree = 6
         relation_grapher = discograph.RelationGrapher(
-            center_entity=artist,
+            center_entity=entity,
             degree=degree,
             max_nodes=max_nodes,
             max_links=max_links,
