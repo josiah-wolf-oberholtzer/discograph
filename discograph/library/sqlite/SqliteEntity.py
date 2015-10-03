@@ -9,16 +9,14 @@ class SqliteEntity(SqliteModel):
     ### PEEWEE FIELDS ###
 
     name = peewee.TextField()
-    entity_id = peewee.IntegerField()
-    entity_type = peewee.IntegerField()
+    entity_id = peewee.IntegerField(null=False)
+    entity_type = peewee.IntegerField(null=False)
 
     ### PEEWEE META ###
 
     class Meta:
         db_table = 'entity'
-        indexes = (
-            (('entity_id', 'entity_type'), True),
-            )
+        primary_key = peewee.CompositeKey('entity_id', 'entity_type')
 
     ### PRIVATE METHODS ###
 
