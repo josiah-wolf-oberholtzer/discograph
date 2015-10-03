@@ -16,6 +16,9 @@ class SqliteEntity(SqliteModel):
 
     class Meta:
         db_table = 'entity'
+        indexes = (
+            (('entity_id', 'entity_type'), True),
+            )
 
     ### PRIVATE METHODS ###
 
