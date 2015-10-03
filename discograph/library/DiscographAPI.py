@@ -126,7 +126,6 @@ class DiscographAPI(object):
 
     def search_entities(self, search_string):
         import discograph
-        entity_type_names = {1: 'artist', 2: 'label'}
         cache_key = 'discograph:/api/search/{}'.format(
             self.urlify_pattern.sub('+', search_string))
         data = self.cache_get(cache_key)
@@ -134,8 +133,9 @@ class DiscographAPI(object):
             return data
         query = discograph.SqliteFTSEntity.search_bm25(search_string)
         query = query.where(discograph.SqliteFTSEntity.entity_type == 1)
-        query = query.limit(20)
+        query = query.limit(10)
         data = []
+        entity_type_names = {1: 'artist', 2: 'label'}
         for entity in query:
             datum = dict(
                 key='{}-{}'.format(
