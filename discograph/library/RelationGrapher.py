@@ -2,10 +2,7 @@
 import collections
 import re
 import six
-from discograph.library.mongo.Artist import Artist
 from discograph.library.mongo.CreditRole import CreditRole
-from discograph.library.sqlite.SqliteArtist import SqliteArtist
-from discograph.library.sqlite.SqliteLabel import SqliteLabel
 from discograph.library.sqlite.SqliteEntity import SqliteEntity
 from discograph.library.sqlite.SqliteRelation import SqliteRelation
 
@@ -28,10 +25,6 @@ class RelationGrapher(object):
         role_names=None,
         ):
         assert isinstance(center_entity, SqliteEntity)
-        if center_entity.entity_type == 1:
-            center_entity = SqliteArtist.get(id=center_entity.entity_id)
-        elif center_entity.entity_type == 2:
-            center_entity = SqliteLabel.get(id=center_entity.entity_id)
         self.center_entity = center_entity
         degree = int(degree)
         assert 0 < degree
@@ -80,14 +73,10 @@ class RelationGrapher(object):
         link = relation.copy()
         entity_one_id = link['entity_one_id']
         entity_one_type = link['entity_one_type']
-        #entity_one_type = Relation.EntityType(entity_one_type)
-        #entity_one_type = entity_one_type.name.lower()
         source_key = (entity_one_type, entity_one_id)
         link['source'] = source_key
         entity_two_id = link['entity_two_id']
         entity_two_type = link['entity_two_type']
-        #entity_two_type = Relation.EntityType(entity_two_type)
-        #entity_two_type = entity_two_type.name.lower()
         target_key = (entity_two_type, entity_two_id)
         link['target'] = target_key
         link['role'] = link['role_name']
@@ -133,10 +122,10 @@ class RelationGrapher(object):
         provisional_role_names.update(['Alias', 'Member Of'])
         provisional_role_names = sorted(provisional_role_names)
 
-        if type(self.center_entity).__name__.endswith('Artist'):
-            initial_key = (1, self.center_entity.discogs_id)
-        else:
-            initial_key = (2, self.center_entity.discogs_id)
+        initial_key = (
+            self.center_entity.entity_type,
+            self.center_entity.entity_id,
+            )
         entity_keys_to_visit = set([initial_key])
 
         links = dict()
@@ -222,23 +211,23 @@ class RelationGrapher(object):
             else:
                 label_ids.append(entity_id)
         artists = []
-        for i in range(0, len(artist_ids), 999):
-            query = (SqliteArtist
-                .select()
-                .where(SqliteArtist.id.in_(artist_ids[i:i + 999]))
-                )
+        entity_query_cap = 999
+        entity_query_cap -= 1
+        for i in range(0, len(artist_ids), entity_query_cap):
+            where_clause = SqliteEntity.entity_id.in_(artist_ids[i:i + entity_query_cap])
+            where_clause &= SqliteEntity.entity_type == 1
+            query = SqliteEntity.select().where(where_clause)
             artists.extend(query)
         labels = []
-        for i in range(0, len(artist_ids), 999):
-            query = (SqliteLabel
-                .select()
-                .where(SqliteLabel.id.in_(label_ids[i:i + 999]))
-                )
+        for i in range(0, len(artist_ids), entity_query_cap):
+            where_clause = SqliteEntity.entity_id.in_(label_ids[i:i + entity_query_cap])
+            where_clause &= SqliteEntity.entity_type == 2
+            query = SqliteEntity.select().where(where_clause)
             labels.extend(query)
         for artist in artists:
-            nodes[(1, artist.id)]['name'] = artist.name
+            nodes[(artist.entity_type, artist.entity_id)]['name'] = artist.name
         for label in labels:
-            nodes[(2, label.id)]['name'] = label.name
+            nodes[(label.entity_type, label.entity_id)]['name'] = label.name
 
         # Prune nameless nodes.
         for node in tuple(nodes.values()):
@@ -351,10 +340,12 @@ class RelationGrapher(object):
                 link['target'] = 'label-{}'.format(link['target'][1])
         nodes = tuple(sorted(nodes.values(),
             key=lambda x: (x['type'], x['id'])))
-        if type(self.center_entity) in (Artist, SqliteArtist):
-            center = 'artist-{}'.format(self.center_entity.discogs_id)
+        if self.center_entity.entity_type == 1:
+            center = 'artist-{}'.format(self.center_entity.entity_id)
+        elif self.center_entity.entity_type == 2:
+            center = 'label-{}'.format(self.center_entity.entity_id)
         else:
-            center = 'label-{}'.format(self.center_entity.discogs_id)
+            raise ValueError(self.center_entity)
         network = {
             'center': center,
             'nodes': nodes,
