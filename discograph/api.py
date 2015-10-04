@@ -11,6 +11,20 @@ from discograph import helpers
 blueprint = Blueprint('api', __name__, template_folder='templates')
 
 
+@blueprint.route('/<entity_type>/timeline/<int:entity_id>')
+@decorators.limit(max_requests=60, period=60)
+def route__api__entity_type__timeline__entity_id(entity_type, entity_id):
+    if entity_type != 'artist':
+        raise exceptions.APIError(message='Bad Entity Type', status_code=404)
+    data = helpers.discograph_api.get_timeline(
+        entity_id,
+        entity_type,
+        )
+    if data is None:
+        raise exceptions.APIError(message='No Data', status_code=400)
+    return jsonify(data)
+
+
 @blueprint.route('/<entity_type>/network/<int:entity_id>')
 @decorators.limit(max_requests=60, period=60)
 def route__api__entity_type__network__entity_id(entity_type, entity_id):

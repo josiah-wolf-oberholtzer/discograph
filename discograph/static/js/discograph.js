@@ -1,5 +1,10 @@
 var dg = (function(dg){
 
+dg.timeline = {
+    json: null,
+    rootLayer: null,
+};
+
 dg.network = {
     centerNodeKey: null,
     dimensions: [0, 0],
@@ -19,7 +24,7 @@ dg.network = {
     linkSelection: null,
     textSelection: null,
     // layers
-    networkLayer: null,
+    rootLayer: null,
     haloLayer: null,
     textLayer: null,
     nodeLayer: null,
@@ -103,21 +108,20 @@ function dg_history_replaceState(entityKey, params) {
     ga('set', 'page', url);
 }
 
-var dg_typeahead_bloodhound = new Bloodhound({
-    datumTokenizer: Bloodhound.tokenizers.whitespace,
-    queryTokenizer: Bloodhound.tokenizers.whitespace,
-    remote: {
-        url: "/api/search/%QUERY",
-        wildcard: "%QUERY",
-        filter: function(response) {
-            return response.results;
-        },
-        rateLimitBy: 'debounce',
-        rateLimitWait: 300,
-    },
-});
-
 function dg_typeahead_init() {
+    var bloodhound = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.whitespace,
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        remote: {
+            url: "/api/search/%QUERY",
+            wildcard: "%QUERY",
+            filter: function(response) {
+                return response.results;
+            },
+            rateLimitBy: 'debounce',
+            rateLimitWait: 300,
+        },
+    });
     var inputElement = $("#typeahead");
     var loadingElement = $("#search .loading");
     inputElement.typeahead(
@@ -128,7 +132,7 @@ function dg_typeahead_init() {
         }, {
             name: "results",
             display: "name",
-            source: dg_typeahead_bloodhound,
+            source: bloodhound,
             limit: 20,
         })
     .keydown(function(event){
@@ -174,7 +178,7 @@ function dg_typeahead_navigate() {
     };
 }
 
-function dg_network_handleAsyncError(error) {
+function dg_handleAsyncError(error) {
     var message = 'Something went wrong!';
     var status = error.status;
     if (status == 0) {
@@ -188,7 +192,6 @@ function dg_network_handleAsyncError(error) {
     text += '<strong>' + status + '!</strong> ' + message;
     text += '</div>';
     $('#flash').append(text);
-    //window.history.back();
 }
 
 function dg_network_handleAsyncData(json, pushHistory, params) {
@@ -226,7 +229,7 @@ function dg_network_navigate(key, pushHistory) {
             dg.network.dimensions[1] / 2,
         ];
     }
-    dg.network.networkLayer.transition()
+    dg.network.rootLayer.transition()
         .duration(250)
         .style("opacity", 0.333);
     $("#page-loading")
@@ -237,7 +240,7 @@ function dg_network_navigate(key, pushHistory) {
     $.ajax({
         cache: true,
         dataType: 'json',
-        error: dg_network_handleAsyncError,
+        error: dg_handleAsyncError,
         success: function(data) {
             dg_network_handleAsyncData(data, pushHistory);
             },
@@ -565,7 +568,7 @@ function dg_network_startForceLayout() {
     dg_network_onTextUpdate(dg.network.textSelection);
     dg_network_onLinkEnter(dg.network.linkSelection.enter());
     dg_network_onLinkExit(dg.network.linkSelection.exit());
-    dg.network.networkLayer.transition()
+    dg.network.rootLayer.transition()
         .duration(1000)
         .style("opacity", 1);
     dg_network_selectNode(dg.network.centerNodeKey);
@@ -779,23 +782,29 @@ function dg_network_updateForceLayout() {
 }
 
 function dg_network_init() {
-    var networkLayer = d3.select("#svg").append("g")
+    var rootLayer = d3.select("#svg").append("g")
         .attr("id", "networkLayer");
-    dg.network.networkLayer = networkLayer;
+    dg.network.rootLayer = rootLayer;
     d3.select("#svg").on("mousedown", function() {
         dg.network.nodes.forEach(function(n) { n.fixed = false; });
         dg_network_selectNode(null);
     });
-    dg.network.haloLayer = networkLayer.append("g").attr("id", "haloLayer");
-    dg.network.linkLayer = networkLayer.append("g").attr("id", "linkLayer");
-    dg.network.nodeLayer = networkLayer.append("g").attr("id", "nodeLayer");
-    dg.network.textLayer = networkLayer.append("g").attr("id", "textLayer");
+    dg.network.haloLayer = rootLayer.append("g").attr("id", "haloLayer");
+    dg.network.linkLayer = rootLayer.append("g").attr("id", "linkLayer");
+    dg.network.nodeLayer = rootLayer.append("g").attr("id", "nodeLayer");
+    dg.network.textLayer = rootLayer.append("g").attr("id", "textLayer");
     dg.network.haloSelection = dg.network.haloLayer.selectAll(".node");
     dg.network.hullSelection = dg.network.haloLayer.selectAll(".hull");
     dg.network.linkSelection = dg.network.linkLayer.selectAll(".link");
     dg.network.nodeSelection = dg.network.nodeLayer.selectAll(".node");
     dg.network.textSelection = dg.network.textLayer.selectAll(".node");
     dg.network.forceLayout = dg_network_setupForceLayout();
+}
+
+function dg_timeline_init() {
+    var rootLayer = d3.select("#svg").append("g")
+        .attr("id", "timelineLayer");
+    dg.timeline.rootLayer = rootLayer;
 }
 
 function dg_svg_init() {
@@ -915,6 +924,7 @@ function dg_svg_setupDefs() {
 $(document).ready(function() {
     dg_svg_init();
     dg_network_init();
+    dg_timeline_init();
     dg_typeahead_init();
     if (dgData) {
         dg_history_replaceState(dgData.center);
@@ -944,3 +954,13 @@ $(document).ready(function() {
 return dg;
 
 }(dg || {}));
+
+function loadMorris() {
+    var url = '/api/artist/timeline/32550';
+    d3.json(url, function(error, json) {
+        if (error) { console.warn(error); return; }
+        dg.timeline.rootLayer.select('g').remove();
+        var timeline = dg.timeline.rootLayer.append('g');
+        console.log(json);
+    });
+}

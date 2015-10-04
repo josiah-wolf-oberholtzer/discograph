@@ -9,15 +9,15 @@ class TestCase(unittest.TestCase):
     def setUp(self):
         self.app = discograph.app.test_client()
 
-    def test_network_1(self):
+    def test_network_01(self):
         response = self.app.get('/api/artist/network/32550')
         assert response.status == '200 OK'
 
-    def test_network_2(self):
+    def test_network_02(self):
         response = self.app.get('/api/artist/network/999999999999')
         assert response.status == '400 BAD REQUEST'
 
-    def test_network_3(self):
+    def test_network_03(self):
         response = self.app.get('/api/label/network/1')
         assert response.status == '404 NOT FOUND'
 
@@ -49,3 +49,7 @@ class TestCase(unittest.TestCase):
                 {'key': 'artist-152882', 'name': 'Morris Day'}
                 ],
             }
+
+    def test_timeline_01(self):
+        response = self.app.get('/api/artist/timeline/32550')
+        assert response.status == '200 OK'

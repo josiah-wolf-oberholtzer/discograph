@@ -56,6 +56,41 @@ class DiscographAPI(object):
     def cache_set(self, cache_key, data):
         self.cache.set(cache_key, data)
 
+    def get_timeline(self, entity_id, entity_type):
+        import discograph
+        entity = self.get_entity(entity_id, entity_type)
+        query = discograph.SqliteRelation.search(
+            entity_id=entity.entity_id,
+            entity_type=entity.entity_type,
+            query_only=True
+            )
+        query = query.where(discograph.SqliteRelation.year.is_null(False))
+        query = query.order_by(
+            discograph.SqliteRelation.year,
+            discograph.SqliteRelation.release_id,
+            discograph.SqliteRelation.role_name,
+            discograph.SqliteRelation.entity_one_id,
+            discograph.SqliteRelation.entity_one_type,
+            discograph.SqliteRelation.entity_two_id,
+            discograph.SqliteRelation.entity_two_type,
+            )
+        data = []
+        for relation in query:
+            role = relation.role_name
+            category = discograph.mongo.CreditRole.all_credit_roles[role]
+            if category is None:
+                continue
+            category = category[0]
+            datum = {
+                'year': relation.year,
+                'release_id': relation.release_id,
+                'role': role,
+                'category': category,
+                }
+            data.append(datum)
+        data = {'results': tuple(data)}
+        return data
+
     def get_network(self, entity_id, entity_type, on_mobile=False):
         import discograph
         assert entity_type in ('artist', 'label')
@@ -71,7 +106,7 @@ class DiscographAPI(object):
             entity_type = 2
         else:
             raise ValueError(entity_type)
-        entity = self.get_entity(entity_id, 1)
+        entity = self.get_entity(entity_id, entity_type)
         if entity is None:
             return None
         role_names = [
