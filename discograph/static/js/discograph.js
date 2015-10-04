@@ -959,8 +959,30 @@ function loadMorris() {
     var url = '/api/artist/timeline/32550';
     d3.json(url, function(error, json) {
         if (error) { console.warn(error); return; }
-        dg.timeline.rootLayer.select('g').remove();
-        var timeline = dg.timeline.rootLayer.append('g');
+        dg.timeline.json = json;
+        dg.timeline.nested = d3.nest()
+            .key(function(d) { return d.year; })
+            .key(function(d) { return d.category; })
+            .entries(json.results);
+        var years = dg.timeline.nested.map(function(d) { return parseInt(d.key); })
+        var extent = d3.extent(years);
+        console.log(extent);
+        var scale = d3.scale.linear().domain(extent).range([100, dg.network.dimensions[0] - 100]);
+        var axis = d3.svg.axis()
+            .orient("bottom")
+            .scale(scale)
+            .ticks(years.length)
+            .tickFormat(d3.format('0000'));
+        dg.timeline.rootLayer.append("g")
+            .attr("class", "x axis")
+            .attr("transform", 'translate(0, 100)')
+            .call(axis)
+            .selectAll("text")
+            .attr("y", 0)
+            .attr("x", 9)
+            .attr("dy", ".35em")
+            .attr("transform", "rotate(45)")
+            .style("text-anchor", "start");
         console.log(json);
     });
 }
