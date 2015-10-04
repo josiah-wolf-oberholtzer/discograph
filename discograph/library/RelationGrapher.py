@@ -57,37 +57,8 @@ class RelationGrapher(object):
                 year = int(year)
         self.year = year
 
-    @classmethod
-    def get_link_key(cls, link):
-        source_type, source_id = link['source']
-        if source_type == 1:
-            source_type = 'artist'
-        else:
-            source_type = 'label'
-        target_type, target_id = link['target']
-        if target_type == 1:
-            target_type = 'artist'
-        else:
-            target_type = 'label'
-        pieces = [
-            source_type,
-            source_id,
-            cls.word_pattern.sub('-', link['role']).lower(),
-            target_type,
-            target_id,
-            ]
-        return '-'.join(str(_) for _ in pieces)
-
-    def entity_key_to_node(self, entity_key, distance):
-        node = dict(distance=distance, missing=0, members=set(), aliases=set())
-        node['id'] = entity_key[1]
-        if entity_key[0] == 1:
-            node['type'] = 'artist'
-        else:
-            node['type'] = 'label'
-        node['key'] = '{}-{}'.format(node['type'], node['id'])
-        node['links'] = set()
-        return node
+    def build_tree(self, nodes, links):
+        pass
 
     def collect_entities(self, verbose=True):
         original_role_names = self.role_names or ()
@@ -166,43 +137,37 @@ class RelationGrapher(object):
             print('Finally: {} / {}'.format(len(nodes), len(links)))
         return nodes, links
 
-    def prune_link(self, link, nodes, links, update_missing_count=True):
-        if link is None:
-            return
-        if link['key'] in links:
-            del(links[link['key']])
-        source_node = nodes.get(link['source'])
-        if source_node is not None:
-            if update_missing_count:
-                source_node['missing'] += 1
-            if link['key'] in source_node['links']:
-                source_node['links'].remove(link['key'])
-            if not source_node['links']:
-                self.prune_node(source_node, nodes, links,
-                    update_missing_count=update_missing_count)
-        target_node = nodes.get(link['target'])
-        if target_node is not None:
-            if update_missing_count:
-                target_node['missing'] += 1
-            if link['key'] in target_node['links']:
-                target_node['links'].remove(link['key'])
-            if not target_node['links']:
-                self.prune_node(target_node, nodes, links,
-                    update_missing_count=update_missing_count)
-
-    def prune_node(self, node, nodes, links, update_missing_count=True):
-        if node is None:
-            return
-        if node['type'] == 'artist':
-            key = (1, node['id'])
+    def entity_key_to_node(self, entity_key, distance):
+        node = dict(distance=distance, missing=0, members=set(), aliases=set())
+        node['id'] = entity_key[1]
+        if entity_key[0] == 1:
+            node['type'] = 'artist'
         else:
-            key = (2, node['id'])
-        if key in nodes:
-            del(nodes[key])
-        for link_key in node['links'].copy():
-            link = links.get(link_key)
-            self.prune_link(link, nodes, links,
-                update_missing_count=update_missing_count)
+            node['type'] = 'label'
+        node['key'] = '{}-{}'.format(node['type'], node['id'])
+        node['links'] = set()
+        return node
+
+    @classmethod
+    def get_link_key(cls, link):
+        source_type, source_id = link['source']
+        if source_type == 1:
+            source_type = 'artist'
+        else:
+            source_type = 'label'
+        target_type, target_id = link['target']
+        if target_type == 1:
+            target_type = 'artist'
+        else:
+            target_type = 'label'
+        pieces = [
+            source_type,
+            source_id,
+            cls.word_pattern.sub('-', link['role']).lower(),
+            target_type,
+            target_id,
+            ]
+        return '-'.join(str(_) for _ in pieces)
 
     def get_network(self):
         nodes, links = self.collect_entities()
@@ -327,12 +292,50 @@ class RelationGrapher(object):
         if verbose:
             print('    Pruned by max nodes: {} / {}'.format(len(nodes), len(links)))
 
+    def prune_link(self, link, nodes, links, update_missing_count=True):
+        if link is None:
+            return
+        if link['key'] in links:
+            del(links[link['key']])
+        source_node = nodes.get(link['source'])
+        if source_node is not None:
+            if update_missing_count:
+                source_node['missing'] += 1
+            if link['key'] in source_node['links']:
+                source_node['links'].remove(link['key'])
+            if not source_node['links']:
+                self.prune_node(source_node, nodes, links,
+                    update_missing_count=update_missing_count)
+        target_node = nodes.get(link['target'])
+        if target_node is not None:
+            if update_missing_count:
+                target_node['missing'] += 1
+            if link['key'] in target_node['links']:
+                target_node['links'].remove(link['key'])
+            if not target_node['links']:
+                self.prune_node(target_node, nodes, links,
+                    update_missing_count=update_missing_count)
+
     def prune_nameless(self, nodes, links, verbose=True):
         for node in tuple(nodes.values()):
             if not node.get('name'):
                 self.prune_node(node, nodes, links, update_missing_count=False)
         if verbose:
             print('    Pruning nameless: {} / {}'.format(len(nodes), len(links)))
+
+    def prune_node(self, node, nodes, links, update_missing_count=True):
+        if node is None:
+            return
+        if node['type'] == 'artist':
+            key = (1, node['id'])
+        else:
+            key = (2, node['id'])
+        if key in nodes:
+            del(nodes[key])
+        for link_key in node['links'].copy():
+            link = links.get(link_key)
+            self.prune_link(link, nodes, links,
+                update_missing_count=update_missing_count)
 
     def prune_unvisited(self, entity_keys_to_visit, nodes, links, verbose=True):
         for key in entity_keys_to_visit:
