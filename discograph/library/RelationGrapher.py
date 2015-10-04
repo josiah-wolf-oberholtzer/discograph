@@ -2,6 +2,7 @@
 import collections
 import re
 import six
+from discograph.library.TrellisNode import TrellisNode
 from discograph.library.mongo.CreditRole import CreditRole
 from discograph.library.sqlite.SqliteEntity import SqliteEntity
 from discograph.library.sqlite.SqliteRelation import SqliteRelation
@@ -57,8 +58,35 @@ class RelationGrapher(object):
                 year = int(year)
         self.year = year
 
-    def build_tree(self, nodes, links):
-        pass
+    def build_trellis(self, nodes, links, verbose=True):
+        if verbose:
+            print('    Building paging tree')
+        trellis = collections.OrderedDict()
+        nodes = sorted(nodes.values(), key=lambda x: (x['distance'], x['id']))
+        for node in nodes:
+            if node['type'] == 'artist':
+                node_type = 1
+            elif node['type'] == 'label':
+                node_type = 2
+            else:
+                raise ValueError(node)
+            key = (node_type, node['id'])
+            trellis[key] = TrellisNode(node)
+        for link in links.values():
+            node_one = trellis.get(link['source'])
+            node_two = trellis.get(link['target'])
+            if node_one is None or node_two is None:
+                continue
+            if node_one.distance == node_two.distance:
+                node_one.siblings.add(node_two)
+                node_two.siblings.add(node_one)
+            elif node_one.distance < node_two.distance:
+                node_one.children.add(node_two)
+                node_two.parents.add(node_one)
+            else:
+                node_two.children.add(node_one)
+                node_one.parents.add(node_two)
+        return trellis
 
     def collect_entities(self, verbose=True):
         original_role_names = self.role_names or ()
@@ -130,6 +158,7 @@ class RelationGrapher(object):
             print('    Collected: {} / {}'.format(len(nodes), len(links)))
         self.query_node_names(nodes)
         self.prune_nameless(nodes, links, verbose=verbose)
+        trellis = self.build_trellis(nodes, links, verbose=verbose)
         self.prune_unvisited(entity_keys_to_visit, nodes, links, verbose=verbose)
         self.prune_excess_nodes(nodes, links, verbose=verbose)
         self.prune_excess_links(nodes, links, verbose=verbose)
