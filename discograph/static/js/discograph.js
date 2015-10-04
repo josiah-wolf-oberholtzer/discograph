@@ -912,7 +912,7 @@ function dg_svg_setupDefs() {
         .attr('stop-opacity', '0%');
 }
 
-function dg_init() {
+$(document).ready(function() {
     dg_svg_init();
     dg_network_init();
     dg_typeahead_init();
@@ -939,14 +939,8 @@ function dg_init() {
     }());
     window.addEventListener("popstate", dg_history_onPopState);
     console.log('discograph initialized.');
-}
-
-dg.init = dg_init;
+});
 
 return dg;
 
 }(dg || {}));
-
-$(document).ready(function() {
-    dg.init();
-});
