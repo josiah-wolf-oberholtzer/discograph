@@ -666,13 +666,6 @@ class Test(unittest.TestCase):
                     'target': 'artist-2561672',
                     },
                 {
-                    'distance': 1,
-                    'key': 'artist-100600-member-of-artist-2561672',
-                    'role': 'Member Of',
-                    'source': 'artist-100600',
-                    'target': 'artist-2561672',
-                    },
-                {
                     'distance': 0,
                     'key': 'artist-152882-member-of-artist-32550',
                     'role': 'Member Of',
@@ -704,16 +697,6 @@ class Test(unittest.TestCase):
                     'type': 'artist',
                     },
                 {
-                    'distance': 2,
-                    'id': 100600,
-                    'key': 'artist-100600',
-                    'links': ('artist-100600-member-of-artist-2561672',),
-                    'missing': 2,
-                    'name': 'Monte Moir',
-                    'size': 0,
-                    'type': 'artist',
-                    },
-                {
                     'distance': 0,
                     'id': 152882,
                     'key': 'artist-152882',
@@ -733,11 +716,10 @@ class Test(unittest.TestCase):
                     'id': 2561672,
                     'key': 'artist-2561672',
                     'links': (
-                        'artist-100600-member-of-artist-2561672',
                         'artist-152882-member-of-artist-2561672',
                         'artist-32550-alias-artist-2561672',
                         ),
-                    'missing': 5,
+                    'missing': 6,
                     'name': 'Original 7ven, The',
                     'size': 7,
                     'type': 'artist',
