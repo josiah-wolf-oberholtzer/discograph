@@ -13,21 +13,21 @@ dg.network = {
     selectedNodeKey: null,
     maxDistance: 0,
     // selections
-    svgSelection: null,
     haloSelection: null,
     hullSelection: null,
     nodeSelection: null,
     linkSelection: null,
     textSelection: null,
     // layers
+    networkLayer: null,
     haloLayer: null,
     textLayer: null,
     nodeLayer: null,
     linkLayer: null,
 };
 
-function dg_network_setupDefs(svgSelection) {
-    var defs = svgSelection.append("defs");
+function dg_svg_setupDefs() {
+    var defs = d3.select("#svg").append("defs");
     // ARROWHEAD
     defs.append("marker")
         .attr("id", "arrowhead")
@@ -308,8 +308,7 @@ function dg_network_navigate(key, pushHistory) {
             dg.network.dimensions[1] / 2,
         ];
     }
-    dg.network.svgSelection
-        .transition()
+    dg.network.networkLayer.transition()
         .duration(250)
         .style("opacity", 0.333);
     $("#page-loading")
@@ -648,7 +647,7 @@ function dg_network_startForceLayout() {
     dg_network_onTextUpdate(dg.network.textSelection);
     dg_network_onLinkEnter(dg.network.linkSelection.enter());
     dg_network_onLinkExit(dg.network.linkSelection.exit());
-    dg.network.svgSelection.transition()
+    dg.network.networkLayer.transition()
         .duration(1000)
         .style("opacity", 1);
     dg_network_selectNode(dg.network.centerNodeKey);
@@ -862,6 +861,26 @@ function dg_network_updateForceLayout() {
 }
 
 function dg_network_init() {
+    var networkLayer = d3.select("#svg").append("g")
+        .attr("id", "networkLayer");
+    dg.network.networkLayer = networkLayer;
+    d3.select("#svg").on("mousedown", function() {
+        dg.network.nodes.forEach(function(n) { n.fixed = false; });
+        dg_network_selectNode(null);
+    });
+    dg.network.haloLayer = networkLayer.append("g").attr("id", "haloLayer");
+    dg.network.linkLayer = networkLayer.append("g").attr("id", "linkLayer");
+    dg.network.nodeLayer = networkLayer.append("g").attr("id", "nodeLayer");
+    dg.network.textLayer = networkLayer.append("g").attr("id", "textLayer");
+    dg.network.haloSelection = dg.network.haloLayer.selectAll(".node");
+    dg.network.hullSelection = dg.network.haloLayer.selectAll(".hull");
+    dg.network.linkSelection = dg.network.linkLayer.selectAll(".link");
+    dg.network.nodeSelection = dg.network.nodeLayer.selectAll(".node");
+    dg.network.textSelection = dg.network.textLayer.selectAll(".node");
+    dg.network.forceLayout = dg_network_setupForceLayout();
+}
+
+function dg_init() {
     d3.selection.prototype.moveToFront = function() {
         return this.each(function(){ this.parentNode.appendChild(this); });
     };
@@ -883,32 +902,15 @@ function dg_network_init() {
             w.innerWidth || e.clientWidth || g.clientWidth,
             w.innerHeight|| e.clientHeight|| g.clientHeight,
         ];
-        dg.network.svgSelection
+        d3.select("#svg")
             .attr("width", dg.network.dimensions[0])
             .attr("height", dg.network.dimensions[1]);
         dg.network.forceLayout.size(dg.network.dimensions).start();
     });
-    dg.network.svgSelection = d3.select("#svg")
+    d3.select("#svg")
         .attr("width", dg.network.dimensions[0])
         .attr("height", dg.network.dimensions[1]);
-    dg.network.svgSelection.on("mousedown", function() {
-        dg.network.nodes.forEach(function(n) { n.fixed = false; });
-        dg_network_selectNode(null);
-    });
-    dg_network_setupDefs(dg.network.svgSelection);
-    dg.network.haloLayer = dg.network.svgSelection.append("g").attr("id", "haloLayer");
-    dg.network.linkLayer = dg.network.svgSelection.append("g").attr("id", "linkLayer");
-    dg.network.nodeLayer = dg.network.svgSelection.append("g").attr("id", "nodeLayer");
-    dg.network.textLayer = dg.network.svgSelection.append("g").attr("id", "textLayer");
-    dg.network.haloSelection = dg.network.haloLayer.selectAll(".node");
-    dg.network.hullSelection = dg.network.haloLayer.selectAll(".hull");
-    dg.network.linkSelection = dg.network.linkLayer.selectAll(".link");
-    dg.network.nodeSelection = dg.network.nodeLayer.selectAll(".node");
-    dg.network.textSelection = dg.network.textLayer.selectAll(".node");
-    dg.network.forceLayout = dg_network_setupForceLayout();
-}
-
-function dg_init() {
+    dg_svg_setupDefs();
     dg_network_init();
     dg_typeahead_init();
     if (dgData) {
