@@ -4,10 +4,11 @@
 class TrellisNode(object):
 
     __slots__ = (
+        '_children',
         '_node',
         '_parents',
         '_siblings',
-        '_children',
+        '_subgraph_size',
         )
 
     def __init__(self, node):
@@ -15,6 +16,7 @@ class TrellisNode(object):
         self._parents = set()
         self._siblings = set()
         self._children = set()
+        self._subgraph_size = -1
 
     ### SPECIAL METHODS ###
 
@@ -45,9 +47,28 @@ class TrellisNode(object):
         return self._node
 
     @property
+    def parentage(self):
+        parentage = [self]
+        parents = self.parents
+        while parents:
+            parentage.extend(sorted(parents, key=lambda x: x.entity_key))
+            new_parents = set()
+            new_parents.update(_.parents for _ in parents)
+            parents = new_parents
+        return parentage
+
+    @property
     def parents(self):
         return self._parents
 
     @property
     def siblings(self):
         return self._siblings
+
+    @property
+    def subgraph_size(self):
+        return self._subgraph_size
+
+    @subgraph_size.setter
+    def subgraph_size(self, expr):
+        self._subgraph_size = int(expr)

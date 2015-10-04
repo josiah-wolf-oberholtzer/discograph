@@ -58,6 +58,14 @@ class RelationGrapher(object):
                 year = int(year)
         self.year = year
 
+    def recurse_trellis(self, node):
+        subgraph_size = 0
+        for child in node.children:
+            if child.subgraph_size == -1:
+                self.recurse_trellis(child)
+            subgraph_size += child.subgraph_size
+        node.subgraph_size = subgraph_size
+
     def build_trellis(self, nodes, links, verbose=True):
         if verbose:
             print('    Building paging tree')
@@ -86,6 +94,11 @@ class RelationGrapher(object):
             else:
                 node_two.children.add(node_one)
                 node_one.parents.add(node_two)
+        root_key = (
+            self.center_entity.entity_type,
+            self.center_entity.entity_id,
+            )
+        self.recurse_trellis(trellis[root_key])
         return trellis
 
     def collect_entities(self, verbose=True):
