@@ -502,6 +502,18 @@ function dg_network_onNodeUpdate(nodeSelection) {
 }
 
 function dg_network_onTextUpdate(textSelection) {
+    textSelection.select('.outer').text(dg_network_getNodeText);
+    textSelection.select('.inner').text(dg_network_getNodeText);
+}
+
+function dg_network_getNodeText(d) { 
+    var pages = '[' + d.pages.join(',') + ']';
+    var name = d.name;
+    if (50 < name.length) {
+        name = name.slice(0, 50) + "...";
+    }
+    return pages + ' ' + name;
+    //return name;
 }
 
 function dg_network_onTextEnter(textEnter) {
@@ -512,24 +524,12 @@ function dg_network_onTextEnter(textEnter) {
         .attr("class", "outer")
         .attr("dx", function(d) { return dg_network_getOuterRadius(d) + 3; })
         .attr("dy", ".35em")
-        .text(function(d) {
-            var name = d.name;
-            if (50 < name.length) {
-                name = name.slice(0, 50) + "...";
-            }
-            return name;
-        });
+        .text(dg_network_getNodeText);
     textEnter.append("text")
         .attr("class", "inner")
         .attr("dx", function(d) { return dg_network_getOuterRadius(d) + 3; })
         .attr("dy", ".35em")
-        .text(function(d) {
-            var name = d.name;
-            if (50 < name.length) {
-                name = name.slice(0, 50) + "...";
-            }
-            return name;
-        })
+        .text(dg_network_getNodeText);
 }
 
 function dg_network_onTextExit(textExit) {
@@ -724,6 +724,7 @@ function dg_network_updateForceLayout() {
                 node.cluster = value.cluster;
                 node.distance = value.distance;
                 node.missing = value.missing;
+                node.pages = value.pages;
             }
         } else {
             value.x = dg.network.newNodeCoords[0] + (Math.random() * 200) - 100;
