@@ -8,6 +8,7 @@ class TrellisNode(object):
         '_node',
         '_pages',
         '_parents',
+        '_parentage',
         '_siblings',
         '_subgraph_size',
         )
@@ -19,6 +20,7 @@ class TrellisNode(object):
         self._children = set()
         self._subgraph_size = -1
         self._pages = set()
+        self._parentage = None
 
     ### SPECIAL METHODS ###
 
@@ -33,6 +35,8 @@ class TrellisNode(object):
     ### PUBLIC METHODS ###
 
     def get_parentage(self):
+        if self._parentage is not None:
+            return self._parentage
         parentage = set([self])
         parents = self.parents
         while parents:
@@ -41,6 +45,8 @@ class TrellisNode(object):
             for parent in parents:
                 new_parents.update(parent.parents)
             parents = new_parents
+        parentage = frozenset(parentage)
+        self._parentage = parentage
         return parentage
 
     ### PUBLIC PROPERTIES ###

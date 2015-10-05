@@ -69,7 +69,7 @@ class RelationGrapher(object):
 
     def build_trellis(self, nodes, links, verbose=True):
         if verbose:
-            print('    Building paging tree')
+            print('    Building trellis...')
         trellis = collections.OrderedDict()
         nodes = sorted(nodes.values(), key=lambda x: (x['distance'], x['id']))
         for node in nodes:
@@ -100,16 +100,24 @@ class RelationGrapher(object):
             self.center_entity.entity_id,
             )
         self.recurse_trellis(trellis[root_key])
+        assert len(trellis) == len(nodes)
         return trellis
 
     def partition_trellis(self, trellis):
+        print('    Partitioning trellis...')
         max_nodes = self.max_nodes or 100
         page_count = math.ceil(float(len(trellis)) / max_nodes)
         pages = [set() for _ in range(page_count)]
-        for trellis_node in trellis.values():
+        trellis_nodes = sorted(trellis.values(),
+            key=lambda x: (len(x.get_parentage()), x.entity_key),
+            reverse=True,
+            )
+        for trellis_node in trellis_nodes:
             parentage = trellis_node.get_parentage()
             pages.sort(key=lambda page: len(page.intersection(parentage)))
-            pages[0].add(trellis_node)
+            pages[0].update(parentage)
+        for i, page in enumerate(pages):
+            print('        Page {}: {}'.format(i, len(page)))
         return pages
 
     def group_links(self, links):
@@ -189,8 +197,8 @@ class RelationGrapher(object):
                 print('            {} new links'.format(len(relations)))
             if not relations:
                 break_on_next_loop = True
-            if 0 < distance:
-                if self.max_links and (self.max_links * 2) <= len(relations):
+            if 1 < distance:
+                if self.max_links and self.max_links <= len(relations):
                     if verbose:
                         print('        Max links: exiting next search loop.')
                     break_on_next_loop = True
@@ -208,10 +216,13 @@ class RelationGrapher(object):
             print('    Collected: {} / {}'.format(len(nodes), len(links)))
         self.query_node_names(nodes)
         self.prune_nameless(nodes, links, verbose=verbose)
-        #trellis = self.build_trellis(nodes, links, verbose=verbose)
         self.prune_unvisited(entity_keys_to_visit, nodes, links, verbose=verbose)
-        self.prune_excess_nodes(nodes, links, verbose=verbose)
-        self.prune_excess_links(nodes, links, verbose=verbose)
+        trellis = self.build_trellis(nodes, links, verbose=verbose)
+        pages = self.partition_trellis(trellis)
+        self.page_entities(nodes, links, pages)
+        self.prune_unpaged_links(nodes, links, verbose=verbose)
+        #self.prune_excess_nodes(nodes, links, verbose=verbose)
+        #self.prune_excess_links(nodes, links, verbose=verbose)
         if verbose:
             print('Finally: {} / {}'.format(len(nodes), len(links)))
         return nodes, links
@@ -293,10 +304,15 @@ class RelationGrapher(object):
             center = 'label-{}'.format(self.center_entity.discogs_id)
         else:
             raise ValueError(self.center_entity)
+        pages = set()
+        for node in nodes:
+            pages.update(node['pages'])
+        pages = tuple(sorted(pages))
         network = {
             'center': center,
-            'nodes': nodes,
             'links': links,
+            'nodes': nodes,
+            'pages': pages,
             }
         return network
 
@@ -415,6 +431,15 @@ class RelationGrapher(object):
             link = links.get(link_key)
             self.prune_link(link, nodes, links,
                 update_missing_count=update_missing_count)
+
+    def prune_unpaged_links(self, nodes, links, verbose=True):
+        print('    Pruning unpaged links...')
+        for link_key, link in tuple(links.items()):
+            #print('        {}'.format(link))
+            if not link['pages']:
+                self.prune_link(link, nodes, links)
+        if verbose:
+            print('    Pruned unpaged: {} / {}'.format(len(nodes), len(links)))
 
     def prune_unvisited(self, entity_keys_to_visit, nodes, links, verbose=True):
         for key in entity_keys_to_visit:

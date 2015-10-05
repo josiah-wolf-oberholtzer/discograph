@@ -128,11 +128,11 @@ class SqliteRelation(SqliteModel):
         if artist_ids:
             artist_where_clause = build_where_clause(artist_ids, 1)
             artist_query = cls.select().where(artist_where_clause)
-            print(artist_query)
+            #print(artist_query)
             relations.extend(list(artist_query))
         if label_ids:
             label_where_clause = build_where_clause(label_ids, 2)
             label_query = cls.select().where(label_where_clause)
-            print(label_query)
+            #print(label_query)
             relations.extend(list(label_query))
         return relations
