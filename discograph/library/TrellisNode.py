@@ -6,6 +6,7 @@ class TrellisNode(object):
     __slots__ = (
         '_children',
         '_node',
+        '_pages',
         '_parents',
         '_siblings',
         '_subgraph_size',
@@ -17,6 +18,7 @@ class TrellisNode(object):
         self._siblings = set()
         self._children = set()
         self._subgraph_size = -1
+        self._pages = set()
 
     ### SPECIAL METHODS ###
 
@@ -27,6 +29,19 @@ class TrellisNode(object):
 
     def __hash__(self):
         return hash((type(self), self.entity_key))
+
+    ### PUBLIC METHODS ###
+
+    def get_parentage(self):
+        parentage = set([self])
+        parents = self.parents
+        while parents:
+            parentage.update(parents)
+            new_parents = set()
+            for parent in parents:
+                new_parents.update(parent.parents)
+            parents = new_parents
+        return parentage
 
     ### PUBLIC PROPERTIES ###
 
@@ -45,17 +60,6 @@ class TrellisNode(object):
     @property
     def node(self):
         return self._node
-
-    @property
-    def parentage(self):
-        parentage = [self]
-        parents = self.parents
-        while parents:
-            parentage.extend(sorted(parents, key=lambda x: x.entity_key))
-            new_parents = set()
-            new_parents.update(_.parents for _ in parents)
-            parents = new_parents
-        return parentage
 
     @property
     def parents(self):

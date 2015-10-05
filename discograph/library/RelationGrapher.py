@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import collections
+import math
 import re
 import six
 from discograph.library.TrellisNode import TrellisNode
@@ -101,6 +102,42 @@ class RelationGrapher(object):
         self.recurse_trellis(trellis[root_key])
         return trellis
 
+    def partition_trellis(self, trellis):
+        max_nodes = self.max_nodes or 100
+        page_count = math.ceil(float(len(trellis)) / max_nodes)
+        pages = [set() for _ in range(page_count)]
+        for trellis_node in trellis.values():
+            parentage = trellis_node.get_parentage()
+            pages.sort(key=lambda page: len(page.intersection(parentage)))
+            pages[0].add(trellis_node)
+        return pages
+
+    def group_links(self, links):
+        grouped_links = {}
+        for link in links.values():
+            key = tuple(sorted([link['source'], link['target']]))
+            grouped_links.setdefault(key, [])
+            grouped_links[key].append(link)
+        return grouped_links
+
+    def page_entities(self, nodes, links, pages):
+        for page_number, page in enumerate(pages, 1):
+            for trellis_node in page:
+                node = trellis_node.node
+                node.setdefault('pages', set())
+                node['pages'].add(page_number)
+        # links whose nodes do not share any pages should be pruned
+        for (e1k, e2k), grouped_links in self.group_links(links).items():
+            entity_one_pages = nodes[e1k]['pages']
+            entity_two_pages = nodes[e2k]['pages']
+            intersection = entity_one_pages.intersection(entity_two_pages)
+            for link in grouped_links:
+                link['pages'] = intersection
+        for node in nodes.values():
+            node['pages'] = tuple(sorted(node['pages']))
+        for link in links.values():
+            link['pages'] = tuple(sorted(link.get('pages', ())))
+
     def collect_entities(self, verbose=True):
         original_role_names = self.role_names or ()
         print('Roles:', original_role_names)
@@ -171,7 +208,7 @@ class RelationGrapher(object):
             print('    Collected: {} / {}'.format(len(nodes), len(links)))
         self.query_node_names(nodes)
         self.prune_nameless(nodes, links, verbose=verbose)
-        trellis = self.build_trellis(nodes, links, verbose=verbose)
+        #trellis = self.build_trellis(nodes, links, verbose=verbose)
         self.prune_unvisited(entity_keys_to_visit, nodes, links, verbose=verbose)
         self.prune_excess_nodes(nodes, links, verbose=verbose)
         self.prune_excess_links(nodes, links, verbose=verbose)

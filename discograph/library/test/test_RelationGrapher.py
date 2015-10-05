@@ -937,5 +937,16 @@ class Test(unittest.TestCase):
             role_names=role_names,
             )
         nodes, links = grapher.collect_entities()
+        node_count = len(nodes)
+        link_count = len(links)
         trellis = grapher.build_trellis(nodes, links)
         assert len(trellis) == len(nodes)
+        pages = grapher.partition_trellis(trellis)
+        assert len(pages)
+        grapher.page_entities(nodes, links, pages)
+        assert len(nodes) == node_count
+        assert len(links) == link_count
+        for node in nodes.values():
+            assert node['pages']
+        for link in links.values():
+            assert link['pages']
