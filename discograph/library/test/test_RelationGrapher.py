@@ -3,7 +3,16 @@ import discograph
 import unittest
 
 
+
 class Test(unittest.TestCase):
+    """
+    Problematic networks:
+
+        - 296570: 306 nodes, 13688 links, 5 pages: 149, 4, 4, 4, 158
+        - 1946151: unbalanced paging
+        - 491160: bifurcated dense alias networks
+
+    """
 
     def test_collect_entities_01(self):
         artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')

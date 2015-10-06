@@ -56,15 +56,16 @@ class DiscographAPI(object):
     def cache_set(self, cache_key, data):
         self.cache.set(cache_key, data)
 
-    def get_network(self, entity_id, entity_type, on_mobile=False):
+    def get_network(self, entity_id, entity_type, on_mobile=False, cache=True):
         import discograph
         assert entity_type in ('artist', 'label')
-        cache_key = 'discograph:/api/{}/network/{}'.format(entity_type, entity_id)
-        if on_mobile:
-            cache_key = '{}/mobile'.format(cache_key)
-        data = self.cache_get(cache_key)
-        if data is not None:
-            return data
+        if cache:
+            cache_key = 'discograph:/api/{}/network/{}'.format(entity_type, entity_id)
+            if on_mobile:
+                cache_key = '{}/mobile'.format(cache_key)
+            data = self.cache_get(cache_key)
+            if data is not None:
+                return data
         if entity_type == 'artist':
             entity_type = 1
         elif entity_type == 'label':
@@ -80,22 +81,20 @@ class DiscographAPI(object):
             ]
         if not on_mobile:
             max_nodes = 75
-            max_links = 200
             degree = 12
         else:
             max_nodes = 25
-            max_links = 75
             degree = 6
         relation_grapher = discograph.RelationGrapher(
             center_entity=entity,
             degree=degree,
             max_nodes=max_nodes,
-            max_links=max_links,
             role_names=role_names,
             )
         with systemtools.Timer(exit_message='Network query time:'):
             data = relation_grapher.get_network()
-        self.cache_set(cache_key, data)
+        if cache:
+            self.cache_set(cache_key, data)
         return data
 
     def get_entity(self, entity_id, entity_type):

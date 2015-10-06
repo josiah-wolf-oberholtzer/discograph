@@ -41,6 +41,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
         entity_id,
         entity_type,
         on_mobile=on_mobile,
+        cache=False,
         )
     if data is None:
         raise exceptions.APIError(message='No Data', status_code=500)

@@ -34,6 +34,15 @@ class TrellisNode(object):
 
     ### PUBLIC METHODS ###
 
+    def get_neighbors(self):
+        neighbors = set()
+        neighbors.update(self.parents)
+        for sibling in self.siblings:
+            if sibling.node['pages'].intersection(self.node['pages']):
+                neighbors.add(sibling)
+        neighbors.update(self.children)
+        return neighbors
+
     def get_parentage(self):
         if self._parentage is not None:
             return self._parentage
@@ -66,6 +75,10 @@ class TrellisNode(object):
     @property
     def node(self):
         return self._node
+
+    @property
+    def pages(self):
+        return self._node['pages']
 
     @property
     def parents(self):
