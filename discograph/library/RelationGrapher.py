@@ -63,18 +63,25 @@ class RelationGrapher(object):
                 year = int(year)
         self.year = year
 
-    def recurse_trellis(self, node):
-        subgraph_size = 1
-        for child in node.children:
-            if child.subgraph_size == -1:
-                self.recurse_trellis(child)
-            subgraph_size += child.subgraph_size
-        node.subgraph_size = subgraph_size
-        #print(node.node['name'], node.subgraph_size)
+    def group_trellis(self, trellis):
+        trellis_nodes_by_distance = collections.OrderedDict()
+        for trellis_node in trellis.values():
+            if trellis_node.distance not in trellis_nodes_by_distance:
+                trellis_nodes_by_distance[trellis_node.distance] = set()
+            trellis_nodes_by_distance[trellis_node.distance].add(trellis_node)
+        return trellis_nodes_by_distance
 
     def build_trellis(self, nodes, links, verbose=True):
+        def recurse_trellis(node):
+            subgraph_size = 1
+            for child in node.children:
+                if child.subgraph_size == -1:
+                    recurse_trellis(child)
+                subgraph_size += child.subgraph_size
+            node.subgraph_size = subgraph_size
         if verbose:
-            print('    Building trellis...')
+            message = '    Building trellis...'
+            print(message)
         trellis = collections.OrderedDict()
         nodes = sorted(nodes.values(), key=lambda x: (x['distance'], x['id']))
         for node in nodes:
@@ -104,158 +111,24 @@ class RelationGrapher(object):
             self.center_entity.entity_type,
             self.center_entity.entity_id,
             )
-        self.recurse_trellis(trellis[root_key])
+        recurse_trellis(trellis[root_key])
         assert len(trellis) == len(nodes)
         return trellis
 
-    def partition_trellis(self, trellis, nodes, links):
-        print('    Partitioning trellis...')
-        max_nodes = self.max_nodes or 100
-        max_links = max_nodes * self.link_ratio
-        print('        Maximum: {} / {}'.format(max_nodes, max_links))
-
-        page_count = math.ceil(float(len(trellis)) / max_nodes)
-        pages = [set() for _ in range(page_count)]
-
-        distancewise_average_subgraph_size = {}
-        trellis_nodes_by_distance = collections.OrderedDict()
-        for trellis_node in trellis.values():
-            if trellis_node.distance not in trellis_nodes_by_distance:
-                trellis_nodes_by_distance[trellis_node.distance] = set()
-            trellis_nodes_by_distance[trellis_node.distance].add(trellis_node)
-        threshold = (len(trellis) / len(pages)) / len(trellis_nodes_by_distance)
-        print('        Maximum depth: {}'.format(max(trellis_nodes_by_distance)))
-        print('        Subgraph threshold: {}'.format(threshold))
-        for distance, trellis_nodes in trellis_nodes_by_distance.items():
-            trellis_nodes_by_distance[distance] = sorted(
-                trellis_nodes,
-                key=lambda x: x.entity_key,
-                )
-            sizes = sorted(_.subgraph_size for _ in trellis_nodes)
-            average = float(sum(sizes)) / len(trellis_nodes)
-            mean = sizes[len(sizes) // 2]
-            geometric = sum(sizes) ** (1.0 / len(sizes))
-            distancewise_average_subgraph_size[distance] = geometric
-            print('            At distance {}: {} avg / {} mean / {} geo'.format(
-                distance, average, mean, geometric))
-
-        winning_distance = 0
-        pairs = ((a, d) for d, a in distancewise_average_subgraph_size.items())
-        pairs = sorted(pairs, reverse=True)
-        for average, distance in pairs:
-            print('                Testing {} @ distance {}'.format(average, distance))
-            if average < threshold:
-                winning_distance = distance
-                break
-        print('            Winning distance: {}'.format(winning_distance))
-        if winning_distance < (len(distancewise_average_subgraph_size) / 2):
-            winning_distance += 1
-            print('            Promoting winning distance: {}'.format(winning_distance))
-
-        while trellis_nodes_by_distance[winning_distance]:
-            trellis_node = trellis_nodes_by_distance[winning_distance].pop(0)
-            parentage = trellis_node.get_parentage()
-            pages.sort(
-                key=lambda page: (
-                    len(page.difference(parentage)),
-                    len(page),
-                    ),
-                )
-            pages[0].update(parentage)
-
-        # fill in local neighborhood, while below threshold
-        local_neighborhood = []
-        neighborhood_threshold = (len(trellis) / len(pages))
-        for distance, trellis_nodes in sorted(trellis_nodes_by_distance.items()):
-            if len(local_neighborhood) + len(trellis_nodes) < neighborhood_threshold:
-                local_neighborhood.extend(trellis_nodes)
-        print('        Local neighborhood: {}'.format(len(local_neighborhood)))
-        for trellis_node in local_neighborhood:
-            parentage = trellis_node.get_parentage()
-            pages.sort(
-                key=lambda page: (
-                    len(page.difference(parentage)),
-                    len(page),
-                    ),
-                )
-            pages[0].update(parentage)
-
-        if winning_distance != 1 and len(trellis_nodes_by_distance[1]) <= max_nodes:
-            print('        Path A')
-            while trellis_nodes_by_distance[1]:
-                trellis_node = trellis_nodes_by_distance[1].pop()
-                for page in pages:
-                    page.update(trellis_node.get_parentage())
-        else:
-            print('        Path B')
-            while trellis_nodes_by_distance[1]:
-                trellis_node = trellis_nodes_by_distance[1].pop()
-                parentage = trellis_node.get_parentage()
-                pages.sort(
-                    key=lambda page: (
-                        len(page.difference(parentage)),
-                        len(page),
-                        ),
-                    )
-                pages[0].update(parentage)
-
-        for distance in sorted(trellis_nodes_by_distance)[2:]:
-            while trellis_nodes_by_distance[distance]:
-                trellis_node = trellis_nodes_by_distance[distance].pop(0)
-                parentage = trellis_node.get_parentage()
-                pages.sort(
-                    key=lambda page: (
-                        len(page.difference(parentage)),
-                        len(page),
-                        ),
-                    )
-                pages[0].update(parentage)
-
-        for i, page in enumerate(pages):
-            print('        Page {}: {}'.format(i, len(page)))
-        return pages
-
-    def group_links(self, links):
-        grouped_links = {}
-        for link in links.values():
-            key = tuple(sorted([link['source'], link['target']]))
-            grouped_links.setdefault(key, [])
-            grouped_links[key].append(link)
-        return grouped_links
-
-    def page_entities(self, nodes, links, pages, trellis):
-        for page_number, page in enumerate(pages, 1):
-            for trellis_node in page:
-                node = trellis_node.node
-                node.setdefault('pages', set())
-                node['pages'].add(page_number)
-        # links whose nodes do not share any pages should be pruned
-        for (e1k, e2k), grouped_links in self.group_links(links).items():
-            entity_one_pages = nodes[e1k]['pages']
-            entity_two_pages = nodes[e2k]['pages']
-            intersection = entity_one_pages.intersection(entity_two_pages)
-            for link in grouped_links:
-                link['pages'] = intersection
-        # also pre-calculate, for each node, how many neighbors are missing per page
-        # e.g. [0, 5, 2] -> {1: 0, 2: 5, 3: 2} missing entities
-        # this will simplify front-end paging logic
-        for trellis_node in trellis.values():
-            missing_by_page = {page_number: 0
-                for page_number in trellis_node.pages}
-            neighbors = trellis_node.get_neighbors()
-            for neighbor in neighbors:
-                for page_number in trellis_node.pages.difference(neighbor.pages):
-                    missing_by_page[page_number] += 1
-            if any(count for count in missing_by_page.values()):
-                trellis_node.node['missingByPage'] = missing_by_page
-        for node in nodes.values():
-            node['pages'] = tuple(sorted(node['pages']))
-        for link in links.values():
-            link['pages'] = tuple(sorted(link.get('pages', ())))
-
     def collect_entities(self, verbose=True):
+        max_nodes = self.max_nodes or 100
+        max_links = self.link_ratio * max_nodes
         original_role_names = self.role_names or ()
-        print('Roles:', original_role_names)
+        if verbose:
+            message = '    Max nodes: {}'
+            message = message.format(max_nodes)
+            print(message)
+            message = '    Max links: {}'
+            message = message.format(max_links)
+            print(message)
+            message = '    Roles: {}'
+            message = message.format(original_role_names)
+            print(message)
         provisional_role_names = set(original_role_names)
         provisional_role_names.update(['Alias', 'Member Of'])
         provisional_role_names = sorted(provisional_role_names)
@@ -276,18 +149,25 @@ class RelationGrapher(object):
             for key in current_entity_keys_to_visit:
                 nodes.setdefault(key, self.entity_key_to_node(key, distance))
             if verbose:
-                print('    At distance {}:'.format(distance))
-                print('        {} old nodes'.format(
-                    len(nodes) - len(current_entity_keys_to_visit)))
-                print('        {} old links'.format(len(links)))
-                print('        {} new nodes'.format(
-                    len(current_entity_keys_to_visit)))
+                to_visit_count = len(current_entity_keys_to_visit)
+                message = '    At distance {}:'
+                message = message.format(distance)
+                print(message)
+                message = '        {} old nodes'
+                message = message.format(len(nodes) - to_visit_count)
+                print(message)
+                message = '        {} old links'
+                message = message.format(len(links))
+                print(message)
+                message = '        {} new nodes'
+                message = message.format(to_visit_count)
+                print(message)
             if break_on_next_loop:
                 if verbose:
                     print('        Exiting search loop.')
                 break
             if 1 < distance:
-                if self.max_nodes and self.max_nodes <= len(nodes):
+                if max_nodes <= len(nodes):
                     if verbose:
                         print('        Max nodes: exiting next search loop.')
                     break_on_next_loop = True
@@ -301,15 +181,20 @@ class RelationGrapher(object):
                 if role_name in provisional_role_names:
                     provisional_role_names.remove(role_name)
             if verbose:
-                print('            {} new links'.format(len(relations)))
+                message = '            {} new links'
+                message = message.format(len(relations))
+                print(message)
             if not relations:
                 break_on_next_loop = True
             if 1 < distance:
-                if self.link_ratio * len(nodes) <= len(relations):
+                if max_links * 3 <= len(relations):
+                    if verbose:
+                        print('        Max links: exiting immediately.')
+                    break
+                if max_links <= len(relations):
                     if verbose:
                         print('        Max links: exiting next search loop.')
-                    #break_on_next_loop = True
-                    break
+                    break_on_next_loop = True
             entity_keys_to_visit.clear()
             for relation in relations:
                 self.process_relation(
@@ -321,7 +206,9 @@ class RelationGrapher(object):
                     relation=relation,
                     )
         if verbose:
-            print('    Collected: {} / {}'.format(len(nodes), len(links)))
+            message = '    Collected: {} / {}'
+            message = message.format(len(nodes), len(links))
+            print(message)
         self.query_node_names(nodes)
         self.prune_nameless(nodes, links, verbose=verbose)
         self.prune_unvisited(entity_keys_to_visit, nodes, links, verbose=verbose)
@@ -345,6 +232,111 @@ class RelationGrapher(object):
         node['key'] = '{}-{}'.format(node['type'], node['id'])
         node['links'] = set()
         return node
+
+    def page_at_winning_distance(
+        self,
+        pages,
+        trellis_nodes_by_distance,
+        winning_distance,
+        ):
+        while trellis_nodes_by_distance[winning_distance]:
+            trellis_node = trellis_nodes_by_distance[winning_distance].pop(0)
+            parentage = trellis_node.get_parentage()
+            pages.sort(
+                key=lambda page: (
+                    len(page.difference(parentage)),
+                    len(page),
+                    ),
+                )
+            pages[0].update(parentage)
+
+    def page_by_local_neighborhood(
+        self,
+        pages,
+        trellis,
+        trellis_nodes_by_distance,
+        verbose=True,
+        ):
+        local_neighborhood = []
+        neighborhood_threshold = (len(trellis) / len(pages))
+        for distance, trellis_nodes in sorted(trellis_nodes_by_distance.items()):
+            if len(local_neighborhood) + len(trellis_nodes) < neighborhood_threshold:
+                local_neighborhood.extend(trellis_nodes)
+                trellis_nodes[:] = []
+        if verbose:
+            message = '        Local neighborhood: {}'
+            message = message.format(len(local_neighborhood))
+            print(message)
+        for trellis_node in local_neighborhood:
+            parentage = trellis_node.get_parentage()
+            for page in pages:
+                page.update(parentage)
+
+    def page_by_distance(
+        self,
+        pages,
+        trellis_nodes_by_distance,
+        ):
+        for distance in sorted(trellis_nodes_by_distance):
+            while trellis_nodes_by_distance[distance]:
+                trellis_node = trellis_nodes_by_distance[distance].pop(0)
+                parentage = trellis_node.get_parentage()
+                pages.sort(
+                    key=lambda page: (
+                        len(page.difference(parentage)),
+                        len(page),
+                        ),
+                    )
+                pages[0].update(parentage)
+
+    def find_trellis_distance(
+        self,
+        trellis_nodes_by_distance,
+        threshold,
+        verbose=True,
+        ):
+        if verbose:
+            message = '        Maximum depth: {}'
+            message = message.format(max(trellis_nodes_by_distance))
+            print(message)
+            message = '        Subgraph threshold: {}'
+            message = message.format(threshold)
+            print(message)
+        distancewise_average_subgraph_size = {}
+        for distance, trellis_nodes in trellis_nodes_by_distance.items():
+            trellis_nodes_by_distance[distance] = sorted(
+                trellis_nodes,
+                key=lambda x: x.entity_key,
+                )
+            sizes = sorted(_.subgraph_size for _ in trellis_nodes)
+            geometric = sum(sizes) ** (1.0 / len(sizes))
+            distancewise_average_subgraph_size[distance] = geometric
+            if verbose:
+                message = '            At distance {}: {} geometric mean'
+                message = message.format(distance, geometric)
+                print(message)
+        winning_distance = 0
+        pairs = ((a, d) for d, a in distancewise_average_subgraph_size.items())
+        pairs = sorted(pairs, reverse=True)
+        for average, distance in pairs:
+            if verbose:
+                message = '                Testing {} @ distance {}'
+                message = message.format(average, distance)
+                print(message)
+            if average < threshold:
+                winning_distance = distance
+                break
+        if verbose:
+            message = '            Winning distance: {}'
+            message = message.format(winning_distance)
+            print(message)
+        if (winning_distance + 1) < (len(distancewise_average_subgraph_size) / 2):
+            winning_distance += 1
+            if verbose:
+                message = '            Promoting winning distance: {}'
+                message = message.format(winning_distance)
+                print(message)
+        return winning_distance
 
     @classmethod
     def get_link_key(cls, link):
@@ -424,6 +416,14 @@ class RelationGrapher(object):
             }
         return network
 
+    def group_links(self, links):
+        grouped_links = {}
+        for link in links.values():
+            key = tuple(sorted([link['source'], link['target']]))
+            grouped_links.setdefault(key, [])
+            grouped_links[key].append(link)
+        return grouped_links
+
     @staticmethod
     def link_sorter(link):
         role = 2
@@ -432,6 +432,62 @@ class RelationGrapher(object):
         elif link['role'] == 'Member Of':
             role = 1
         return link['distance'], role, link['key']
+
+    def page_entities(self, nodes, links, pages, trellis):
+        for page_number, page in enumerate(pages, 1):
+            for trellis_node in page:
+                node = trellis_node.node
+                node.setdefault('pages', set())
+                node['pages'].add(page_number)
+        # links whose nodes do not share any pages should be pruned
+        for (e1k, e2k), grouped_links in self.group_links(links).items():
+            entity_one_pages = nodes[e1k]['pages']
+            entity_two_pages = nodes[e2k]['pages']
+            intersection = entity_one_pages.intersection(entity_two_pages)
+            for link in grouped_links:
+                link['pages'] = intersection
+        # also pre-calculate, for each node, how many neighbors are missing per page
+        # e.g. [0, 5, 2] -> {1: 0, 2: 5, 3: 2} missing entities
+        # this will simplify front-end paging logic
+        for trellis_node in trellis.values():
+            missing_by_page = {page_number: 0
+                for page_number in trellis_node.pages}
+            neighbors = trellis_node.get_neighbors()
+            for neighbor in neighbors:
+                for page_number in trellis_node.pages.difference(neighbor.pages):
+                    missing_by_page[page_number] += 1
+            if any(count for count in missing_by_page.values()):
+                trellis_node.node['missingByPage'] = missing_by_page
+        for node in nodes.values():
+            node['pages'] = tuple(sorted(node['pages']))
+        for link in links.values():
+            link['pages'] = tuple(sorted(link.get('pages', ())))
+
+    def partition_trellis(self, trellis, nodes, links, verbose=True):
+        if verbose:
+            print('    Partitioning trellis...')
+            max_nodes = self.max_nodes or 100
+            max_links = max_nodes * self.link_ratio
+            message = '        Maximum: {} / {}'
+            message = message.format(max_nodes, max_links)
+            print(message)
+        page_count = math.ceil(float(len(trellis)) / max_nodes)
+        pages = [set() for _ in range(page_count)]
+        trellis_nodes_by_distance = self.group_trellis(trellis)
+        threshold = len(trellis) / len(pages) / len(trellis_nodes_by_distance)
+        winning_distance = self.find_trellis_distance(
+            trellis_nodes_by_distance,
+            threshold,
+            )
+        self.page_at_winning_distance(pages, trellis_nodes_by_distance, winning_distance)
+        self.page_by_local_neighborhood(pages, trellis, trellis_nodes_by_distance)
+        self.page_by_distance(pages, trellis_nodes_by_distance)
+        if verbose:
+            for i, page in enumerate(pages):
+                message = '        Page {}: {}'
+                message = message.format(i, len(page))
+                print(message)
+        return pages
 
     def process_relation(
         self,
@@ -485,7 +541,9 @@ class RelationGrapher(object):
             for link in links_to_prune:
                 self.prune_link(link, nodes, links)
         if verbose:
-            print('    Pruned by max links: {} / {}'.format(len(nodes), len(links)))
+            message = '    Pruned by max links: {} / {}'
+            message = message.format(len(nodes), len(links))
+            print(message)
 
     def prune_excess_nodes(self, nodes, links, verbose=True):
         if self.max_nodes:
@@ -495,7 +553,9 @@ class RelationGrapher(object):
             for node in nodes_to_prune:
                 self.prune_node(node, nodes, links)
         if verbose:
-            print('    Pruned by max nodes: {} / {}'.format(len(nodes), len(links)))
+            message = '    Pruned by max nodes: {} / {}'
+            message = message.format(len(nodes), len(links))
+            print(message)
 
     def prune_link(self, link, nodes, links, update_missing_count=True):
         if link is None:
@@ -526,7 +586,9 @@ class RelationGrapher(object):
             if not node.get('name'):
                 self.prune_node(node, nodes, links, update_missing_count=False)
         if verbose:
-            print('    Pruning nameless: {} / {}'.format(len(nodes), len(links)))
+            message = '    Pruning nameless: {} / {}'
+            message = message.format(len(nodes), len(links))
+            print(message)
 
     def prune_node(self, node, nodes, links, update_missing_count=True):
         if node is None:
@@ -549,14 +611,18 @@ class RelationGrapher(object):
             if not link['pages']:
                 self.prune_link(link, nodes, links)
         if verbose:
-            print('    Pruned unpaged: {} / {}'.format(len(nodes), len(links)))
+            message = '    Pruned unpaged: {} / {}'
+            message = message.format(len(nodes), len(links))
+            print(message)
 
     def prune_unvisited(self, entity_keys_to_visit, nodes, links, verbose=True):
         for key in entity_keys_to_visit:
             node = nodes.get(key)
             self.prune_node(node, nodes, links)
         if verbose:
-            print('    Pruned unvisited: {} / {}'.format(len(nodes), len(links)))
+            message = '    Pruned unvisited: {} / {}'
+            message = message.format(len(nodes), len(links))
+            print(message)
 
     def query_node_names(self, nodes):
         artist_ids = []
@@ -569,13 +635,15 @@ class RelationGrapher(object):
         entity_query_cap = 999 - 1
         entities = []
         for i in range(0, len(artist_ids), entity_query_cap):
+            artist_id_slice = artist_ids[i:i + entity_query_cap]
             where_clause = SqliteEntity.entity_type == 1
-            where_clause &= SqliteEntity.entity_id.in_(artist_ids[i:i + entity_query_cap])
+            where_clause &= SqliteEntity.entity_id.in_(artist_id_slice)
             query = SqliteEntity.select().where(where_clause)
             entities.extend(query)
         for i in range(0, len(label_ids), entity_query_cap):
+            label_id_slice = label_ids[i:i + entity_query_cap]
             where_clause = SqliteEntity.entity_type == 2
-            where_clause &= SqliteEntity.entity_id.in_(label_ids[i:i + entity_query_cap])
+            where_clause &= SqliteEntity.entity_id.in_(label_id_slice)
             query = SqliteEntity.select().where(where_clause)
             entities.extend(query)
         for entity in entities:
