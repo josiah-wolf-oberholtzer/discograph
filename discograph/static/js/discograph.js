@@ -308,7 +308,7 @@ function dg_network_navigate(key, pushHistory) {
         ;
     var url = "/api/" + entityType + "/network/" + entityId;
     $.ajax({
-        cache: false,
+        cache: true,
         dataType: 'json',
         error: dg_network_handleAsyncError,
         success: function(data) {
