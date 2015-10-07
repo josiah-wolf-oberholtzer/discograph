@@ -1,11 +1,14 @@
 var dg = (function(dg){
 
+function dg_warn() { 
+}
+
 dg.network = {
-    
     currentPage: 1,
     pageCount: 1,
     centerNodeKey: null,
     dimensions: [0, 0],
+    forceLayout: null,
     isUpdating: false,
     json: null,
     linkMap: d3.map(),
@@ -15,11 +18,19 @@ dg.network = {
     nodes: [],
     selectedNodeKey: null,
     maxDistance: 0,
-    haloSelection: null,
-    hullSelection: null,
-    nodeSelection: null,
-    linkSelection: null,
-    textSelection: null,
+    dataUnpaged: {
+
+        },
+    dataPaged: {
+
+        },
+    selections: {
+        halo: null,
+        hull: null,
+        node: null,
+        link: null,
+        text: null,
+        },
     layers: {
         root: null,
         halo: null,
@@ -27,7 +38,7 @@ dg.network = {
         node: null,
         link: null,
         },
-};
+    };
 
 function dg_network_setupForceLayout() {
     return d3.layout.force()
@@ -227,7 +238,7 @@ function dg_network_navigate(key, pushHistory) {
     var entityType = key.split("-")[0];
     var entityId = key.split("-")[1];
     dg.network.isUpdating = true;
-    var foundNode = dg.network.nodeSelection
+    var foundNode = dg.network.selections.node
         .filter(function(d) { return d.key == key; });
     if (foundNode.length == 1) {
         foundNode.each(function(d) {
@@ -261,19 +272,19 @@ function dg_network_navigate(key, pushHistory) {
 function dg_network_selectNode(key) {
     dg.network.selectedNodeKey = key;
     if (key !== null) {
-        var haloOff = dg.network.haloSelection.filter("*:not(.node-" + key + ")");
-        var nodeOff = dg.network.nodeSelection.filter("*:not(.node-" + key + ")");
-        var textOff = dg.network.textSelection.filter("*:not(.node-" + key + ")");
-        var nodeOn = dg.network.nodeSelection.filter(".node-" + key);
+        var haloOff = dg.network.selections.halo.filter("*:not(.node-" + key + ")");
+        var nodeOff = dg.network.selections.node.filter("*:not(.node-" + key + ")");
+        var textOff = dg.network.selections.text.filter("*:not(.node-" + key + ")");
+        var nodeOn = dg.network.selections.node.filter(".node-" + key);
         var linkKeys = nodeOn.data()[0].links;
-        var linkOff = dg.network.linkSelection.filter(function(d) {
+        var linkOff = dg.network.selections.link.filter(function(d) {
             return linkKeys.indexOf(d.key) == -1;
         });
     } else {
-        var haloOff = dg.network.haloSelection;
-        var nodeOff = dg.network.nodeSelection;
-        var linkOff = dg.network.linkSelection;
-        var textOff = dg.network.textSelection;
+        var haloOff = dg.network.selections.halo;
+        var nodeOff = dg.network.selections.node;
+        var linkOff = dg.network.selections.link;
+        var textOff = dg.network.selections.text;
     }
     haloOff.select(".halo").style("fill-opacity", 0.);
     linkOff.style("opacity", 0.25);
@@ -291,11 +302,11 @@ function dg_network_selectNode(key) {
         .attr('href', url)
         .removeClass('hidden')
         .show(0);
-    var haloOn = dg.network.haloSelection.filter(".node-" + key);
-    var linkOn = dg.network.linkSelection.filter(function(d) {
+    var haloOn = dg.network.selections.halo.filter(".node-" + key);
+    var linkOn = dg.network.selections.link.filter(function(d) {
         return 0 <= linkKeys.indexOf(d.key);
     });
-    var textOn = dg.network.textSelection.filter(".node-" + key);
+    var textOn = dg.network.selections.text.filter(".node-" + key);
     haloOn.select(".halo").style("fill-opacity", 0.1);
     linkOn.style("opacity", 1);
     nodeOn.moveToFront();
@@ -472,7 +483,7 @@ function dg_network_onNodeEnterEventBindings(nodeEnter) {
         d3.event.stopPropagation(); // What is this for?
     });
     nodeEnter.on("mouseover", function(d) {
-        var selection = dg.network.nodeSelection.select(function(n) {
+        var selection = dg.network.selections.node.select(function(n) {
             return n.key == d.key ? this : null;
         });
         selection.moveToFront();
@@ -498,8 +509,8 @@ function dg_network_onNodeExit(nodeExit) {
     nodeExit.remove();
 }
 
-function dg_network_onNodeUpdate(nodeSelection) {
-    nodeSelection.transition()
+function dg_network_onNodeUpdate(nodeUpdate) {
+    nodeUpdate.transition()
         .duration(1000)
         .style("fill", function(d) {
             if (d.type == 'artist') {
@@ -508,15 +519,15 @@ function dg_network_onNodeUpdate(nodeSelection) {
                 return dg_color_greyscale(d);
             }
         })
-    nodeSelection.selectAll(".more")
+    nodeUpdate.selectAll(".more")
         .transition()
         .duration(1000)
         .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
 }
 
-function dg_network_onTextUpdate(textSelection) {
-    textSelection.select('.outer').text(dg_network_getNodeText);
-    textSelection.select('.inner').text(dg_network_getNodeText);
+function dg_network_onTextUpdate(textUpdate) {
+    textUpdate.select('.outer').text(dg_network_getNodeText);
+    textUpdate.select('.inner').text(dg_network_getNodeText);
 }
 
 function dg_network_getNodeText(d) { 
@@ -555,29 +566,29 @@ function dg_network_startForceLayout() {
     var keyFunc = function(d) { return d.key }
     var nodes = dg.network.nodes.filter(function(d) { return !d.isIntermediate; })
     var links = dg.network.links.filter(function(d) { return !d.isSpline; })
-    dg.network.haloSelection = dg.network.haloSelection.data(nodes, keyFunc);
-    dg.network.nodeSelection = dg.network.nodeSelection.data(nodes, keyFunc);
-    dg.network.textSelection = dg.network.textSelection.data(nodes, keyFunc);
-    dg.network.linkSelection = dg.network.linkSelection.data(links, keyFunc);
+    dg.network.selections.halo = dg.network.selections.halo.data(nodes, keyFunc);
+    dg.network.selections.node = dg.network.selections.node.data(nodes, keyFunc);
+    dg.network.selections.text = dg.network.selections.text.data(nodes, keyFunc);
+    dg.network.selections.link = dg.network.selections.link.data(links, keyFunc);
     var hullNodes = dg.network.nodeMap.values().filter(function(d) {
             return d.cluster !== undefined;
         });
     var hullData = d3.nest().key(function(d) { return d.cluster; })
         .entries(hullNodes)
         .filter(function(d) { return 1 < d.values.length; });
-    dg.network.hullSelection = dg.network.hullSelection.data(hullData);
-    dg_network_onHaloEnter(dg.network.haloSelection.enter());
-    dg_network_onHaloExit(dg.network.haloSelection.exit());
-    dg_network_onHullEnter(dg.network.hullSelection.enter());
-    dg_network_onHullExit(dg.network.hullSelection.exit());
-    dg_network_onNodeEnter(dg.network.nodeSelection.enter());
-    dg_network_onNodeExit(dg.network.nodeSelection.exit());
-    dg_network_onNodeUpdate(dg.network.nodeSelection);
-    dg_network_onTextEnter(dg.network.textSelection.enter());
-    dg_network_onTextExit(dg.network.textSelection.exit());
-    dg_network_onTextUpdate(dg.network.textSelection);
-    dg_network_onLinkEnter(dg.network.linkSelection.enter());
-    dg_network_onLinkExit(dg.network.linkSelection.exit());
+    dg.network.selections.hull = dg.network.selections.hull.data(hullData);
+    dg_network_onHaloEnter(dg.network.selections.halo.enter());
+    dg_network_onHaloExit(dg.network.selections.halo.exit());
+    dg_network_onHullEnter(dg.network.selections.hull.enter());
+    dg_network_onHullExit(dg.network.selections.hull.exit());
+    dg_network_onNodeEnter(dg.network.selections.node.enter());
+    dg_network_onNodeExit(dg.network.selections.node.exit());
+    dg_network_onNodeUpdate(dg.network.selections.node);
+    dg_network_onTextEnter(dg.network.selections.text.enter());
+    dg_network_onTextExit(dg.network.selections.text.exit());
+    dg_network_onTextUpdate(dg.network.selections.text);
+    dg_network_onLinkEnter(dg.network.selections.link.enter());
+    dg_network_onLinkExit(dg.network.selections.link.exit());
     dg.network.layers.root.transition()
         .duration(1000)
         .style("opacity", 1);
@@ -632,24 +643,24 @@ function dg_network_tick(e) {
         d.x += dx;
         d.y += dy;
     });
-    dg.network.linkSelection.select(".inner")
+    dg.network.selections.link.select(".inner")
         .attr("d", dg_network_spline)
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
 
-    dg.network.linkSelection.select(".outer")
+    dg.network.selections.link.select(".outer")
         .attr("d", dg_network_spline)
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
 
-    dg.network.haloSelection.attr("transform", dg_network_translate);
-    dg.network.nodeSelection.attr("transform", dg_network_translate);
-    dg.network.textSelection.attr("transform", dg_network_translate);
-    dg.network.hullSelection.select("path").attr("d", function(d) {
+    dg.network.selections.halo.attr("transform", dg_network_translate);
+    dg.network.selections.node.attr("transform", dg_network_translate);
+    dg.network.selections.text.attr("transform", dg_network_translate);
+    dg.network.selections.hull.select("path").attr("d", function(d) {
         return "M" + d3.geom.hull(dg_network_getHullVertices(d.values)).join("L") + "Z"; });
 }
 
@@ -804,11 +815,11 @@ function dg_network_init() {
     dg.network.layers.link = root.append("g").attr("id", "linkLayer");
     dg.network.layers.node = root.append("g").attr("id", "nodeLayer");
     dg.network.layers.text = root.append("g").attr("id", "textLayer");
-    dg.network.haloSelection = dg.network.layers.halo.selectAll(".node");
-    dg.network.hullSelection = dg.network.layers.halo.selectAll(".hull");
-    dg.network.linkSelection = dg.network.layers.link.selectAll(".link");
-    dg.network.nodeSelection = dg.network.layers.node.selectAll(".node");
-    dg.network.textSelection = dg.network.layers.text.selectAll(".node");
+    dg.network.selections.halo = dg.network.layers.halo.selectAll(".node");
+    dg.network.selections.hull = dg.network.layers.halo.selectAll(".hull");
+    dg.network.selections.link = dg.network.layers.link.selectAll(".link");
+    dg.network.selections.node = dg.network.layers.node.selectAll(".node");
+    dg.network.selections.text = dg.network.layers.text.selectAll(".node");
     dg.network.forceLayout = dg_network_setupForceLayout();
 }
 
@@ -938,12 +949,19 @@ $(document).ready(function() {
     (function() {
         var click = $.debounce(300, function() {
             var url = '/api/random?' + Math.floor(Math.random() * 1000000);
-            d3.json(url, function(error, json) {
-                if (error) { console.warn(error); return; }
-                if (!dg.network.isUpdating) {
-                    dg_network_navigate(json.center.key, true);
-                }
-            });
+            if (!dg.network.isUpdating) {
+                dg.network.layers.root.transition()
+                    .style("opacity", 0.333);
+                $("#page-loading")
+                    .removeClass("glyphicon-random")
+                    .addClass("glyphicon-animate glyphicon-refresh");
+                d3.json(url, function(error, json) {
+                    if (error) { console.warn(error); return; }
+                    dg_network_navigate(json.center, true);
+                });
+            } else {
+                dg_warn();                 
+            }
         });
         $('#brand').on("click touchstart", function(event) {
             click();
