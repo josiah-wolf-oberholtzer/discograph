@@ -1,5 +1,59 @@
 var dg = (function(dg){
 
+function dg_network_nextPage() {
+    var page = dg.network.pageData.currentPage + 1;
+    if (dg.network.data.pageCount < page) {
+        page = 1;
+    }
+    dg_network_selectPage(page);
+    dg_network_startForceLayout();
+}
+
+function dg_network_prevPage() {
+    var page = dg.network.pageData.currentPage - 1;
+    if (page == 0) {
+        page = dg.network.data.pageCount;
+    }
+    dg_network_selectPage(page);
+    dg_network_startForceLayout();
+}
+
+function dg_network_selectPage(page) {
+    if ((1 <= page) && (page <= dg.network.data.pageCount)) {
+        dg.network.pageData.currentPage = page;
+    } else {
+        dg.network.pageData.currentPage = 1;
+    }
+    var currentPage = dg.network.pageData.currentPage;
+    var pageCount = dg.network.data.pageCount;
+    if (currentPage == 1) {
+        var prevPage = pageCount;
+    } else {
+        var prevPage = currentPage - 1;
+    }
+    var prevText = prevPage + ' / ' + pageCount;
+    if (currentPage == pageCount) {
+        var nextPage = 1;
+    } else {
+        var nextPage = currentPage + 1;
+    }
+    var nextText = nextPage + ' / ' + pageCount;
+    $('#paging .previous-text').text(prevText);
+    $('#paging .next-text').text(nextText);
+    var filteredNodes = dg.network.data.nodeMap.values().filter(function(d) {
+        return (-1 != d.pages.indexOf(currentPage));
+    });
+    var filteredLinks = dg.network.data.linkMap.values().filter(function(d) {
+        return (-1 != d.pages.indexOf(currentPage));
+    });
+    dg.network.pageData.nodes.length = 0;
+    dg.network.pageData.links.length = 0;
+    Array.prototype.push.apply(dg.network.pageData.nodes, filteredNodes);
+    Array.prototype.push.apply(dg.network.pageData.links, filteredLinks);
+    dg.network.forceLayout.nodes(filteredNodes);
+    dg.network.forceLayout.links(filteredLinks);
+}
+
 function dg_warn() { 
 }
 
@@ -213,9 +267,9 @@ function dg_network_handleAsyncData(json, pushHistory, params) {
     dg.network.data.pageCount = json.pages;
     dg.network.pageData.currentPage = 1;
     if (1 < json.pages) {
-        $('#pagination').fadeIn();
+        $('#paging').fadeIn();
     } else {
-        $('#pagination').fadeOut();
+        $('#paging').fadeOut();
     }
     dg_network_processJson(json);
     dg_network_selectPage(1);
@@ -404,9 +458,11 @@ function dg_network_onLinkExit(linkExit) {
 }
 
 function dg_network_onLinkUpdate(linkSelection) {
-    linkSelection.select('text').text(function(d) {
-        return "[" + d.pages + "]";
-    });
+    if (dg.debug) {
+        linkSelection.select('text').text(function(d) {
+            return "[" + d.pages + "]";
+        });
+    }
 }
 
 function dg_network_onNodeEnter(nodeEnter) {
@@ -518,9 +574,24 @@ function dg_network_onNodeUpdate(nodeUpdate) {
             }
         })
     nodeUpdate.selectAll(".more")
+        .style('transform', function(d) {
+            if (d.missingByPage && d.missingByPage[dg.network.pageData.currentPage]) {
+                return 'rotate(45deg)';
+            } else {
+                return 'rotate(0deg)';
+            }
+        })
         .transition()
         .duration(1000)
-        .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
+        .style("opacity", function(d) {
+            if (d.missing) {
+                return 1;
+            } else if (d.missingByPage && d.missingByPage[dg.network.pageData.currentPage]) {
+                return 1;
+            } else {
+                return 0;
+            }
+        })
 }
 
 function dg_network_onTextUpdate(textUpdate) {
@@ -529,13 +600,15 @@ function dg_network_onTextUpdate(textUpdate) {
 }
 
 function dg_network_getNodeText(d) { 
-    var pages = '[' + d.pages.join(',') + ']';
     var name = d.name;
     if (50 < name.length) {
         name = name.slice(0, 50) + "...";
     }
-    return pages + ' ' + name;
-    //return name;
+    if (dg.debug) { 
+        var pages = '[' + d.pages + ']';
+        return pages + ' ' + name;
+    }
+    return name;
 }
 
 function dg_network_onTextEnter(textEnter) {
@@ -766,6 +839,7 @@ function dg_network_processJson(json) {
         var newNode = entry.value;
         if (dg.network.data.nodeMap.has(key)) {
             var oldNode = dg.network.data.nodeMap.get(key);
+            oldNode.cluster = newNode.cluster;
             oldNode.distance = newNode.distance;
             oldNode.missing = newNode.missing;
             oldNode.missingByPage = newNode.missingByPage;
@@ -798,53 +872,6 @@ function dg_network_processJson(json) {
         }
     })
     dg.network.data.maxDistance = Math.max.apply(Math, distances);
-}
-
-function dg_network_selectPage(page) {
-    if ((1 <= page) && (page <= dg.network.data.pageCount)) {
-        dg.network.pageData.currentPage = page;
-    } else {
-        dg.network.pageData.currentPage = 1;
-    }
-    var currentPage = dg.network.pageData.currentPage;
-    var pageCount = dg.network.data.pageCount;
-    if (currentPage == 1) {
-        var prevPage = pageCount;
-    } else {
-        var prevPage = currentPage - 1;
-    }
-    var prevText = prevPage + ' / ' + pageCount;
-    if (currentPage == pageCount) {
-        var nextPage = 1;
-    } else {
-        var nextPage = currentPage + 1;
-    }
-    var nextText = nextPage + ' / ' + pageCount;
-    $('#pagination .previous-text').text(prevText);
-    $('#pagination .next-text').text(nextText);
-
-    var filteredNodes = dg.network.data.nodeMap.values().filter(function(d) {
-        return (-1 != d.pages.indexOf(currentPage));
-    });
-    var filteredLinks = dg.network.data.linkMap.values().filter(function(d) {
-        return (-1 != d.pages.indexOf(currentPage));
-    });
-
-    /*
-    var filteredNodes = dg.network.data.nodeMap.values();
-    var filteredLinks = dg.network.data.linkMap.values();
-    dg.network.pageData.nodes = filteredNodes;
-    dg.network.pageData.links = filteredLinks;
-    dg.network.forceLayout.nodes(filteredNodes);
-    dg.network.forceLayout.links(filteredLinks);
-    */
-
-    dg.network.pageData.nodes.length = 0;
-    dg.network.pageData.links.length = 0;
-    Array.prototype.push.apply(dg.network.pageData.nodes, filteredNodes);
-    Array.prototype.push.apply(dg.network.pageData.links, filteredLinks);
-    dg.network.forceLayout.nodes(filteredNodes);
-    dg.network.forceLayout.links(filteredLinks);
 }
 
 function dg_network_init() {
@@ -1013,6 +1040,16 @@ $(document).ready(function() {
             event.preventDefault();
         });
     }());
+    $('#paging .previous a').click(function(event) {
+        dg_network_prevPage();
+        $(this).tooltip('hide');
+        event.preventDefault();
+    });
+    $('#paging .next a').click(function(event) {
+        dg_network_nextPage();
+        $(this).tooltip('hide');
+        event.preventDefault();
+    });
     window.addEventListener("popstate", dg_history_onPopState);
     console.log('discograph initialized.');
 });
