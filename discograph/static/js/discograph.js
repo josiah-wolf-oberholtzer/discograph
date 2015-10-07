@@ -10,19 +10,19 @@ dg.network = {
     dimensions: [0, 0],
     forceLayout: null,
     isUpdating: false,
-    json: null,
-    linkMap: d3.map(),
-    links: [],
     newNodeCoords: [0, 0],
-    nodeMap: d3.map(),
-    nodes: [],
     selectedNodeKey: null,
     maxDistance: 0,
-    dataUnpaged: {
-
+    data: {
+        json: null,
+        nodeMap: d3.map(),
+        linkMap: d3.map(),
         },
-    dataPaged: {
-
+    pageData: {
+        linkMap: d3.map(),
+        links: [],
+        nodeMap: d3.map(),
+        nodes: [],
         },
     selections: {
         halo: null,
@@ -42,8 +42,8 @@ dg.network = {
 
 function dg_network_setupForceLayout() {
     return d3.layout.force()
-        .nodes(dg.network.nodes)
-        .links(dg.network.links)
+        .nodes(dg.network.pageData.nodes)
+        .links(dg.network.pageData.links)
         .size(dg.network.dimensions)
         .on("tick", dg_network_tick)
         .linkStrength(1.5)
@@ -225,7 +225,8 @@ function dg_network_handleAsyncData(json, pushHistory, params) {
     } else {
         $('#pagination').fadeOut();
     }
-    dg.network.json = json;
+    dg.network.data.json = json;
+    dg_network_processJson();
     dg_network_updateForceLayout();
     dg_network_startForceLayout();
     setTimeout(function() { dg.network.isUpdating = false; }, 2000);
@@ -295,7 +296,7 @@ function dg_network_selectNode(key) {
         $('#entity-link').hide(0);
         return;
     }
-    var node = dg.network.nodeMap.get(key);
+    var node = dg.network.pageData.nodeMap.get(key);
     var url = 'http://discogs.com/' + node.type + '/' + node.id;
     $('#entity-name').text(node.name);
     $('#entity-link')
@@ -476,7 +477,7 @@ function dg_network_onNodeEnterEventBindings(nodeEnter) {
     });
     nodeEnter.on("mousedown", function(d) {
         if (!dg.network.isUpdating) {
-            dg.network.nodes.forEach(function(n) { n.fixed = false; });
+            dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
             d.fixed = true;
             dg_network_selectNode(d.key);
         }
@@ -494,7 +495,7 @@ function dg_network_onNodeEnterEventBindings(nodeEnter) {
         d.lastTouchTime = thisTime;
         if (!lastTime || (500 < (thisTime - lastTime))) {
             if (!dg.network.isUpdating) {
-                dg.network.nodes.forEach(function(n) { n.fixed = false; });
+                dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
                 d.fixed = true;
                 dg_network_selectNode(d.key);
             }
@@ -562,15 +563,15 @@ function dg_network_onTextExit(textExit) {
 
 function dg_network_startForceLayout() {
     dg.network.forceLayout.start();
-    dg.network.nodes.forEach(function(n) { n.fixed = false; });
+    dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
     var keyFunc = function(d) { return d.key }
-    var nodes = dg.network.nodes.filter(function(d) { return !d.isIntermediate; })
-    var links = dg.network.links.filter(function(d) { return !d.isSpline; })
+    var nodes = dg.network.pageData.nodes.filter(function(d) { return !d.isIntermediate; })
+    var links = dg.network.pageData.links.filter(function(d) { return !d.isSpline; })
     dg.network.selections.halo = dg.network.selections.halo.data(nodes, keyFunc);
     dg.network.selections.node = dg.network.selections.node.data(nodes, keyFunc);
     dg.network.selections.text = dg.network.selections.text.data(nodes, keyFunc);
     dg.network.selections.link = dg.network.selections.link.data(links, keyFunc);
-    var hullNodes = dg.network.nodeMap.values().filter(function(d) {
+    var hullNodes = dg.network.pageData.nodeMap.values().filter(function(d) {
             return d.cluster !== undefined;
         });
     var hullData = d3.nest().key(function(d) { return d.cluster; })
@@ -634,7 +635,7 @@ function dg_network_spline(d) {
 
 function dg_network_tick(e) {
     var k = e.alpha * 0.5;
-    dg.network.nodes.filter(function(d) {
+    dg.network.pageData.nodes.filter(function(d) {
         return d.key == dg.network.centerNodeKey && !d.fixed;
     }).forEach(function(d) {
         var dims = dg.network.dimensions;
@@ -676,8 +677,49 @@ function dg_network_getHullVertices(nodes) {
     return vertices;
 }
 
+function dg_network_processJson() {
+    var newNodeMap = d3.map();
+    var newLinkMap = d3.map();
+    dg.network.data.json.nodes.forEach(function(node) {
+        node.radius = dg_network_getOuterRadius(node);
+        newNodeMap.set(node.key, node);
+    });
+    dg.network.data.json.links.forEach(function(link) {
+        var source = link.source,
+            target = link.target;
+        if (link.role != 'Alias') {
+            var role = link.role.toLocaleLowerCase().replace(/\s+/g, "-");
+            var intermediateNode = {
+                key: link.key,
+                isIntermediate: true,
+                pages: link.pages,
+                size: 0,
+                };
+            var s2iSplineLink = {
+                isSpline: true,
+                key: source + "-" + role + "-[" + target + "]",
+                pages: link.pages,
+                source: source,
+                target: link.key,
+            };
+            var i2tSplineLink = {
+                isSpline: true,
+                key: "[" + source + "]-" + role + "-" + target,
+                pages: link.pages,
+                source: link.key,
+                target: target,
+            };
+            link.intermediate = link.key;
+            newNodeMap.set(link.key, intermediateNode);
+            newLinkMap.set(s2iSplineLink.key, s2iSplineLink);
+            newLinkMap.set(i2tSplineLink.key, i2tSplineLink);
+        }
+        newLinkMap.set(link.key, link);
+    });
+}
+
 function dg_network_updateForceLayout() {
-    var json = dg.network.json;
+    var json = dg.network.data.json;
 
     var newNodeMap = d3.map();
     json.nodes.forEach(function(node) {
@@ -718,33 +760,33 @@ function dg_network_updateForceLayout() {
 
     // NODES
     var nodeKeysToRemove = [];
-    dg.network.nodeMap.keys().forEach(function(key) {
+    dg.network.pageData.nodeMap.keys().forEach(function(key) {
         if (!newNodeMap.has(key)) {
             nodeKeysToRemove.push(key);
         };
     });
     nodeKeysToRemove.forEach(function(key) {
-        dg.network.nodeMap.remove(key);
+        dg.network.pageData.nodeMap.remove(key);
     });
 
     // LINKS
     var linkKeysToRemove = [];
-    dg.network.linkMap.keys().forEach(function(key) {
+    dg.network.pageData.linkMap.keys().forEach(function(key) {
         if (!newLinkMap.has(key)) {
             linkKeysToRemove.push(key);
         };
     });
     linkKeysToRemove.forEach(function(key) {
-        dg.network.linkMap.remove(key);
+        dg.network.pageData.linkMap.remove(key);
     });
 
     // UPDATE NODE PROPERTIES
     newNodeMap.entries().forEach(function(entry) {
         var key = entry.key;
         var value = entry.value;
-        if (dg.network.nodeMap.has(key)) {
+        if (dg.network.pageData.nodeMap.has(key)) {
             if (!value.isIntermediate) {
-                var node = dg.network.nodeMap.get(key);
+                var node = dg.network.pageData.nodeMap.get(key);
                 node.cluster = value.cluster;
                 node.distance = value.distance;
                 node.missing = value.missing;
@@ -753,53 +795,36 @@ function dg_network_updateForceLayout() {
         } else {
             value.x = dg.network.newNodeCoords[0] + (Math.random() * 200) - 100;
             value.y = dg.network.newNodeCoords[1] + (Math.random() * 200) - 100;
-            dg.network.nodeMap.set(key, value);
+            dg.network.pageData.nodeMap.set(key, value);
         }
     });
 
     // UPDATE LINK REFERENCES
     newLinkMap.entries().forEach(function(entry) {
-        if (!dg.network.linkMap.has(entry.key)) {
-            entry.value.source = dg.network.nodeMap.get(entry.value.source);
-            entry.value.target = dg.network.nodeMap.get(entry.value.target);
+        if (!dg.network.pageData.linkMap.has(entry.key)) {
+            entry.value.source = dg.network.pageData.nodeMap.get(entry.value.source);
+            entry.value.target = dg.network.pageData.nodeMap.get(entry.value.target);
             if (entry.value.intermediate !== undefined) {
-                entry.value.intermediate = dg.network.nodeMap.get(entry.value.intermediate);
+                entry.value.intermediate = dg.network.pageData.nodeMap.get(entry.value.intermediate);
             }
-            dg.network.linkMap.set(entry.key, entry.value);
+            dg.network.pageData.linkMap.set(entry.key, entry.value);
         }
     });
 
     // CALCULATE MAXIMUM DISTANCE
     var distances = []
-    dg.network.nodeMap.values().forEach(function(node) {
+    dg.network.pageData.nodeMap.values().forEach(function(node) {
         if (node.distance !== undefined) {
             distances.push(node.distance);
         }
     })
     dg.network.maxDistance = Math.max.apply(Math, distances);
 
-    // CALCULATE NEIGHBORHOODS
-    var linkNeighborhoodMap = d3.map()
-    dg.network.linkMap.values().forEach(function(link) {
-        if (link.isSpline) { return; }
-        if (!linkNeighborhoodMap.has(link.source.key)) {
-            linkNeighborhoodMap.set(link.source.key, []);
-        }
-        linkNeighborhoodMap.get(link.source.key).push(link.key);
-        if (!linkNeighborhoodMap.has(link.target.key)) {
-            linkNeighborhoodMap.set(link.target.key, []);
-        }
-        linkNeighborhoodMap.get(link.target.key).push(link.key);
-    });
-    linkNeighborhoodMap.entries().forEach(function(entry) {
-        dg.network.nodeMap.get(entry.key).links = entry.value;
-    });
-
     // PUSH DATA
-    dg.network.nodes.length = 0;
-    Array.prototype.push.apply(dg.network.nodes, dg.network.nodeMap.values());
-    dg.network.links.length = 0;
-    Array.prototype.push.apply(dg.network.links, dg.network.linkMap.values());
+    dg.network.pageData.nodes.length = 0;
+    Array.prototype.push.apply(dg.network.pageData.nodes, dg.network.pageData.nodeMap.values());
+    dg.network.pageData.links.length = 0;
+    Array.prototype.push.apply(dg.network.pageData.links, dg.network.pageData.linkMap.values());
     dg.network.centerNodeKey = json.center.key;
 }
 
@@ -808,7 +833,7 @@ function dg_network_init() {
         .attr("id", "networkLayer");
     dg.network.layers.root = root;
     d3.select("#svg").on("mousedown", function() {
-        dg.network.nodes.forEach(function(n) { n.fixed = false; });
+        dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
         dg_network_selectNode(null);
     });
     dg.network.layers.halo = root.append("g").attr("id", "haloLayer");
