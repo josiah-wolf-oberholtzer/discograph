@@ -399,9 +399,9 @@ class RelationGrapher(object):
         nodes = tuple(sorted(nodes.values(),
             key=lambda x: (x['type'], x['id'])))
         if self.center_entity.entity_type == 1:
-            center = 'artist-{}'.format(self.center_entity.entity_id)
+            key = 'artist-{}'.format(self.center_entity.entity_id)
         elif self.center_entity.entity_type == 2:
-            center = 'label-{}'.format(self.center_entity.discogs_id)
+            key = 'label-{}'.format(self.center_entity.discogs_id)
         else:
             raise ValueError(self.center_entity)
         pages = set()
@@ -409,7 +409,10 @@ class RelationGrapher(object):
             pages.update(node['pages'])
         pages = len(pages)
         network = {
-            'center': center,
+            'center': {
+                'key': key,
+                'name': self.center_entity.name,
+                },
             'links': links,
             'nodes': nodes,
             'pages': pages,

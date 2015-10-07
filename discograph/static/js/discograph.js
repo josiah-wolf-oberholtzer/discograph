@@ -1,6 +1,8 @@
 var dg = (function(dg){
 
 dg.network = {
+    currentPage: 1,
+    pageCount: 1,
     centerNodeKey: null,
     dimensions: [0, 0],
     isUpdating: false,
@@ -192,15 +194,25 @@ function dg_network_handleAsyncError(error) {
 }
 
 function dg_network_handleAsyncData(json, pushHistory, params) {
-    var key = json.center;
+    var key = json.center.key;
+    document.title = "Disco/graph: " + json.center.name;
+    $(document).attr("body").id = key;
     if (pushHistory === true) {
         dg_history_pushState(key, params);
     }
-    var name = json.nodes.filter(function(d) { return d.key == key; })
-    if (name.length) {
-        document.title = "Disco/graph: " + name[0].name;
+    dg.network.pageCount = json.pages;
+    dg.network.currentPage = 1;
+    if (1 < json.pages) {
+        var prevPage = dg.network.pageCount;
+        var prevText = prevPage + ' / ' + dg.network.pageCount;
+        var nextPage = dg.network.currentPage + 1;
+        var nextText = nextPage + ' / ' + dg.network.pageCount;
+        $('#pagination .previous-text').text(prevText);
+        $('#pagination .next-text').text(nextText);
+        $('#pagination').fadeIn();
+    } else {
+        $('#pagination').fadeOut();
     }
-    $(document).attr("body").id = key;
     dg.network.json = json;
     dg_network_updateForceLayout();
     dg_network_startForceLayout();
@@ -776,7 +788,7 @@ function dg_network_updateForceLayout() {
     Array.prototype.push.apply(dg.network.nodes, dg.network.nodeMap.values());
     dg.network.links.length = 0;
     Array.prototype.push.apply(dg.network.links, dg.network.linkMap.values());
-    dg.network.centerNodeKey = json.center;
+    dg.network.centerNodeKey = json.center.key;
 }
 
 function dg_network_init() {
@@ -918,7 +930,7 @@ $(document).ready(function() {
     dg_network_init();
     dg_typeahead_init();
     if (dgData) {
-        dg_history_replaceState(dgData.center);
+        dg_history_replaceState(dgData.center.key);
         dg_network_handleAsyncData(dgData, false);
     }
     $('[data-toggle="tooltip"]').tooltip();
@@ -928,7 +940,7 @@ $(document).ready(function() {
             d3.json(url, function(error, json) {
                 if (error) { console.warn(error); return; }
                 if (!dg.network.isUpdating) {
-                    dg_network_navigate(json.center, true);
+                    dg_network_navigate(json.center.key, true);
                 }
             });
         });
