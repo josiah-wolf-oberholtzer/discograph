@@ -1,5 +1,39 @@
 var dg = (function(dg){
 
+dg.network = {
+    dimensions: [0, 0],
+    forceLayout: null,
+    isUpdating: false,
+    newNodeCoords: [0, 0],
+    data: {
+        json: null,
+        nodeMap: d3.map(),
+        linkMap: d3.map(),
+        maxDistance: 0,
+        pageCount: 1,
+        },
+    pageData: {
+        currentPage: 1,
+        links: [],
+        nodes: [],
+        selectedNodeKey: null,
+        },
+    selections: {
+        halo: null,
+        hull: null,
+        node: null,
+        link: null,
+        text: null,
+        },
+    layers: {
+        root: null,
+        halo: null,
+        text: null,
+        node: null,
+        link: null,
+        },
+    };
+
 function dg_network_nextPage() {
     var page = dg.network.pageData.currentPage + 1;
     if (dg.network.data.pageCount < page) {
@@ -7,6 +41,7 @@ function dg_network_nextPage() {
     }
     dg_network_selectPage(page);
     dg_network_startForceLayout();
+    dg_network_selectNode(dg.network.pageData.selectedNodeKey);
 }
 
 function dg_network_prevPage() {
@@ -16,6 +51,7 @@ function dg_network_prevPage() {
     }
     dg_network_selectPage(page);
     dg_network_startForceLayout();
+    dg_network_selectNode(dg.network.pageData.selectedNodeKey);
 }
 
 function dg_network_selectPage(page) {
@@ -56,40 +92,6 @@ function dg_network_selectPage(page) {
 
 function dg_warn() { 
 }
-
-dg.network = {
-    dimensions: [0, 0],
-    forceLayout: null,
-    isUpdating: false,
-    newNodeCoords: [0, 0],
-    data: {
-        json: null,
-        nodeMap: d3.map(),
-        linkMap: d3.map(),
-        maxDistance: 0,
-        pageCount: 1,
-        },
-    pageData: {
-        currentPage: 1,
-        links: [],
-        nodes: [],
-        selectedNodeKey: null,
-        },
-    selections: {
-        halo: null,
-        hull: null,
-        node: null,
-        link: null,
-        text: null,
-        },
-    layers: {
-        root: null,
-        halo: null,
-        text: null,
-        node: null,
-        link: null,
-        },
-    };
 
 function dg_network_setupForceLayout() {
     return d3.layout.force()
@@ -274,6 +276,7 @@ function dg_network_handleAsyncData(json, pushHistory, params) {
     dg_network_processJson(json);
     dg_network_selectPage(1);
     dg_network_startForceLayout();
+    dg_network_selectNode(dg.network.data.json.center.key);
     setTimeout(function() { dg.network.isUpdating = false; }, 2000);
     $("#page-loading")
         .removeClass("glyphicon-animate glyphicon-refresh")
@@ -305,7 +308,7 @@ function dg_network_navigate(key, pushHistory) {
         ;
     var url = "/api/" + entityType + "/network/" + entityId;
     $.ajax({
-        cache: true,
+        cache: false,
         dataType: 'json',
         error: dg_network_handleAsyncError,
         success: function(data) {
@@ -667,7 +670,6 @@ function dg_network_startForceLayout() {
     dg.network.layers.root.transition()
         .duration(1000)
         .style("opacity", 1);
-    dg_network_selectNode(dg.network.data.json.center.key);
     dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
     dg.network.forceLayout.start();
 }

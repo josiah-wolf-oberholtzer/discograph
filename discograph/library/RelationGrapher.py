@@ -63,14 +63,6 @@ class RelationGrapher(object):
                 year = int(year)
         self.year = year
 
-    def group_trellis(self, trellis):
-        trellis_nodes_by_distance = collections.OrderedDict()
-        for trellis_node in trellis.values():
-            if trellis_node.distance not in trellis_nodes_by_distance:
-                trellis_nodes_by_distance[trellis_node.distance] = set()
-            trellis_nodes_by_distance[trellis_node.distance].add(trellis_node)
-        return trellis_nodes_by_distance
-
     def build_trellis(self, nodes, links, verbose=True):
         def recurse_trellis(node):
             subgraph_size = 1
@@ -232,6 +224,14 @@ class RelationGrapher(object):
         node['key'] = '{}-{}'.format(node['type'], node['id'])
         node['links'] = set()
         return node
+
+    def group_trellis(self, trellis):
+        trellis_nodes_by_distance = collections.OrderedDict()
+        for trellis_node in trellis.values():
+            if trellis_node.distance not in trellis_nodes_by_distance:
+                trellis_nodes_by_distance[trellis_node.distance] = set()
+            trellis_nodes_by_distance[trellis_node.distance].add(trellis_node)
+        return trellis_nodes_by_distance
 
     def page_at_winning_distance(
         self,
@@ -482,8 +482,8 @@ class RelationGrapher(object):
             trellis_nodes_by_distance,
             threshold,
             )
-        self.page_at_winning_distance(pages, trellis_nodes_by_distance, winning_distance)
         self.page_by_local_neighborhood(pages, trellis, trellis_nodes_by_distance)
+        self.page_at_winning_distance(pages, trellis_nodes_by_distance, winning_distance)
         self.page_by_distance(pages, trellis_nodes_by_distance)
         if verbose:
             for i, page in enumerate(pages):
