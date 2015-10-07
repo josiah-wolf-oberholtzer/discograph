@@ -41,7 +41,15 @@ function dg_network_nextPage() {
     }
     dg_network_selectPage(page);
     dg_network_startForceLayout();
-    dg_network_selectNode(dg.network.pageData.selectedNodeKey);
+    var selectedNodeKey = dg.network.pageData.selectedNodeKey;
+    if (selectedNodeKey !== null) {
+        var selectedNode = dg.network.data.nodeMap.get(selectedNodeKey);
+        var currentPage = dg.network.pageData.currentPage;
+        if (-1 == selectedNode.pages.indexOf(currentPage)) {
+            dg.network.pageData.selectedNodeKey = null;
+        }
+        dg_network_selectNode(dg.network.pageData.selectedNodeKey);
+    }
 }
 
 function dg_network_prevPage() {
@@ -51,7 +59,19 @@ function dg_network_prevPage() {
     }
     dg_network_selectPage(page);
     dg_network_startForceLayout();
-    dg_network_selectNode(dg.network.pageData.selectedNodeKey);
+    dg_network_reselectNode();
+}
+
+function dg_network_reselectNode() {
+    var selectedNodeKey = dg.network.pageData.selectedNodeKey;
+    if (selectedNodeKey !== null) {
+        var selectedNode = dg.network.data.nodeMap.get(selectedNodeKey);
+        var currentPage = dg.network.pageData.currentPage;
+        if (-1 == selectedNode.pages.indexOf(currentPage)) {
+            dg.network.pageData.selectedNodeKey = null;
+        }
+        dg_network_selectNode(dg.network.pageData.selectedNodeKey);
+    }
 }
 
 function dg_network_selectPage(page) {
@@ -592,8 +612,8 @@ function dg_network_onNodeUpdate(nodeUpdate) {
                 return (currMissing || currMissingByPage) ? 1 : 0;
                 })
             .attrTween('transform', function(d) {
-                var start = prevMissingByPage ? 225 : 0;
-                var stop = currMissingByPage ? 225 : 0;
+                var start = prevMissingByPage ? 45 : 0;
+                var stop = currMissingByPage ? 45 : 0;
                 return d3.interpolateString(
                     "rotate(" + start + ")",
                     "rotate(" + stop + ")"
