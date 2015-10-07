@@ -411,7 +411,6 @@ function dg_network_onLinkUpdate(linkSelection) {
 
 function dg_network_onNodeEnter(nodeEnter) {
     var nodeEnter = nodeEnter.append("g")
-        //.filter(function(d, i) { return !d.isIntermediate ? this : null })
         .attr("class", function(d) { return "node node-" + d.key; })
         .style("fill", function(d) {
             if (d.type == 'artist') {
@@ -541,7 +540,6 @@ function dg_network_getNodeText(d) {
 
 function dg_network_onTextEnter(textEnter) {
     var textEnter = textEnter.append("g")
-        .filter(function(d, i) { return !d.isIntermediate ? this : null })
         .attr("class", function(d) { return "node node-" + d.key; })
     textEnter.append("text")
         .attr("class", "outer")
@@ -561,8 +559,14 @@ function dg_network_onTextExit(textExit) {
 
 function dg_network_startForceLayout() {
     var keyFunc = function(d) { return d.key }
-    var nodes = dg.network.pageData.nodes.filter(function(d) { return !d.isIntermediate; })
-    var links = dg.network.pageData.links.filter(function(d) { return !d.isSpline; })
+    var nodes = dg.network.pageData.nodes.filter(function(d) { 
+        return (!d.isIntermediate) && 
+            (-1 != d.pages.indexOf(dg.network.pageData.currentPage));
+    })
+    var links = dg.network.pageData.links.filter(function(d) { 
+        return (!d.isSpline) &&
+            (-1 != d.pages.indexOf(dg.network.pageData.currentPage));
+    })
     dg.network.selections.halo = dg.network.selections.halo.data(nodes, keyFunc);
     dg.network.selections.node = dg.network.selections.node.data(nodes, keyFunc);
     dg.network.selections.text = dg.network.selections.text.data(nodes, keyFunc);
@@ -611,7 +615,7 @@ function dg_network_splineInner(name, sX, sY, sR, cX, cY) {
 }
 
 function dg_network_spline(d) {
-    console.log(d);
+    //console.log(d);
     var sX = d.source.x;
     var sY = d.source.y;
     var tX = d.target.x;
@@ -762,10 +766,10 @@ function dg_network_processJson(json) {
         var newNode = entry.value;
         if (dg.network.data.nodeMap.has(key)) {
             var oldNode = dg.network.data.nodeMap.get(key);
-            for (var attr in newNode) {
-                //console.log(attr, oldNode, newNode);
-                oldNode[attr] = newNode[attr];
-            }
+            oldNode.distance = newNode.distance;
+            oldNode.missing = newNode.missing;
+            oldNode.missingByPage = newNode.missingByPage;
+            oldNode.pages = newNode.pages;
         } else {
             newNode.x = dg.network.newNodeCoords[0] + (Math.random() * 200) - 100;
             newNode.y = dg.network.newNodeCoords[1] + (Math.random() * 200) - 100;
@@ -773,14 +777,18 @@ function dg_network_processJson(json) {
         }
     });
     newLinkMap.entries().forEach(function(entry) {
-        var key = entry.key, link = entry.value;
-        if (!dg.network.data.linkMap.has(key)) {
-            link.source = dg.network.data.nodeMap.get(link.source);
-            link.target = dg.network.data.nodeMap.get(link.target);
-            if (entry.value.intermediate !== undefined) {
-                link.intermediate = dg.network.data.nodeMap.get(link.intermediate);
+        var key = entry.key;
+        var newLink = entry.value;
+        if (dg.network.data.linkMap.has(key)) {
+            var oldLink = dg.network.data.linkMap.get(key);
+            oldLink.pages = newLink.pages; 
+        } else {
+            newLink.source = dg.network.data.nodeMap.get(newLink.source);
+            newLink.target = dg.network.data.nodeMap.get(newLink.target);
+            if (newLink.intermediate !== undefined) {
+                newLink.intermediate = dg.network.data.nodeMap.get(newLink.intermediate);
             }
-            dg.network.data.linkMap.set(key, link);
+            dg.network.data.linkMap.set(key, newLink);
         }
     });
     var distances = []
@@ -815,17 +823,22 @@ function dg_network_selectPage(page) {
     $('#pagination .previous-text').text(prevText);
     $('#pagination .next-text').text(nextText);
 
-    /*
     var filteredNodes = dg.network.data.nodeMap.values().filter(function(d) {
-        return -1 < d.pages.indexOf(currentPage);
+        return (-1 != d.pages.indexOf(currentPage));
     });
     var filteredLinks = dg.network.data.linkMap.values().filter(function(d) {
-        return -1 < d.pages.indexOf(currentPage);
+        return (-1 != d.pages.indexOf(currentPage));
     });
-    */
 
+    /*
     var filteredNodes = dg.network.data.nodeMap.values();
     var filteredLinks = dg.network.data.linkMap.values();
+    dg.network.pageData.nodes = filteredNodes;
+    dg.network.pageData.links = filteredLinks;
+    dg.network.forceLayout.nodes(filteredNodes);
+    dg.network.forceLayout.links(filteredLinks);
+    */
+
     dg.network.pageData.nodes.length = 0;
     dg.network.pageData.links.length = 0;
     Array.prototype.push.apply(dg.network.pageData.nodes, filteredNodes);
