@@ -576,25 +576,32 @@ function dg_network_onNodeUpdate(nodeUpdate) {
                 return dg_color_greyscale(d);
             }
         })
-    nodeUpdate.selectAll(".more")
-        .style('transform', function(d) {
-            if (d.missingByPage && d.missingByPage[dg.network.pageData.currentPage]) {
-                return 'rotate(45deg)';
-            } else {
-                return 'rotate(0deg)';
-            }
-        })
-        .transition()
-        .duration(1000)
-        .style("opacity", function(d) {
-            if (d.missing) {
-                return 1;
-            } else if (d.missingByPage && d.missingByPage[dg.network.pageData.currentPage]) {
-                return 1;
-            } else {
-                return 0;
-            }
-        })
+    nodeUpdate.selectAll(".more").each(function(d, i) {
+        var prevMissing = Boolean(d.hasMissing);
+        var prevMissingByPage = Boolean(d.hasMissingByPage);
+        var currMissing = Boolean(d.missing); 
+        if (!d.missingByPage) {
+            var currMissingByPage = false;
+        } else {
+            var currMissingByPage = Boolean(
+                d.missingByPage[dg.network.pageData.currentPage]
+                );
+        }
+        d3.select(this).transition().duration(1000)
+            .style('opacity', function(d) {
+                return (currMissing || currMissingByPage) ? 1 : 0;
+                })
+            .attrTween('transform', function(d) {
+                var start = prevMissingByPage ? 225 : 0;
+                var stop = currMissingByPage ? 225 : 0;
+                return d3.interpolateString(
+                    "rotate(" + start + ")",
+                    "rotate(" + stop + ")"
+                    );
+                });
+        d.hasMissing = currMissing;
+        d.hasMissingByPage = currMissingByPage;
+    });
 }
 
 function dg_network_onTextUpdate(textUpdate) {

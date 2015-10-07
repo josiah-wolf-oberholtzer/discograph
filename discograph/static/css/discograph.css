@@ -19,11 +19,11 @@ body {
     pointer-events: visible;
     }
 
-#pagination {
+#paging {
     pointer-events: none;
     }
 
-#pagination a {
+#paging a {
     pointer-events: visible;
     }
 
