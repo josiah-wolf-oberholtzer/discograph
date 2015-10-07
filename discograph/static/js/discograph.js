@@ -611,6 +611,7 @@ function dg_network_splineInner(name, sX, sY, sR, cX, cY) {
 }
 
 function dg_network_spline(d) {
+    console.log(d);
     var sX = d.source.x;
     var sY = d.source.y;
     var tX = d.target.x;
@@ -664,7 +665,7 @@ function dg_network_tick(e) {
         d.y += dy;
     });
 
-    dg.network.selections.link.selectAll('g').call(dg_network_tick_link);
+    dg.network.selections.link.each(dg_network_tick_link);
     /*
     dg.network.selections.link.select(".inner")
         .attr("d", dg_network_spline)
