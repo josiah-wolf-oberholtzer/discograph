@@ -41,6 +41,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
         entity_id,
         entity_type,
         on_mobile=on_mobile,
+        cache=False,
         )
     if data is None:
         raise exceptions.APIError(message='No Data', status_code=500)
@@ -51,8 +52,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
         separators=(',', ': '),
         )
     initial_json = 'var dgData = {};'.format(initial_json)
-    entity_name = [_['name'] for _ in data['nodes']
-        if _['key'] == data['center']][0]
+    entity_name = data['center']['name']
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
     key = '{}-{}'.format(entity_type, entity_id)
     url = '/{}/{}'.format(entity_type, entity_id)

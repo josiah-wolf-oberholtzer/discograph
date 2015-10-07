@@ -19,6 +19,15 @@ body {
     pointer-events: visible;
     }
 
+#pagination {
+    pointer-events: none;
+    }
+
+#pagination a {
+    pointer-events: visible;
+    }
+
+
 a.input-group-addon {
     color: #337ab7;
     }
@@ -55,11 +64,13 @@ form .clear,
 
 .hull path {
     fill: #000;
+    //fill-opacity: 0.025;
     opacity: 0.05;
     stroke: #000;
     stroke-width: 32;
     stroke-linecap: round;
     stroke-linejoin: round;
+    //stroke-opacity: 0.25;
     }
 
 .node {
@@ -146,4 +157,12 @@ form .clear,
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    }
+
+.box-shadow {
+    box-shadow: 0px 0px 10px #ddd;
+    }
+
+a:hover {
+    color: #cc8548;
     }
