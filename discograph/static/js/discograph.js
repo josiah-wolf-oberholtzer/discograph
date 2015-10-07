@@ -481,7 +481,7 @@ function dg_network_onNodeEnterEventBindings(nodeEnter) {
             d.fixed = true;
             dg_network_selectNode(d.key);
         }
-        d3.event.stopPropagation(); // What is this for?
+        d3.event.stopPropagation(); // Prevents propagation to #svg element.
     });
     nodeEnter.on("mouseover", function(d) {
         var selection = dg.network.selections.node.select(function(n) {
@@ -502,7 +502,7 @@ function dg_network_onNodeEnterEventBindings(nodeEnter) {
         } else if ((thisTime - lastTime) < 500) {
             if (!dg.network.isUpdating) { dg_network_navigate(d.key, true); }
         }
-        d3.event.stopPropagation(); // What is this for?
+        d3.event.stopPropagation(); // Prevents propagation to #svg element.
     });
 }
 
@@ -716,6 +716,58 @@ function dg_network_processJson() {
         }
         newLinkMap.set(link.key, link);
     });
+    var nodeKeysToRemove = [];
+    dg.network.data.nodeMap.keys().forEach(function(key) {
+        if (!newNodeMap.has(key)) {
+            nodeKeysToRemove.push(key);
+        };
+    });
+    nodeKeysToRemove.forEach(function(key) {
+        dg.network.data.nodeMap.remove(key);
+    });
+    var linkKeysToRemove = [];
+    dg.network.data.linkMap.keys().forEach(function(key) {
+        if (!newLinkMap.has(key)) {
+            linkKeysToRemove.push(key);
+        };
+    });
+    linkKeysToRemove.forEach(function(key) {
+        dg.network.data.linkMap.remove(key);
+    });
+    newNodeMap.entries().forEach(function(entry) {
+        var key = entry.key;
+        var newNode = entry.value;
+        if (dg.network.data.nodeMap.has(key)) {
+            var oldNode = dg.network.data.nodeMap.get(key);
+            for (var attr in newNode) {
+                oldNode[attr] = newNode[attr];
+            }
+        } else {
+            newNode.x = dg.network.newNodeCoords[0] + (Math.random() * 200) - 100;
+            newNode.y = dg.network.newNodeCoords[1] + (Math.random() * 200) - 100;
+            dg.network.data.nodeMap.set(key, newNode);
+        }
+    });
+    newLinkMap.entries().forEach(function(entry) {
+        var key = entry.key, link = entry.value;
+        if (!dg.network.data.linkMap.has(key)) {
+            /*
+            link.source = dg.network.data.nodeMap.get(link.source);
+            link.target = dg.network.data.nodeMap.get(link.target);
+            if (entry.value.intermediate !== undefined) {
+                link.intermediate = dg.network.data.nodeMap.get(link.intermediate);
+            }
+            */
+            dg.network.data.linkMap.set(key, link);
+        }
+    });
+    var distances = []
+    dg.network.data.nodeMap.values().forEach(function(node) {
+        if (node.distance !== undefined) {
+            distances.push(node.distance);
+        }
+    })
+    dg.network.maxDistance = Math.max.apply(Math, distances);
 }
 
 function dg_network_updateForceLayout() {
