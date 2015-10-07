@@ -716,7 +716,7 @@ class Test(unittest.TestCase):
             )
         network = grapher.get_network()
         assert network == {
-            'center': 'artist-152882',
+            'center': {'key': 'artist-152882', 'name': 'Morris Day'},
             'links': ({'distance': 1,
                         'key': 'artist-23446-member-of-artist-32550',
                         'pages': (1,),
@@ -997,7 +997,7 @@ class Test(unittest.TestCase):
             )
         network = grapher.get_network()
         assert network == {
-            'center': 'artist-152882',
+            'center': {'key': 'artist-152882', 'name': 'Morris Day'},
             'links': ({'distance': 1,
                         'key': 'artist-23446-member-of-artist-32550',
                         'pages': (1,),
@@ -1274,7 +1274,7 @@ class Test(unittest.TestCase):
             )
         network = grapher.get_network()
         assert network == {
-            'center': 'artist-152882',
+            'center': {'key': 'artist-152882', 'name': 'Morris Day'},
             'links': (
                 {
                     'distance': 1,
