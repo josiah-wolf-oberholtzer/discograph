@@ -4,25 +4,24 @@ function dg_warn() {
 }
 
 dg.network = {
-    currentPage: 1,
-    pageCount: 1,
-    centerNodeKey: null,
     dimensions: [0, 0],
     forceLayout: null,
     isUpdating: false,
     newNodeCoords: [0, 0],
-    selectedNodeKey: null,
-    maxDistance: 0,
     data: {
         json: null,
         nodeMap: d3.map(),
         linkMap: d3.map(),
+        maxDistance: 0,
+        pageCount: 1,
         },
     pageData: {
+        currentPage: 1,
         linkMap: d3.map(),
         links: [],
         nodeMap: d3.map(),
         nodes: [],
+        selectedNodeKey: null,
         },
     selections: {
         halo: null,
@@ -67,7 +66,7 @@ function dg_network_setupForceLayout() {
 function dg_color_greyscale(d) {
     var hue = 0;
     var saturation = 0;
-    var lightness = (d.distance / (dg.network.maxDistance + 1));
+    var lightness = (d.distance / (dg.network.data.maxDistance + 1));
     return d3.hsl(hue, saturation, lightness).toString();
 }
 
@@ -206,27 +205,27 @@ function dg_network_handleAsyncError(error) {
 }
 
 function dg_network_handleAsyncData(json, pushHistory, params) {
+    dg.network.data.json = JSON.parse(JSON.stringify(json));
     var key = json.center.key;
     document.title = "Disco/graph: " + json.center.name;
     $(document).attr("body").id = key;
     if (pushHistory === true) {
         dg_history_pushState(key, params);
     }
-    dg.network.pageCount = json.pages;
-    dg.network.currentPage = 1;
+    dg.network.data.pageCount = json.pages;
+    dg.network.pageData.currentPage = 1;
     if (1 < json.pages) {
-        var prevPage = dg.network.pageCount;
-        var prevText = prevPage + ' / ' + dg.network.pageCount;
+        var prevPage = dg.network.data.pageCount;
+        var prevText = prevPage + ' / ' + dg.network.data.pageCount;
         var nextPage = dg.network.currentPage + 1;
-        var nextText = nextPage + ' / ' + dg.network.pageCount;
+        var nextText = nextPage + ' / ' + dg.network.data.pageCount;
         $('#pagination .previous-text').text(prevText);
         $('#pagination .next-text').text(nextText);
         $('#pagination').fadeIn();
     } else {
         $('#pagination').fadeOut();
     }
-    dg.network.data.json = json;
-    dg_network_processJson();
+    dg_network_processJson(json);
     dg_network_updateForceLayout();
     dg_network_startForceLayout();
     setTimeout(function() { dg.network.isUpdating = false; }, 2000);
@@ -271,7 +270,7 @@ function dg_network_navigate(key, pushHistory) {
 }
 
 function dg_network_selectNode(key) {
-    dg.network.selectedNodeKey = key;
+    dg.network.pageData.selectedNodeKey = key;
     if (key !== null) {
         var haloOff = dg.network.selections.halo.filter("*:not(.node-" + key + ")");
         var nodeOff = dg.network.selections.node.filter("*:not(.node-" + key + ")");
@@ -593,7 +592,7 @@ function dg_network_startForceLayout() {
     dg.network.layers.root.transition()
         .duration(1000)
         .style("opacity", 1);
-    dg_network_selectNode(dg.network.centerNodeKey);
+    dg_network_selectNode(dg.network.data.json.center.key);
 }
 
 function dg_network_translate(d) {
@@ -636,7 +635,7 @@ function dg_network_spline(d) {
 function dg_network_tick(e) {
     var k = e.alpha * 0.5;
     dg.network.pageData.nodes.filter(function(d) {
-        return d.key == dg.network.centerNodeKey && !d.fixed;
+        return d.key == dg.network.data.json.center.key && !d.fixed;
     }).forEach(function(d) {
         var dims = dg.network.dimensions;
         var dx = ((dims[0] / 2) - d.x) * k;
@@ -677,14 +676,14 @@ function dg_network_getHullVertices(nodes) {
     return vertices;
 }
 
-function dg_network_processJson() {
+function dg_network_processJson(json) {
     var newNodeMap = d3.map();
     var newLinkMap = d3.map();
-    dg.network.data.json.nodes.forEach(function(node) {
+    json.nodes.forEach(function(node) {
         node.radius = dg_network_getOuterRadius(node);
         newNodeMap.set(node.key, node);
     });
-    dg.network.data.json.links.forEach(function(link) {
+    json.links.forEach(function(link) {
         var source = link.source,
             target = link.target;
         if (link.role != 'Alias') {
@@ -751,13 +750,11 @@ function dg_network_processJson() {
     newLinkMap.entries().forEach(function(entry) {
         var key = entry.key, link = entry.value;
         if (!dg.network.data.linkMap.has(key)) {
-            /*
             link.source = dg.network.data.nodeMap.get(link.source);
             link.target = dg.network.data.nodeMap.get(link.target);
             if (entry.value.intermediate !== undefined) {
                 link.intermediate = dg.network.data.nodeMap.get(link.intermediate);
             }
-            */
             dg.network.data.linkMap.set(key, link);
         }
     });
@@ -767,7 +764,7 @@ function dg_network_processJson() {
             distances.push(node.distance);
         }
     })
-    dg.network.maxDistance = Math.max.apply(Math, distances);
+    dg.network.data.maxDistance = Math.max.apply(Math, distances);
 }
 
 function dg_network_updateForceLayout() {
@@ -870,14 +867,13 @@ function dg_network_updateForceLayout() {
             distances.push(node.distance);
         }
     })
-    dg.network.maxDistance = Math.max.apply(Math, distances);
+    dg.network.data.maxDistance = Math.max.apply(Math, distances);
 
     // PUSH DATA
     dg.network.pageData.nodes.length = 0;
     Array.prototype.push.apply(dg.network.pageData.nodes, dg.network.pageData.nodeMap.values());
     dg.network.pageData.links.length = 0;
     Array.prototype.push.apply(dg.network.pageData.links, dg.network.pageData.linkMap.values());
-    dg.network.centerNodeKey = json.center.key;
 }
 
 function dg_network_init() {
