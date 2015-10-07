@@ -19,6 +19,15 @@ body {
     pointer-events: visible;
     }
 
+#pagination {
+    pointer-events: none;
+    }
+
+#pagination a {
+    pointer-events: visible;
+    }
+
+
 a.input-group-addon {
     color: #337ab7;
     }
