@@ -1,6 +1,7 @@
 var dg = (function(dg){
 
 dg.network = {
+    
     currentPage: 1,
     pageCount: 1,
     centerNodeKey: null,
@@ -14,18 +15,18 @@ dg.network = {
     nodes: [],
     selectedNodeKey: null,
     maxDistance: 0,
-    // selections
     haloSelection: null,
     hullSelection: null,
     nodeSelection: null,
     linkSelection: null,
     textSelection: null,
-    // layers
-    networkLayer: null,
-    haloLayer: null,
-    textLayer: null,
-    nodeLayer: null,
-    linkLayer: null,
+    layers: {
+        root: null,
+        halo: null,
+        text: null,
+        node: null,
+        link: null,
+        },
 };
 
 function dg_network_setupForceLayout() {
@@ -238,7 +239,7 @@ function dg_network_navigate(key, pushHistory) {
             dg.network.dimensions[1] / 2,
         ];
     }
-    dg.network.networkLayer.transition()
+    dg.network.layers.root.transition()
         .duration(250)
         .style("opacity", 0.333);
     $("#page-loading")
@@ -577,7 +578,7 @@ function dg_network_startForceLayout() {
     dg_network_onTextUpdate(dg.network.textSelection);
     dg_network_onLinkEnter(dg.network.linkSelection.enter());
     dg_network_onLinkExit(dg.network.linkSelection.exit());
-    dg.network.networkLayer.transition()
+    dg.network.layers.root.transition()
         .duration(1000)
         .style("opacity", 1);
     dg_network_selectNode(dg.network.centerNodeKey);
@@ -792,22 +793,22 @@ function dg_network_updateForceLayout() {
 }
 
 function dg_network_init() {
-    var networkLayer = d3.select("#svg").append("g")
+    var root = d3.select("#svg").append("g")
         .attr("id", "networkLayer");
-    dg.network.networkLayer = networkLayer;
+    dg.network.layers.root = root;
     d3.select("#svg").on("mousedown", function() {
         dg.network.nodes.forEach(function(n) { n.fixed = false; });
         dg_network_selectNode(null);
     });
-    dg.network.haloLayer = networkLayer.append("g").attr("id", "haloLayer");
-    dg.network.linkLayer = networkLayer.append("g").attr("id", "linkLayer");
-    dg.network.nodeLayer = networkLayer.append("g").attr("id", "nodeLayer");
-    dg.network.textLayer = networkLayer.append("g").attr("id", "textLayer");
-    dg.network.haloSelection = dg.network.haloLayer.selectAll(".node");
-    dg.network.hullSelection = dg.network.haloLayer.selectAll(".hull");
-    dg.network.linkSelection = dg.network.linkLayer.selectAll(".link");
-    dg.network.nodeSelection = dg.network.nodeLayer.selectAll(".node");
-    dg.network.textSelection = dg.network.textLayer.selectAll(".node");
+    dg.network.layers.halo = root.append("g").attr("id", "haloLayer");
+    dg.network.layers.link = root.append("g").attr("id", "linkLayer");
+    dg.network.layers.node = root.append("g").attr("id", "nodeLayer");
+    dg.network.layers.text = root.append("g").attr("id", "textLayer");
+    dg.network.haloSelection = dg.network.layers.halo.selectAll(".node");
+    dg.network.hullSelection = dg.network.layers.halo.selectAll(".hull");
+    dg.network.linkSelection = dg.network.layers.link.selectAll(".link");
+    dg.network.nodeSelection = dg.network.layers.node.selectAll(".node");
+    dg.network.textSelection = dg.network.layers.text.selectAll(".node");
     dg.network.forceLayout = dg_network_setupForceLayout();
 }
 
