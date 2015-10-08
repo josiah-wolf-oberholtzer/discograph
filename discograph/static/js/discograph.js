@@ -123,7 +123,10 @@ function dg_network_setupForceLayout() {
         .friction(0.9)
         .linkDistance(function(d, i) {
             if (d.isSpline) {
-                return 40 + (Math.random() * 20);
+                if (d.role == 'Released On') {
+                    return 100;
+                }
+                return 50;
             } else if (d.role == 'Alias') {
                 return 100;
             } else if (d.role == 'Released On') {
