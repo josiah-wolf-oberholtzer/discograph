@@ -215,8 +215,15 @@ function dg_typeahead_init() {
         }, {
             name: "results",
             display: "name",
-            source: dg_typeahead_bloodhound,
             limit: 20,
+            source: dg_typeahead_bloodhound,
+            templates: {
+                suggestion: function(data) {
+                    return '<div>' +
+                        '<span>' + data.name + '</span>' +
+                        ' <em>(' + data.key.split('-')[0] + ')</em></div>';
+                },
+            },
         })
     .keydown(function(event){
         if (event.keyCode == 13) {
@@ -1079,6 +1086,24 @@ $(document).ready(function() {
         $(this).tooltip('hide');
         event.preventDefault();
     });
+    $('#filter-roles').multiselect({
+        buttonWidth: "160px",
+        enableFiltering: true,
+        enableCaseInsensitiveFiltering: true,
+        includeSelectAllOption: true,
+        inheritClass: true,
+        enableClickableOptGroups: true,
+        maxHeight: 400,
+        nonSelectedText: 'Select relationships'
+    });
+    $('#filter').on('reset', function(event) {
+        $('#filter-roles option:selected').each(function() {
+            $(this).prop('selected', false);
+        });
+        $('#filter-roles').multiselect('refresh');
+        event.preventDefault();
+    });
+    $('#filter').fadeIn(3000);
     window.addEventListener("popstate", dg_history_onPopState);
     console.log('discograph initialized.');
 });

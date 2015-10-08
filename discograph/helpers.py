@@ -7,6 +7,18 @@ from abjad.tools import systemtools
 urlify_pattern = re.compile(r"\s+", re.MULTILINE)
 
 
+entity_type_names = {
+    1: 'artist',
+    2: 'label',
+    }
+
+
+entity_name_types = {
+    'artist': 1,
+    'label': 2,
+    }
+
+
 def cache_get(cache_key):
     from discograph import app
     data = app.cache.get(cache_key)
@@ -21,12 +33,8 @@ def cache_set(cache_key, data):
     app.cache.set(cache_key, data)
 
 
-def get_entity(entity_id, entity_type):
+def get_entity(entity_type, entity_id):
     import discograph
-    if entity_type == 'artist':
-        entity_type = 1
-    elif entity_type == 'label':
-        entity_type = 2
     where_clause = discograph.SqliteEntity.entity_id == entity_id
     where_clause &= discograph.SqliteEntity.entity_type == entity_type
     query = discograph.SqliteEntity.select().where(where_clause)
@@ -38,6 +46,7 @@ def get_entity(entity_id, entity_type):
 
 def get_network(entity_id, entity_type, on_mobile=False, cache=True):
     import discograph
+    cache = False
     assert entity_type in ('artist', 'label')
     if cache:
         cache_key = 'discograph:/api/{}/network/{}'
@@ -47,18 +56,15 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True):
         data = cache_get(cache_key)
         if data is not None:
             return data
-    if entity_type == 'artist':
-        entity_type = 1
-    elif entity_type == 'label':
-        entity_type = 2
-    else:
-        raise ValueError(entity_type)
-    entity = get_entity(entity_id, 1)
+    entity_type = entity_name_types[entity_type]
+    entity = get_entity(entity_type, entity_id)
     if entity is None:
         return None
     role_names = [
         'Alias',
         'Member Of',
+        'Released On',
+        'Sublabel Of',
         ]
     if not on_mobile:
         max_nodes = 75
@@ -116,18 +122,17 @@ def parse_request_args(args):
     return role_names, year
 
 
-def search_entities(search_string):
+def search_entities(search_string, cache=True):
     import discograph
-    cache_key = 'discograph:/api/search/{}'.format(
-        urlify_pattern.sub('+', search_string))
-    data = cache_get(cache_key)
-    if data is not None:
-        return data
-    query = discograph.SqliteFTSEntity.search_bm25(search_string)
-    query = query.where(discograph.SqliteFTSEntity.entity_type == 1)
-    query = query.limit(10)
+    cache = False
+    if cache:
+        cache_key = 'discograph:/api/search/{}'.format(
+            urlify_pattern.sub('+', search_string))
+        data = cache_get(cache_key)
+        if data is not None:
+            return data
+    query = discograph.SqliteFTSEntity.search_bm25(search_string).limit(10)
     data = []
-    entity_type_names = {1: 'artist', 2: 'label'}
     for entity in query:
         datum = dict(
             key='{}-{}'.format(
@@ -139,5 +144,6 @@ def search_entities(search_string):
         data.append(datum)
         print('    {}'.format(datum))
     data = {'results': tuple(data)}
-    cache_set(cache_key, data)
+    if cache:
+        cache_set(cache_key, data)
     return data

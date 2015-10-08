@@ -401,7 +401,7 @@ class RelationGrapher(object):
         if self.center_entity.entity_type == 1:
             key = 'artist-{}'.format(self.center_entity.entity_id)
         elif self.center_entity.entity_type == 2:
-            key = 'label-{}'.format(self.center_entity.discogs_id)
+            key = 'label-{}'.format(self.center_entity.entity_id)
         else:
             raise ValueError(self.center_entity)
         pages = set()

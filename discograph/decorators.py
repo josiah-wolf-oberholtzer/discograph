@@ -15,8 +15,9 @@ class cache(object):
 
     urlify_pattern = re.compile(r"\s+", re.MULTILINE)
 
-    def __init__(self, cache_object, cache_key):
-        self.cache_object = cache_object
+    def __init__(self, cache_key):
+        from discograph import app
+        self.cache_object = app.cache
         self.cache_key = cache_key
 
     def __call__(self, f):

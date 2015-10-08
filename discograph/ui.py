@@ -47,7 +47,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
     app = current_app._get_current_object()
     parsed_args = helpers.parse_request_args(request.args)
     original_role_names, original_year = parsed_args
-    if entity_type != 'artist':
+    if entity_type not in ('artist', 'label'):
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     on_mobile = request.MOBILE
     data = helpers.get_network(
