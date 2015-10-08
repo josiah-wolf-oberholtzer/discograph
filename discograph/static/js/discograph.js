@@ -1094,6 +1094,7 @@ $(document).ready(function() {
         $(this).tooltip('hide');
         event.preventDefault();
     });
+    /*
     $('#filter-roles').multiselect({
         buttonWidth: "160px",
         enableFiltering: true,
@@ -1112,6 +1113,7 @@ $(document).ready(function() {
         event.preventDefault();
     });
     $('#filter').fadeIn(3000);
+    */
     window.addEventListener("popstate", dg_history_onPopState);
     console.log('discograph initialized.');
 });
