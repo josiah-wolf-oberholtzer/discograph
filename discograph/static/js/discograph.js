@@ -1,40 +1,122 @@
 var dg = (function(dg){
 
-dg.timeline = {
-    json: null,
-    rootLayer: null,
-};
-
 dg.network = {
-    centerNodeKey: null,
     dimensions: [0, 0],
+    forceLayout: null,
     isUpdating: false,
-    json: null,
-    linkMap: d3.map(),
-    links: [],
     newNodeCoords: [0, 0],
-    nodeMap: d3.map(),
-    nodes: [],
-    selectedNodeKey: null,
-    maxDistance: 0,
-    // selections
-    haloSelection: null,
-    hullSelection: null,
-    nodeSelection: null,
-    linkSelection: null,
-    textSelection: null,
-    // layers
-    rootLayer: null,
-    haloLayer: null,
-    textLayer: null,
-    nodeLayer: null,
-    linkLayer: null,
-};
+    data: {
+        json: null,
+        nodeMap: d3.map(),
+        linkMap: d3.map(),
+        maxDistance: 0,
+        pageCount: 1,
+        },
+    pageData: {
+        currentPage: 1,
+        links: [],
+        nodes: [],
+        selectedNodeKey: null,
+        },
+    selections: {
+        halo: null,
+        hull: null,
+        node: null,
+        link: null,
+        text: null,
+        },
+    layers: {
+        root: null,
+        halo: null,
+        text: null,
+        node: null,
+        link: null,
+        },
+    };
+
+function dg_network_nextPage() {
+    var page = dg.network.pageData.currentPage + 1;
+    if (dg.network.data.pageCount < page) {
+        page = 1;
+    }
+    dg_network_selectPage(page);
+    dg_network_startForceLayout();
+    var selectedNodeKey = dg.network.pageData.selectedNodeKey;
+    if (selectedNodeKey !== null) {
+        var selectedNode = dg.network.data.nodeMap.get(selectedNodeKey);
+        var currentPage = dg.network.pageData.currentPage;
+        if (-1 == selectedNode.pages.indexOf(currentPage)) {
+            dg.network.pageData.selectedNodeKey = null;
+        }
+        dg_network_selectNode(dg.network.pageData.selectedNodeKey);
+    }
+}
+
+function dg_network_prevPage() {
+    var page = dg.network.pageData.currentPage - 1;
+    if (page == 0) {
+        page = dg.network.data.pageCount;
+    }
+    dg_network_selectPage(page);
+    dg_network_startForceLayout();
+    dg_network_reselectNode();
+}
+
+function dg_network_reselectNode() {
+    var selectedNodeKey = dg.network.pageData.selectedNodeKey;
+    if (selectedNodeKey !== null) {
+        var selectedNode = dg.network.data.nodeMap.get(selectedNodeKey);
+        var currentPage = dg.network.pageData.currentPage;
+        if (-1 == selectedNode.pages.indexOf(currentPage)) {
+            dg.network.pageData.selectedNodeKey = null;
+        }
+        dg_network_selectNode(dg.network.pageData.selectedNodeKey);
+    }
+}
+
+function dg_network_selectPage(page) {
+    if ((1 <= page) && (page <= dg.network.data.pageCount)) {
+        dg.network.pageData.currentPage = page;
+    } else {
+        dg.network.pageData.currentPage = 1;
+    }
+    var currentPage = dg.network.pageData.currentPage;
+    var pageCount = dg.network.data.pageCount;
+    if (currentPage == 1) {
+        var prevPage = pageCount;
+    } else {
+        var prevPage = currentPage - 1;
+    }
+    var prevText = prevPage + ' / ' + pageCount;
+    if (currentPage == pageCount) {
+        var nextPage = 1;
+    } else {
+        var nextPage = currentPage + 1;
+    }
+    var nextText = nextPage + ' / ' + pageCount;
+    $('#paging .previous-text').text(prevText);
+    $('#paging .next-text').text(nextText);
+    var filteredNodes = dg.network.data.nodeMap.values().filter(function(d) {
+        return (-1 != d.pages.indexOf(currentPage));
+    });
+    var filteredLinks = dg.network.data.linkMap.values().filter(function(d) {
+        return (-1 != d.pages.indexOf(currentPage));
+    });
+    dg.network.pageData.nodes.length = 0;
+    dg.network.pageData.links.length = 0;
+    Array.prototype.push.apply(dg.network.pageData.nodes, filteredNodes);
+    Array.prototype.push.apply(dg.network.pageData.links, filteredLinks);
+    dg.network.forceLayout.nodes(filteredNodes);
+    dg.network.forceLayout.links(filteredLinks);
+}
+
+function dg_warn() { 
+}
 
 function dg_network_setupForceLayout() {
     return d3.layout.force()
-        .nodes(dg.network.nodes)
-        .links(dg.network.links)
+        .nodes(dg.network.pageData.nodes)
+        .links(dg.network.pageData.links)
         .size(dg.network.dimensions)
         .on("tick", dg_network_tick)
         .linkStrength(1.5)
@@ -58,7 +140,7 @@ function dg_network_setupForceLayout() {
 function dg_color_greyscale(d) {
     var hue = 0;
     var saturation = 0;
-    var lightness = (d.distance / (dg.network.maxDistance + 1));
+    var lightness = (d.distance / (dg.network.data.maxDistance + 1));
     return d3.hsl(hue, saturation, lightness).toString();
 }
 
@@ -108,20 +190,21 @@ function dg_history_replaceState(entityKey, params) {
     ga('set', 'page', url);
 }
 
-function dg_typeahead_init() {
-    var bloodhound = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.whitespace,
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        remote: {
-            url: "/api/search/%QUERY",
-            wildcard: "%QUERY",
-            filter: function(response) {
-                return response.results;
-            },
-            rateLimitBy: 'debounce',
-            rateLimitWait: 300,
+var dg_typeahead_bloodhound = new Bloodhound({
+    datumTokenizer: Bloodhound.tokenizers.whitespace,
+    queryTokenizer: Bloodhound.tokenizers.whitespace,
+    remote: {
+        url: "/api/search/%QUERY",
+        wildcard: "%QUERY",
+        filter: function(response) {
+            return response.results;
         },
-    });
+        rateLimitBy: 'debounce',
+        rateLimitWait: 300,
+    },
+});
+
+function dg_typeahead_init() {
     var inputElement = $("#typeahead");
     var loadingElement = $("#search .loading");
     inputElement.typeahead(
@@ -132,8 +215,15 @@ function dg_typeahead_init() {
         }, {
             name: "results",
             display: "name",
-            source: bloodhound,
             limit: 20,
+            source: dg_typeahead_bloodhound,
+            templates: {
+                suggestion: function(data) {
+                    return '<div>' +
+                        '<span>' + data.name + '</span>' +
+                        ' <em>(' + data.key.split('-')[0] + ')</em></div>';
+                },
+            },
         })
     .keydown(function(event){
         if (event.keyCode == 13) {
@@ -178,7 +268,7 @@ function dg_typeahead_navigate() {
     };
 }
 
-function dg_handleAsyncError(error) {
+function dg_network_handleAsyncError(error) {
     var message = 'Something went wrong!';
     var status = error.status;
     if (status == 0) {
@@ -192,21 +282,28 @@ function dg_handleAsyncError(error) {
     text += '<strong>' + status + '!</strong> ' + message;
     text += '</div>';
     $('#flash').append(text);
+    //window.history.back();
 }
 
 function dg_network_handleAsyncData(json, pushHistory, params) {
-    var key = json.center;
+    dg.network.data.json = JSON.parse(JSON.stringify(json));
+    var key = json.center.key;
+    document.title = "Disco/graph: " + json.center.name;
+    $(document).attr("body").id = key;
     if (pushHistory === true) {
         dg_history_pushState(key, params);
     }
-    var name = json.nodes.filter(function(d) { return d.key == key; })
-    if (name.length) {
-        document.title = "Disco/graph: " + name[0].name;
+    dg.network.data.pageCount = json.pages;
+    dg.network.pageData.currentPage = 1;
+    if (1 < json.pages) {
+        $('#paging').fadeIn();
+    } else {
+        $('#paging').fadeOut();
     }
-    $(document).attr("body").id = key;
-    dg.network.json = json;
-    dg_network_updateForceLayout();
+    dg_network_processJson(json);
+    dg_network_selectPage(1);
     dg_network_startForceLayout();
+    dg_network_selectNode(dg.network.data.json.center.key);
     setTimeout(function() { dg.network.isUpdating = false; }, 2000);
     $("#page-loading")
         .removeClass("glyphicon-animate glyphicon-refresh")
@@ -217,7 +314,7 @@ function dg_network_navigate(key, pushHistory) {
     var entityType = key.split("-")[0];
     var entityId = key.split("-")[1];
     dg.network.isUpdating = true;
-    var foundNode = dg.network.nodeSelection
+    var foundNode = dg.network.selections.node
         .filter(function(d) { return d.key == key; });
     if (foundNode.length == 1) {
         foundNode.each(function(d) {
@@ -229,7 +326,7 @@ function dg_network_navigate(key, pushHistory) {
             dg.network.dimensions[1] / 2,
         ];
     }
-    dg.network.rootLayer.transition()
+    dg.network.layers.root.transition()
         .duration(250)
         .style("opacity", 0.333);
     $("#page-loading")
@@ -240,7 +337,7 @@ function dg_network_navigate(key, pushHistory) {
     $.ajax({
         cache: true,
         dataType: 'json',
-        error: dg_handleAsyncError,
+        error: dg_network_handleAsyncError,
         success: function(data) {
             dg_network_handleAsyncData(data, pushHistory);
             },
@@ -249,49 +346,37 @@ function dg_network_navigate(key, pushHistory) {
 }
 
 function dg_network_selectNode(key) {
-    dg.network.selectedNodeKey = key;
+    dg.network.pageData.selectedNodeKey = key;
     if (key !== null) {
-        var haloOff = dg.network.haloSelection.filter("*:not(.node-" + key + ")");
-        var nodeOff = dg.network.nodeSelection.filter("*:not(.node-" + key + ")");
-        var textOff = dg.network.textSelection.filter("*:not(.node-" + key + ")");
-        var nodeOn = dg.network.nodeSelection.filter(".node-" + key);
-        var linkKeys = nodeOn.data()[0].links;
-        var linkOff = dg.network.linkSelection.filter(function(d) {
+        var nodeOn = dg.network.layers.root.selectAll('.' + key);
+        var nodeOff = dg.network.layers.root.selectAll('*:not(.' + key + ')');
+        var linkKeys = nodeOn.datum().links;
+        var linkOn = dg.network.selections.link.filter(function(d) { 
+            return 0 <= linkKeys.indexOf(d.key);
+        });
+        var linkOff = dg.network.selections.link.filter(function(d) { 
             return linkKeys.indexOf(d.key) == -1;
         });
+        nodeOn.classed('selected', true);
+        nodeOff.classed('selected', false);
+        linkOn.classed('selected', true);
+        linkOff.classed('selected', false);
+        var node = dg.network.data.nodeMap.get(key);
+        var url = 'http://discogs.com/' + node.type + '/' + node.id;
+        $('#entity-name').text(node.name);
+        $('#entity-link')
+            .attr('href', url)
+            .removeClass('hidden')
+            .show(0);
+        nodeOn.moveToFront();
     } else {
-        var haloOff = dg.network.haloSelection;
-        var nodeOff = dg.network.nodeSelection;
-        var linkOff = dg.network.linkSelection;
-        var textOff = dg.network.textSelection;
-    }
-    haloOff.select(".halo").style("fill-opacity", 0.);
-    linkOff.style("opacity", 0.25);
-    nodeOff.select(".more").style("fill", "#fff");
-    nodeOff.style("stroke", "#fff");
-    textOff.select(".icon").remove();
-    if (key === null) {
+        var nodeOff = dg.network.layers.root.selectAll('.node');
+        var linkOff = dg.network.selections.link;
+        nodeOff.classed('selected', false);
+        linkOff.classed('selected', false);
         $('#entity-link').hide(0);
         return;
     }
-    var node = dg.network.nodeMap.get(key);
-    var url = 'http://discogs.com/' + node.type + '/' + node.id;
-    $('#entity-name').text(node.name);
-    $('#entity-link')
-        .attr('href', url)
-        .removeClass('hidden')
-        .show(0);
-    var haloOn = dg.network.haloSelection.filter(".node-" + key);
-    var linkOn = dg.network.linkSelection.filter(function(d) {
-        return 0 <= linkKeys.indexOf(d.key);
-    });
-    var textOn = dg.network.textSelection.filter(".node-" + key);
-    haloOn.select(".halo").style("fill-opacity", 0.1);
-    linkOn.style("opacity", 1);
-    nodeOn.moveToFront();
-    nodeOn.select(".more").style("fill", "#000");
-    nodeOn.style("stroke", "#000")
-    textOn.moveToFront();
 }
 
 function dg_network_getOuterRadius(d) {
@@ -307,7 +392,14 @@ function dg_network_getInnerRadius(d) {
 
 function dg_network_onHaloEnter(haloEnter) {
     var haloEnter = haloEnter.append("g")
-        .attr("class", function(d) { return "node node-" + d.key; })
+        .attr("class", function(d) { 
+            var classes = [
+                "node",
+                d.key,
+                d.key.split('-')[0],
+                ];
+            return classes.join(" ");
+        })
     haloEnter.append("circle")
         .attr("class", "halo")
         .attr("r", function(d) { return dg_network_getOuterRadius(d) + 40; });
@@ -329,7 +421,16 @@ function dg_network_onHullExit(hullExit) {
 
 function dg_network_onLinkEnter(linkEnter) {
     var linkEnter = linkEnter.append("g")
-        .attr("class", function(d) { return "link link-" + d.key; });
+        .attr("class", function(d) { 
+            var parts = d.key.split('-');
+            var role = parts.slice(2, 2 + parts.length - 4).join('-')
+            var classes = [
+                "link",
+                "link-" + d.key,
+                role,
+                ];
+            return classes.join(" ");
+        });
     dg_network_onLinkEnterElementConstruction(linkEnter);
     dg_network_onLinkEnterEventBindings(linkEnter);
 }
@@ -369,6 +470,7 @@ function dg_network_onLinkEnterElementConstruction(linkEnter) {
                 return source + " → (" + role + ") → " + target;
             }
         });
+    linkEnter.append("text");
 }
 
 function dg_network_onLinkEnterEventBindings(linkEnter) {
@@ -389,10 +491,24 @@ function dg_network_onLinkExit(linkExit) {
     linkExit.remove();
 }
 
+function dg_network_onLinkUpdate(linkSelection) {
+    if (dg.debug) {
+        linkSelection.select('text').text(function(d) {
+            return "[" + d.pages + "]";
+        });
+    }
+}
+
 function dg_network_onNodeEnter(nodeEnter) {
     var nodeEnter = nodeEnter.append("g")
-        //.filter(function(d, i) { return !d.isIntermediate ? this : null })
-        .attr("class", function(d) { return "node node-" + d.key; })
+        .attr("class", function(d) { 
+            var classes = [
+                "node",
+                d.key,
+                d.key.split('-')[0],
+                ];
+            return classes.join(" ");
+        })
         .style("fill", function(d) {
             if (d.type == 'artist') {
                 return dg_color_heatmap(d);
@@ -441,9 +557,6 @@ function dg_network_onNodeEnterElementConstruction(nodeEnter) {
     nodeEnter.append("path")
         .attr("class", "more")
         .attr("d", d3.svg.symbol().type("cross").size(64))
-        .style("stroke-width", 0)
-        .style("fill-opacity", 1)
-        .style("fill", "#fff")
         .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
     nodeEnter.append("title")
         .text(function(d) { return d.name; });
@@ -455,14 +568,14 @@ function dg_network_onNodeEnterEventBindings(nodeEnter) {
     });
     nodeEnter.on("mousedown", function(d) {
         if (!dg.network.isUpdating) {
-            dg.network.nodes.forEach(function(n) { n.fixed = false; });
+            dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
             d.fixed = true;
             dg_network_selectNode(d.key);
         }
-        d3.event.stopPropagation(); // What is this for?
+        d3.event.stopPropagation(); // Prevents propagation to #svg element.
     });
     nodeEnter.on("mouseover", function(d) {
-        var selection = dg.network.nodeSelection.select(function(n) {
+        var selection = dg.network.selections.node.select(function(n) {
             return n.key == d.key ? this : null;
         });
         selection.moveToFront();
@@ -473,14 +586,14 @@ function dg_network_onNodeEnterEventBindings(nodeEnter) {
         d.lastTouchTime = thisTime;
         if (!lastTime || (500 < (thisTime - lastTime))) {
             if (!dg.network.isUpdating) {
-                dg.network.nodes.forEach(function(n) { n.fixed = false; });
+                dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
                 d.fixed = true;
                 dg_network_selectNode(d.key);
             }
         } else if ((thisTime - lastTime) < 500) {
             if (!dg.network.isUpdating) { dg_network_navigate(d.key, true); }
         }
-        d3.event.stopPropagation(); // What is this for?
+        d3.event.stopPropagation(); // Prevents propagation to #svg element.
     });
 }
 
@@ -488,8 +601,8 @@ function dg_network_onNodeExit(nodeExit) {
     nodeExit.remove();
 }
 
-function dg_network_onNodeUpdate(nodeSelection) {
-    nodeSelection.transition()
+function dg_network_onNodeUpdate(nodeUpdate) {
+    nodeUpdate.transition()
         .duration(1000)
         .style("fill", function(d) {
             if (d.type == 'artist') {
@@ -498,41 +611,71 @@ function dg_network_onNodeUpdate(nodeSelection) {
                 return dg_color_greyscale(d);
             }
         })
-    nodeSelection.selectAll(".more")
-        .transition()
-        .duration(1000)
-        .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
+    nodeUpdate.selectAll(".more").each(function(d, i) {
+        var prevMissing = Boolean(d.hasMissing);
+        var prevMissingByPage = Boolean(d.hasMissingByPage);
+        var currMissing = Boolean(d.missing); 
+        if (!d.missingByPage) {
+            var currMissingByPage = false;
+        } else {
+            var currMissingByPage = Boolean(
+                d.missingByPage[dg.network.pageData.currentPage]
+                );
+        }
+        d3.select(this).transition().duration(1000)
+            .style('opacity', function(d) {
+                return (currMissing || currMissingByPage) ? 1 : 0;
+                })
+            .attrTween('transform', function(d) {
+                var start = prevMissingByPage ? 45 : 0;
+                var stop = currMissingByPage ? 45 : 0;
+                return d3.interpolateString(
+                    "rotate(" + start + ")",
+                    "rotate(" + stop + ")"
+                    );
+                });
+        d.hasMissing = currMissing;
+        d.hasMissingByPage = currMissingByPage;
+    });
 }
 
-function dg_network_onTextUpdate(textSelection) {
+function dg_network_onTextUpdate(textUpdate) {
+    textUpdate.select('.outer').text(dg_network_getNodeText);
+    textUpdate.select('.inner').text(dg_network_getNodeText);
+}
+
+function dg_network_getNodeText(d) { 
+    var name = d.name;
+    if (50 < name.length) {
+        name = name.slice(0, 50) + "...";
+    }
+    if (dg.debug) { 
+        var pages = '[' + d.pages + ']';
+        return pages + ' ' + name;
+    }
+    return name;
 }
 
 function dg_network_onTextEnter(textEnter) {
     var textEnter = textEnter.append("g")
-        .filter(function(d, i) { return !d.isIntermediate ? this : null })
-        .attr("class", function(d) { return "node node-" + d.key; })
+        .attr("class", function(d) { 
+            var classes = [
+                "node",
+                d.key,
+                d.key.split('-')[0],
+                ];
+            return classes.join(" ");
+        })
     textEnter.append("text")
         .attr("class", "outer")
         .attr("dx", function(d) { return dg_network_getOuterRadius(d) + 3; })
         .attr("dy", ".35em")
-        .text(function(d) {
-            var name = d.name;
-            if (50 < name.length) {
-                name = name.slice(0, 50) + "...";
-            }
-            return name;
-        });
+        .text(dg_network_getNodeText);
     textEnter.append("text")
         .attr("class", "inner")
         .attr("dx", function(d) { return dg_network_getOuterRadius(d) + 3; })
         .attr("dy", ".35em")
-        .text(function(d) {
-            var name = d.name;
-            if (50 < name.length) {
-                name = name.slice(0, 50) + "...";
-            }
-            return name;
-        })
+        .text(dg_network_getNodeText);
 }
 
 function dg_network_onTextExit(textExit) {
@@ -540,38 +683,44 @@ function dg_network_onTextExit(textExit) {
 }
 
 function dg_network_startForceLayout() {
-    dg.network.forceLayout.start();
-    dg.network.nodes.forEach(function(n) { n.fixed = false; });
     var keyFunc = function(d) { return d.key }
-    var nodes = dg.network.nodes.filter(function(d) { return !d.isIntermediate; })
-    var links = dg.network.links.filter(function(d) { return !d.isSpline; })
-    dg.network.haloSelection = dg.network.haloSelection.data(nodes, keyFunc);
-    dg.network.nodeSelection = dg.network.nodeSelection.data(nodes, keyFunc);
-    dg.network.textSelection = dg.network.textSelection.data(nodes, keyFunc);
-    dg.network.linkSelection = dg.network.linkSelection.data(links, keyFunc);
-    var hullNodes = dg.network.nodeMap.values().filter(function(d) {
+    var nodes = dg.network.pageData.nodes.filter(function(d) { 
+        return (!d.isIntermediate) && 
+            (-1 != d.pages.indexOf(dg.network.pageData.currentPage));
+    })
+    var links = dg.network.pageData.links.filter(function(d) { 
+        return (!d.isSpline) &&
+            (-1 != d.pages.indexOf(dg.network.pageData.currentPage));
+    })
+    dg.network.selections.halo = dg.network.selections.halo.data(nodes, keyFunc);
+    dg.network.selections.node = dg.network.selections.node.data(nodes, keyFunc);
+    dg.network.selections.text = dg.network.selections.text.data(nodes, keyFunc);
+    dg.network.selections.link = dg.network.selections.link.data(links, keyFunc);
+    var hullNodes = dg.network.pageData.nodes.filter(function(d) {
             return d.cluster !== undefined;
         });
     var hullData = d3.nest().key(function(d) { return d.cluster; })
         .entries(hullNodes)
         .filter(function(d) { return 1 < d.values.length; });
-    dg.network.hullSelection = dg.network.hullSelection.data(hullData);
-    dg_network_onHaloEnter(dg.network.haloSelection.enter());
-    dg_network_onHaloExit(dg.network.haloSelection.exit());
-    dg_network_onHullEnter(dg.network.hullSelection.enter());
-    dg_network_onHullExit(dg.network.hullSelection.exit());
-    dg_network_onNodeEnter(dg.network.nodeSelection.enter());
-    dg_network_onNodeExit(dg.network.nodeSelection.exit());
-    dg_network_onNodeUpdate(dg.network.nodeSelection);
-    dg_network_onTextEnter(dg.network.textSelection.enter());
-    dg_network_onTextExit(dg.network.textSelection.exit());
-    dg_network_onTextUpdate(dg.network.textSelection);
-    dg_network_onLinkEnter(dg.network.linkSelection.enter());
-    dg_network_onLinkExit(dg.network.linkSelection.exit());
-    dg.network.rootLayer.transition()
+    dg.network.selections.hull = dg.network.selections.hull.data(hullData);
+    dg_network_onHaloEnter(dg.network.selections.halo.enter());
+    dg_network_onHaloExit(dg.network.selections.halo.exit());
+    dg_network_onHullEnter(dg.network.selections.hull.enter());
+    dg_network_onHullExit(dg.network.selections.hull.exit());
+    dg_network_onNodeEnter(dg.network.selections.node.enter());
+    dg_network_onNodeExit(dg.network.selections.node.exit());
+    dg_network_onNodeUpdate(dg.network.selections.node);
+    dg_network_onTextEnter(dg.network.selections.text.enter());
+    dg_network_onTextExit(dg.network.selections.text.exit());
+    dg_network_onTextUpdate(dg.network.selections.text);
+    dg_network_onLinkEnter(dg.network.selections.link.enter());
+    dg_network_onLinkExit(dg.network.selections.link.exit());
+    dg_network_onLinkUpdate(dg.network.selections.link);
+    dg.network.layers.root.transition()
         .duration(1000)
         .style("opacity", 1);
-    dg_network_selectNode(dg.network.centerNodeKey);
+    dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
+    dg.network.forceLayout.start();
 }
 
 function dg_network_translate(d) {
@@ -590,6 +739,7 @@ function dg_network_splineInner(name, sX, sY, sR, cX, cY) {
 }
 
 function dg_network_spline(d) {
+    //console.log(d);
     var sX = d.source.x;
     var sY = d.source.y;
     var tX = d.target.x;
@@ -611,10 +761,30 @@ function dg_network_spline(d) {
     }
 }
 
+function dg_network_tick_link(d, i) {
+    var group = d3.select(this);
+    var spline = dg_network_spline(d);
+    var x1 = d.source.x;
+    var y1 = d.source.y;
+    var x2 = d.target.x;
+    var y2 = d.target.y;
+    group.selectAll('path')
+        .attr("d", spline)
+        .attr("x1", x1)
+        .attr("y1", y1)
+        .attr("x2", x2)
+        .attr("y2", y2);
+    var path = group.select('path').node();
+    var point = path.getPointAtLength(path.getTotalLength() / 2);
+    var text = group.select('text')
+        .attr('dx', point.x)
+        .attr('dy', point.y);
+}
+
 function dg_network_tick(e) {
     var k = e.alpha * 0.5;
-    dg.network.nodes.filter(function(d) {
-        return d.key == dg.network.centerNodeKey && !d.fixed;
+    dg.network.pageData.nodes.filter(function(d) {
+        return d.key == dg.network.data.json.center.key && !d.fixed;
     }).forEach(function(d) {
         var dims = dg.network.dimensions;
         var dx = ((dims[0] / 2) - d.x) * k;
@@ -622,24 +792,11 @@ function dg_network_tick(e) {
         d.x += dx;
         d.y += dy;
     });
-    dg.network.linkSelection.select(".inner")
-        .attr("d", dg_network_spline)
-        .attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-
-    dg.network.linkSelection.select(".outer")
-        .attr("d", dg_network_spline)
-        .attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-
-    dg.network.haloSelection.attr("transform", dg_network_translate);
-    dg.network.nodeSelection.attr("transform", dg_network_translate);
-    dg.network.textSelection.attr("transform", dg_network_translate);
-    dg.network.hullSelection.select("path").attr("d", function(d) {
+    dg.network.selections.link.each(dg_network_tick_link);
+    dg.network.selections.halo.attr("transform", dg_network_translate);
+    dg.network.selections.node.attr("transform", dg_network_translate);
+    dg.network.selections.text.attr("transform", dg_network_translate);
+    dg.network.selections.hull.select("path").attr("d", function(d) {
         return "M" + d3.geom.hull(dg_network_getHullVertices(d.values)).join("L") + "Z"; });
 }
 
@@ -655,156 +812,122 @@ function dg_network_getHullVertices(nodes) {
     return vertices;
 }
 
-function dg_network_updateForceLayout() {
-    var json = dg.network.json;
-
+function dg_network_processJson(json) {
     var newNodeMap = d3.map();
+    var newLinkMap = d3.map();
     json.nodes.forEach(function(node) {
         node.radius = dg_network_getOuterRadius(node);
         newNodeMap.set(node.key, node);
     });
-
-    var newLinkMap = d3.map();
     json.links.forEach(function(link) {
         var source = link.source,
             target = link.target;
         if (link.role != 'Alias') {
             var role = link.role.toLocaleLowerCase().replace(/\s+/g, "-");
-            var intermediate = {
+            var intermediateNode = {
                 key: link.key,
                 isIntermediate: true,
+                pages: link.pages,
                 size: 0,
                 };
-            var s2iLink = {
+            var s2iSplineLink = {
                 isSpline: true,
                 key: source + "-" + role + "-[" + target + "]",
+                pages: link.pages,
                 source: source,
                 target: link.key,
             };
-            var i2tLink = {
+            var i2tSplineLink = {
                 isSpline: true,
                 key: "[" + source + "]-" + role + "-" + target,
+                pages: link.pages,
                 source: link.key,
                 target: target,
             };
             link.intermediate = link.key;
-            newNodeMap.set(link.key, intermediate);
-            newLinkMap.set(s2iLink.key, s2iLink);
-            newLinkMap.set(i2tLink.key, i2tLink);
+            newNodeMap.set(link.key, intermediateNode);
+            newLinkMap.set(s2iSplineLink.key, s2iSplineLink);
+            newLinkMap.set(i2tSplineLink.key, i2tSplineLink);
         }
         newLinkMap.set(link.key, link);
     });
-
-    // NODES
     var nodeKeysToRemove = [];
-    dg.network.nodeMap.keys().forEach(function(key) {
+    dg.network.data.nodeMap.keys().forEach(function(key) {
         if (!newNodeMap.has(key)) {
             nodeKeysToRemove.push(key);
         };
     });
     nodeKeysToRemove.forEach(function(key) {
-        dg.network.nodeMap.remove(key);
+        dg.network.data.nodeMap.remove(key);
     });
-
-    // LINKS
     var linkKeysToRemove = [];
-    dg.network.linkMap.keys().forEach(function(key) {
+    dg.network.data.linkMap.keys().forEach(function(key) {
         if (!newLinkMap.has(key)) {
             linkKeysToRemove.push(key);
         };
     });
     linkKeysToRemove.forEach(function(key) {
-        dg.network.linkMap.remove(key);
+        dg.network.data.linkMap.remove(key);
     });
-
-    // UPDATE NODE PROPERTIES
     newNodeMap.entries().forEach(function(entry) {
         var key = entry.key;
-        var value = entry.value;
-        if (dg.network.nodeMap.has(key)) {
-            if (!value.isIntermediate) {
-                var node = dg.network.nodeMap.get(key);
-                node.cluster = value.cluster;
-                node.distance = value.distance;
-                node.missing = value.missing;
-            }
+        var newNode = entry.value;
+        if (dg.network.data.nodeMap.has(key)) {
+            var oldNode = dg.network.data.nodeMap.get(key);
+            oldNode.cluster = newNode.cluster;
+            oldNode.distance = newNode.distance;
+            oldNode.links = newNode.links;
+            oldNode.missing = newNode.missing;
+            oldNode.missingByPage = newNode.missingByPage;
+            oldNode.pages = newNode.pages;
         } else {
-            value.x = dg.network.newNodeCoords[0] + (Math.random() * 200) - 100;
-            value.y = dg.network.newNodeCoords[1] + (Math.random() * 200) - 100;
-            dg.network.nodeMap.set(key, value);
+            newNode.x = dg.network.newNodeCoords[0] + (Math.random() * 200) - 100;
+            newNode.y = dg.network.newNodeCoords[1] + (Math.random() * 200) - 100;
+            dg.network.data.nodeMap.set(key, newNode);
         }
     });
-
-    // UPDATE LINK REFERENCES
     newLinkMap.entries().forEach(function(entry) {
-        if (!dg.network.linkMap.has(entry.key)) {
-            entry.value.source = dg.network.nodeMap.get(entry.value.source);
-            entry.value.target = dg.network.nodeMap.get(entry.value.target);
-            if (entry.value.intermediate !== undefined) {
-                entry.value.intermediate = dg.network.nodeMap.get(entry.value.intermediate);
+        var key = entry.key;
+        var newLink = entry.value;
+        if (dg.network.data.linkMap.has(key)) {
+            var oldLink = dg.network.data.linkMap.get(key);
+            oldLink.pages = newLink.pages; 
+        } else {
+            newLink.source = dg.network.data.nodeMap.get(newLink.source);
+            newLink.target = dg.network.data.nodeMap.get(newLink.target);
+            if (newLink.intermediate !== undefined) {
+                newLink.intermediate = dg.network.data.nodeMap.get(newLink.intermediate);
             }
-            dg.network.linkMap.set(entry.key, entry.value);
+            dg.network.data.linkMap.set(key, newLink);
         }
     });
-
-    // CALCULATE MAXIMUM DISTANCE
     var distances = []
-    dg.network.nodeMap.values().forEach(function(node) {
+    dg.network.data.nodeMap.values().forEach(function(node) {
         if (node.distance !== undefined) {
             distances.push(node.distance);
         }
     })
-    dg.network.maxDistance = Math.max.apply(Math, distances);
-
-    // CALCULATE NEIGHBORHOODS
-    var linkNeighborhoodMap = d3.map()
-    dg.network.linkMap.values().forEach(function(link) {
-        if (link.isSpline) { return; }
-        if (!linkNeighborhoodMap.has(link.source.key)) {
-            linkNeighborhoodMap.set(link.source.key, []);
-        }
-        linkNeighborhoodMap.get(link.source.key).push(link.key);
-        if (!linkNeighborhoodMap.has(link.target.key)) {
-            linkNeighborhoodMap.set(link.target.key, []);
-        }
-        linkNeighborhoodMap.get(link.target.key).push(link.key);
-    });
-    linkNeighborhoodMap.entries().forEach(function(entry) {
-        dg.network.nodeMap.get(entry.key).links = entry.value;
-    });
-
-    // PUSH DATA
-    dg.network.nodes.length = 0;
-    Array.prototype.push.apply(dg.network.nodes, dg.network.nodeMap.values());
-    dg.network.links.length = 0;
-    Array.prototype.push.apply(dg.network.links, dg.network.linkMap.values());
-    dg.network.centerNodeKey = json.center;
+    dg.network.data.maxDistance = Math.max.apply(Math, distances);
 }
 
 function dg_network_init() {
-    var rootLayer = d3.select("#svg").append("g")
+    var root = d3.select("#svg").append("g")
         .attr("id", "networkLayer");
-    dg.network.rootLayer = rootLayer;
+    dg.network.layers.root = root;
     d3.select("#svg").on("mousedown", function() {
-        dg.network.nodes.forEach(function(n) { n.fixed = false; });
+        dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
         dg_network_selectNode(null);
     });
-    dg.network.haloLayer = rootLayer.append("g").attr("id", "haloLayer");
-    dg.network.linkLayer = rootLayer.append("g").attr("id", "linkLayer");
-    dg.network.nodeLayer = rootLayer.append("g").attr("id", "nodeLayer");
-    dg.network.textLayer = rootLayer.append("g").attr("id", "textLayer");
-    dg.network.haloSelection = dg.network.haloLayer.selectAll(".node");
-    dg.network.hullSelection = dg.network.haloLayer.selectAll(".hull");
-    dg.network.linkSelection = dg.network.linkLayer.selectAll(".link");
-    dg.network.nodeSelection = dg.network.nodeLayer.selectAll(".node");
-    dg.network.textSelection = dg.network.textLayer.selectAll(".node");
+    dg.network.layers.halo = root.append("g").attr("id", "haloLayer");
+    dg.network.layers.link = root.append("g").attr("id", "linkLayer");
+    dg.network.layers.node = root.append("g").attr("id", "nodeLayer");
+    dg.network.layers.text = root.append("g").attr("id", "textLayer");
+    dg.network.selections.halo = dg.network.layers.halo.selectAll(".node");
+    dg.network.selections.hull = dg.network.layers.halo.selectAll(".hull");
+    dg.network.selections.link = dg.network.layers.link.selectAll(".link");
+    dg.network.selections.node = dg.network.layers.node.selectAll(".node");
+    dg.network.selections.text = dg.network.layers.text.selectAll(".node");
     dg.network.forceLayout = dg_network_setupForceLayout();
-}
-
-function dg_timeline_init() {
-    var rootLayer = d3.select("#svg").append("g")
-        .attr("id", "timelineLayer");
-    dg.timeline.rootLayer = rootLayer;
 }
 
 function dg_svg_init() {
@@ -924,22 +1047,28 @@ function dg_svg_setupDefs() {
 $(document).ready(function() {
     dg_svg_init();
     dg_network_init();
-    dg_timeline_init();
     dg_typeahead_init();
     if (dgData) {
-        dg_history_replaceState(dgData.center);
+        dg_history_replaceState(dgData.center.key);
         dg_network_handleAsyncData(dgData, false);
     }
     $('[data-toggle="tooltip"]').tooltip();
     (function() {
         var click = $.debounce(300, function() {
             var url = '/api/random?' + Math.floor(Math.random() * 1000000);
-            d3.json(url, function(error, json) {
-                if (error) { console.warn(error); return; }
-                if (!dg.network.isUpdating) {
+            if (!dg.network.isUpdating) {
+                dg.network.layers.root.transition()
+                    .style("opacity", 0.333);
+                $("#page-loading")
+                    .removeClass("glyphicon-random")
+                    .addClass("glyphicon-animate glyphicon-refresh");
+                d3.json(url, function(error, json) {
+                    if (error) { console.warn(error); return; }
                     dg_network_navigate(json.center, true);
-                }
-            });
+                });
+            } else {
+                dg_warn();                 
+            }
         });
         $('#brand').on("click touchstart", function(event) {
             click();
@@ -947,9 +1076,44 @@ $(document).ready(function() {
             event.preventDefault();
         });
     }());
+    $('#paging .previous a').click(function(event) {
+        dg_network_prevPage();
+        $(this).tooltip('hide');
+        event.preventDefault();
+    });
+    $('#paging .next a').click(function(event) {
+        dg_network_nextPage();
+        $(this).tooltip('hide');
+        event.preventDefault();
+    });
+    /*
+    $('#filter-roles').multiselect({
+        buttonWidth: "160px",
+        enableFiltering: true,
+        enableCaseInsensitiveFiltering: true,
+        includeSelectAllOption: true,
+        inheritClass: true,
+        enableClickableOptGroups: true,
+        maxHeight: 400,
+        nonSelectedText: 'Select relationships'
+    });
+    $('#filter').on('reset', function(event) {
+        $('#filter-roles option:selected').each(function() {
+            $(this).prop('selected', false);
+        });
+        $('#filter-roles').multiselect('refresh');
+        event.preventDefault();
+    });
+    $('#filter').fadeIn(3000);
+    */
     window.addEventListener("popstate", dg_history_onPopState);
     console.log('discograph initialized.');
 });
+
+dg.selectPage = function(page) {
+    dg_network_selectPage(page);
+    dg_network_startForceLayout();
+}
 
 return dg;
 

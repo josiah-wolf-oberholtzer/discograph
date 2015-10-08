@@ -28,13 +28,14 @@ def route__api__entity_type__timeline__entity_id(entity_type, entity_id):
 @blueprint.route('/<entity_type>/network/<int:entity_id>')
 @decorators.limit(max_requests=60, period=60)
 def route__api__entity_type__network__entity_id(entity_type, entity_id):
-    if entity_type != 'artist':
+    if entity_type not in ('artist', 'label'):
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     on_mobile = request.MOBILE
-    data = helpers.discograph_api.get_network(
+    data = helpers.get_network(
         entity_id,
         entity_type,
         on_mobile=on_mobile,
+        cache=True,
         )
     if data is None:
         raise exceptions.APIError(message='No Data', status_code=400)
@@ -44,7 +45,7 @@ def route__api__entity_type__network__entity_id(entity_type, entity_id):
 @blueprint.route('/search/<search_string>')
 @decorators.limit(max_requests=120, period=60)
 def route__api__search(search_string):
-    data = helpers.discograph_api.search_entities(search_string)
+    data = helpers.search_entities(search_string)
     return jsonify(data)
 
 
@@ -52,7 +53,7 @@ def route__api__search(search_string):
 @decorators.limit(max_requests=60, period=60)
 def route__api__random():
     role_names = ['Alias', 'Member Of']
-    entity_type, entity_id = helpers.discograph_api.get_random_entity(
+    entity_type, entity_id = helpers.get_random_entity(
         role_names=role_names,
         )
     entity_type = {

@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # -*- encoding: utf-8 -*-
+import os
 import traceback
 
 from flask import Flask
@@ -9,14 +10,23 @@ from flask import make_response
 from flask import render_template
 from flask import request
 from flask.ext.mobility import Mobility
+from werkzeug.contrib.cache import FileSystemCache
 from werkzeug.contrib.fixers import ProxyFix
 
 from discograph import api
-from discograph import exceptions
 from discograph import ui
+from discograph import exceptions
+
 
 app = Flask(__name__)
-app.debug = True
+app.config.from_object('config.DevelopmentConfiguration')
+app.cache = FileSystemCache(
+    app.config['FILE_CACHE_PATH'],
+    default_timeout=app.config['FILE_CACHE_TIMEOUT'],
+    threshold=app.config['FILE_CACHE_THRESHOLD'],
+    )
+if not os.path.exists(app.config['FILE_CACHE_PATH']):
+    os.makedirs(app.config['FILE_CACHE_PATH'])
 app.register_blueprint(api.blueprint, url_prefix='/api')
 app.register_blueprint(ui.blueprint)
 app.wsgi_app = ProxyFix(app.wsgi_app)

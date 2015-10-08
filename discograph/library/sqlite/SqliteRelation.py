@@ -96,7 +96,27 @@ class SqliteRelation(SqliteModel):
         return list(query)
 
     @classmethod
-    def search_multi(cls, entities, role_names=None, query_only=False):
+    def search_multi(cls, entities, role_names=None, year=None, verbose=True):
+        def build_where_clause(entity_ids, entity_type):
+            where_clause = (
+                (cls.entity_one_type == entity_type) &
+                (cls.entity_one_id.in_(entity_ids))
+                ) | (
+                (cls.entity_two_type == entity_type) &
+                (cls.entity_two_id.in_(entity_ids))
+                )
+            if role_names:
+                where_clause &= cls.role_name.in_(role_names)
+            if year is not None:
+                year_clause = cls.year.is_null(True)
+                if isinstance(year, int):
+                    year_clause |= cls.year == year
+                else:
+                    year_clause |= cls.year.between(year[0], year[1])
+                where_clause &= year_clause
+            return where_clause
+        if verbose:
+            print('            Searching... {}'.format(len(entities)))
         artist_ids = []
         label_ids = []
         for entity_type, entity_id in entities:
@@ -104,27 +124,15 @@ class SqliteRelation(SqliteModel):
                 artist_ids.append(entity_id)
             else:
                 label_ids.append(entity_id)
-        artist_where_clause = (
-            (cls.entity_one_type == 1) &
-            (cls.entity_one_id.in_(artist_ids))
-            ) | (
-            (cls.entity_two_type == 1) &
-            (cls.entity_two_id.in_(artist_ids))
-            )
-        if role_names:
-            artist_where_clause &= (cls.role_name.in_(role_names))
-        artist_query = cls.select().where(artist_where_clause)
-        label_where_clause = (
-            (cls.entity_one_type == 1) &
-            (cls.entity_one_id.in_(label_ids))
-            ) | (
-            (cls.entity_two_type == 1) &
-            (cls.entity_two_id.in_(label_ids))
-            )
-        if role_names:
-            label_where_clause &= (cls.role_name.in_(role_names))
-        label_query = cls.select().where(label_where_clause)
-        if query_only:
-            return artist_query, label_query
-        return list(_._data for _ in artist_query) + \
-            list(_._data for _ in label_query)
+        relations = []
+        if artist_ids:
+            artist_where_clause = build_where_clause(artist_ids, 1)
+            artist_query = cls.select().where(artist_where_clause)
+            #print(artist_query)
+            relations.extend(list(artist_query))
+        if label_ids:
+            label_where_clause = build_where_clause(label_ids, 2)
+            label_query = cls.select().where(label_where_clause)
+            #print(label_query)
+            relations.extend(list(label_query))
+        return relations
