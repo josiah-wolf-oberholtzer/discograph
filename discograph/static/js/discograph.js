@@ -497,7 +497,14 @@ function dg_network_onLinkUpdate(linkSelection) {
 
 function dg_network_onNodeEnter(nodeEnter) {
     var nodeEnter = nodeEnter.append("g")
-        .attr("class", function(d) { return "node node-" + d.key; })
+        .attr("class", function(d) { 
+            var classes = [
+                "node",
+                "node-" + d.key,
+                d.key.split('-')[0],
+                ];
+            return classes.join(" ");
+        })
         .style("fill", function(d) {
             if (d.type == 'artist') {
                 return dg_color_heatmap(d);
