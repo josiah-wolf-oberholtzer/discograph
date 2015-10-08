@@ -123,17 +123,19 @@ function dg_network_setupForceLayout() {
         .friction(0.9)
         .linkDistance(function(d, i) {
             if (d.isSpline) {
-                return 50;
-            } else if (d.role != 'Alias') {
+                return 40 + (Math.random() * 20);
+            } else if (d.role == 'Alias') {
                 return 100;
+            } else if (d.role == 'Released On') {
+                return 200;
             } else {
-                return 150;
+                return 90 + (Math.random() * 20);
             }
         })
         .charge(-300)
-        .chargeDistance(1000)
+        //.chargeDistance(1000)
         .gravity(0.2)
-        .theta(0.1)
+        .theta(0.8)
         .alpha(0.1);
 }
 
@@ -442,22 +444,6 @@ function dg_network_onLinkEnterElementConstruction(linkEnter) {
         ]
     linkEnter.append("path")
         .attr("class", "inner")
-        .attr("marker-end", function(d) {
-            if (d.role == "Alias") {
-                return "none";
-            } else if (aggregateRoleNames.indexOf(d.role) != -1) {
-                return "url(#aggregate)";
-            } else {
-                return "url(#arrowhead)";
-            }
-        })
-        .style("stroke-dasharray", function(d) {
-            if (d.role == "Alias") {
-                return "2, 4";
-            } else {
-                return "0, 0";
-            }
-        });
     linkEnter.append("path")
         .attr("class", "outer")
         .append("title").text(function(d) {

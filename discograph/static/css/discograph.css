@@ -92,6 +92,14 @@ form .clear,
 
 /* NETWORK */
 
+.link {
+    opacity: 0.25;
+    }
+
+.link.selected {
+    opacity: 1;
+    }
+
 .link .inner {
     fill: none;
     stroke-linecap: round;
@@ -107,8 +115,20 @@ form .clear,
     stroke-width: 10;
     }
 
-.link {
-    opacity: 0.25;
+.link .inner {
+    marker-end: url(#arrowhead);
+    stroke-dasharray: 0, 0;
+    }
+
+.link.alias .inner {
+    marker-end: none;
+    stroke-dasharray: 2, 4;
+    }
+
+.link.member-of .inner,
+.link.released-on .inner,
+.link.sublabel-of .inner {
+    marker-end: url(#aggregate);
     }
 
 .hull path {
@@ -164,10 +184,6 @@ form .clear,
     fill: #000;
     opacity: 0;
     stroke: none;
-    }
-
-.link.selected {
-    opacity: 1;
     }
 
 .node.selected {
