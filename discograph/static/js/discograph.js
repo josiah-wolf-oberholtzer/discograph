@@ -348,47 +348,35 @@ function dg_network_navigate(key, pushHistory) {
 function dg_network_selectNode(key) {
     dg.network.pageData.selectedNodeKey = key;
     if (key !== null) {
-        var haloOff = dg.network.selections.halo.filter("*:not(.node-" + key + ")");
-        var nodeOff = dg.network.selections.node.filter("*:not(.node-" + key + ")");
-        var textOff = dg.network.selections.text.filter("*:not(.node-" + key + ")");
-        var nodeOn = dg.network.selections.node.filter(".node-" + key);
-        var linkKeys = nodeOn.data()[0].links;
-        var linkOff = dg.network.selections.link.filter(function(d) {
+        var nodeOn = dg.network.layers.root.selectAll('.' + key);
+        var nodeOff = dg.network.layers.root.selectAll('*:not(.' + key + ')');
+        var linkKeys = nodeOn.datum().links;
+        var linkOn = dg.network.selections.link.filter(function(d) { 
+            return 0 <= linkKeys.indexOf(d.key);
+        });
+        var linkOff = dg.network.selections.link.filter(function(d) { 
             return linkKeys.indexOf(d.key) == -1;
         });
+        nodeOn.classed('selected', true);
+        nodeOff.classed('selected', false);
+        linkOn.classed('selected', true);
+        linkOff.classed('selected', false);
+        var node = dg.network.data.nodeMap.get(key);
+        var url = 'http://discogs.com/' + node.type + '/' + node.id;
+        $('#entity-name').text(node.name);
+        $('#entity-link')
+            .attr('href', url)
+            .removeClass('hidden')
+            .show(0);
+        nodeOn.moveToFront();
     } else {
-        var haloOff = dg.network.selections.halo;
-        var nodeOff = dg.network.selections.node;
+        var nodeOff = dg.network.layers.root.selectAll('.node');
         var linkOff = dg.network.selections.link;
-        var textOff = dg.network.selections.text;
-    }
-    haloOff.select(".halo").style("fill-opacity", 0.);
-    linkOff.style("opacity", 0.25);
-    nodeOff.select(".more").style("fill", "#fff");
-    nodeOff.style("stroke", "#fff");
-    textOff.select(".icon").remove();
-    if (key === null) {
+        nodeOff.classed('selected', false);
+        linkOff.classed('selected', false);
         $('#entity-link').hide(0);
         return;
     }
-    var node = dg.network.data.nodeMap.get(key);
-    var url = 'http://discogs.com/' + node.type + '/' + node.id;
-    $('#entity-name').text(node.name);
-    $('#entity-link')
-        .attr('href', url)
-        .removeClass('hidden')
-        .show(0);
-    var haloOn = dg.network.selections.halo.filter(".node-" + key);
-    var linkOn = dg.network.selections.link.filter(function(d) {
-        return 0 <= linkKeys.indexOf(d.key);
-    });
-    var textOn = dg.network.selections.text.filter(".node-" + key);
-    haloOn.select(".halo").style("fill-opacity", 0.1);
-    linkOn.style("opacity", 1);
-    nodeOn.moveToFront();
-    nodeOn.select(".more").style("fill", "#000");
-    nodeOn.style("stroke", "#000")
-    textOn.moveToFront();
 }
 
 function dg_network_getOuterRadius(d) {
@@ -404,7 +392,14 @@ function dg_network_getInnerRadius(d) {
 
 function dg_network_onHaloEnter(haloEnter) {
     var haloEnter = haloEnter.append("g")
-        .attr("class", function(d) { return "node node-" + d.key; })
+        .attr("class", function(d) { 
+            var classes = [
+                "node",
+                d.key,
+                d.key.split('-')[0],
+                ];
+            return classes.join(" ");
+        })
     haloEnter.append("circle")
         .attr("class", "halo")
         .attr("r", function(d) { return dg_network_getOuterRadius(d) + 40; });
@@ -426,7 +421,16 @@ function dg_network_onHullExit(hullExit) {
 
 function dg_network_onLinkEnter(linkEnter) {
     var linkEnter = linkEnter.append("g")
-        .attr("class", function(d) { return "link link-" + d.key; });
+        .attr("class", function(d) { 
+            var parts = d.key.split('-');
+            var role = parts.slice(2, 2 + parts.length - 4).join('-')
+            var classes = [
+                "link",
+                "link-" + d.key,
+                role,
+                ];
+            return classes.join(" ");
+        });
     dg_network_onLinkEnterElementConstruction(linkEnter);
     dg_network_onLinkEnterEventBindings(linkEnter);
 }
@@ -500,7 +504,7 @@ function dg_network_onNodeEnter(nodeEnter) {
         .attr("class", function(d) { 
             var classes = [
                 "node",
-                "node-" + d.key,
+                d.key,
                 d.key.split('-')[0],
                 ];
             return classes.join(" ");
@@ -553,9 +557,6 @@ function dg_network_onNodeEnterElementConstruction(nodeEnter) {
     nodeEnter.append("path")
         .attr("class", "more")
         .attr("d", d3.svg.symbol().type("cross").size(64))
-        .style("stroke-width", 0)
-        .style("fill-opacity", 1)
-        .style("fill", "#fff")
         .style("opacity", function(d) {return 0 < d.missing ? 1 : 0; });
     nodeEnter.append("title")
         .text(function(d) { return d.name; });
@@ -657,7 +658,14 @@ function dg_network_getNodeText(d) {
 
 function dg_network_onTextEnter(textEnter) {
     var textEnter = textEnter.append("g")
-        .attr("class", function(d) { return "node node-" + d.key; })
+        .attr("class", function(d) { 
+            var classes = [
+                "node",
+                d.key,
+                d.key.split('-')[0],
+                ];
+            return classes.join(" ");
+        })
     textEnter.append("text")
         .attr("class", "outer")
         .attr("dx", function(d) { return dg_network_getOuterRadius(d) + 3; })
@@ -784,23 +792,7 @@ function dg_network_tick(e) {
         d.x += dx;
         d.y += dy;
     });
-
     dg.network.selections.link.each(dg_network_tick_link);
-    /*
-    dg.network.selections.link.select(".inner")
-        .attr("d", dg_network_spline)
-        .attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-    dg.network.selections.link.select(".outer")
-        .attr("d", dg_network_spline)
-        .attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-    */
-
     dg.network.selections.halo.attr("transform", dg_network_translate);
     dg.network.selections.node.attr("transform", dg_network_translate);
     dg.network.selections.text.attr("transform", dg_network_translate);
