@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import flask
 import functools
+import re
 import redis
 import time
 
@@ -8,6 +9,20 @@ from discograph import exceptions
 
 
 redis_client = redis.StrictRedis()
+
+
+class cache(object):
+
+    urlify_pattern = re.compile(r"\s+", re.MULTILINE)
+
+    def __init__(self, cache_object, cache_key):
+        self.cache_object = cache_object
+        self.cache_key = cache_key
+
+    def __call__(self, f):
+        def wrapped(*args, **kwargs):
+            return f(*args, **kwargs)
+        return wrapped
 
 
 def limit(max_requests=10, period=60):
@@ -46,3 +61,6 @@ def limit(max_requests=10, period=60):
 
         return wrapped
     return decorator
+
+
+__all__ = ['cache', 'limit']

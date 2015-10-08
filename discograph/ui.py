@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import json
 from flask import Blueprint
+from flask import current_app
 from flask import make_response
 from flask import redirect
 from flask import request
@@ -15,11 +16,12 @@ blueprint = Blueprint('ui', __name__, template_folder='templates')
 
 @blueprint.route('/')
 def route__index():
+    app = current_app._get_current_object()
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
     initial_json = 'var dgData = null;'
     rendered_template = render_template(
         'index.html',
-        application_url=helpers.discograph_api.application_url,
+        application_url=app.config['APPLICATION_ROOT'],
         initial_json=initial_json,
         is_a_return_visitor=is_a_return_visitor,
         og_title='Disco/graph: visualizing music as a social graph',
@@ -34,6 +36,7 @@ def route__index():
 
 @blueprint.route('/<entity_type>/<int:entity_id>')
 def route__entity_type__entity_id(entity_type, entity_id):
+    app = current_app._get_current_object()
     if entity_type != 'artist':
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     on_mobile = request.MOBILE
@@ -41,7 +44,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
         entity_id,
         entity_type,
         on_mobile=on_mobile,
-        cache=False,
+        cache=True,
         )
     if data is None:
         raise exceptions.APIError(message='No Data', status_code=500)
@@ -59,7 +62,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
     title = 'Disco/graph: {}'.format(entity_name)
     rendered_template = render_template(
         'index.html',
-        application_url=helpers.discograph_api.application_url,
+        application_url=app.config['APPLICATION_ROOT'],
         initial_json=initial_json,
         is_a_return_visitor=is_a_return_visitor,
         key=key,

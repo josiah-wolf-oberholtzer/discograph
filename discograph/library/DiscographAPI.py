@@ -1,60 +1,26 @@
 # -*- encoding: utf-8 -*-
-import os
 import random
 import re
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser
 from abjad.tools import systemtools
-from werkzeug.contrib.cache import FileSystemCache
 
 
 class DiscographAPI(object):
 
     urlify_pattern = re.compile(r"\s+", re.MULTILINE)
 
-    ### INITIALIZER ###
-
-    def __init__(self):
-        import discograph
-        config_path = os.path.join(
-            discograph.__path__[0],
-            'configuration',
-            'discograph.cfg',
-            )
-        parser = ConfigParser()
-        parser.read(config_path)
-        if parser.has_option('url', 'application_url'):
-            self._application_url = parser.get('url', 'application_url')
-        else:
-            self._application_url = ''
-        if parser.has_option('cache', 'directory'):
-            cache_path = parser.get('cache', 'directory')
-        else:
-            cache_path = os.path.join('..', 'tmp')
-        cache_path = os.path.join(discograph.__path__[0], cache_path)
-        if not os.path.exists(cache_path):
-            os.makedirs(cache_path)
-        self._cache = FileSystemCache(
-            cache_path,
-            default_timeout=60 * 60 * 48,
-            threshold=1024 * 32,
-            )
-        #print('Clearing cache.')
-        #self._cache.clear()
-
     ### PUBLIC METHODS ###
 
     def cache_get(self, cache_key):
-        data = self.cache.get(cache_key)
+        from discograph import app
+        data = app.cache.get(cache_key)
         if data is not None:
             print('Cache Hit:  {}'.format(cache_key))
             return data
         print('Cache Miss: {}'.format(cache_key))
 
     def cache_set(self, cache_key, data):
-        self.cache.set(cache_key, data)
+        from discograph import app
+        app.cache.set(cache_key, data)
 
     def get_network(self, entity_id, entity_type, on_mobile=False, cache=True):
         import discograph
@@ -148,13 +114,3 @@ class DiscographAPI(object):
         data = {'results': tuple(data)}
         self.cache_set(cache_key, data)
         return data
-
-    ### PUBLIC PROPERTIES ###
-
-    @property
-    def application_url(self):
-        return self._application_url
-
-    @property
-    def cache(self):
-        return self._cache
