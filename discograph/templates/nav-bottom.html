@@ -1,11 +1,40 @@
 <nav id="nav-bottom" class="navbar navbar-default navbar-fixed-bottom"> 
     <div class="container-fluid">
         <div class="navbar-header"> 
-            <a id="entity-link" class="truncate navbar-brand hidden truncate" href="#" target="_blank"
-                data-toggle="tooltip" title="visit them on discogs.com">
+            <button type="button" class="navbar-toggle collapsed" 
+                data-toggle="collapse" data-target="#nav-bottom-details">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a id="entity-link" class="truncate navbar-brand hidden truncate" 
+                href="#" target="_blank" data-toggle="tooltip" 
+                title="visit them on discogs.com">
                 <span class="glyphicon glyphicon-new-window"></span>
                 <span id="entity-name">Band Name</span>
             </a>
+        </div>
+        <div class="collapse navbar-collapse" id="nav-bottom-details">
+            <form id="filter" class="navbar-form navbar-right" action="#">
+                <div class="btn-group dropup">
+                    <select id="filter-roles" multiple="multiple" name="roles" class="form-control">
+                    {% for category, roles in multiselect_mapping.items() %}
+                        <optgroup label="{{ category }}">
+                        {% for role in roles %}
+                            {% if role in original_role_names %}
+                            <option value="{{ role }}" selected>{{ role }}</option>
+                            {% else %}
+                            <option value="{{ role }}">{{ role }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </optgroup>
+                    {% endfor %}
+                    </select>
+                    <button id="filter-reset" type="reset" class="btn btn-default">Reset</button>
+                </div>
+                <button type="submit" class="submit btn btn-default">Filter</button>
+            </form>
         </div>
     </div>
 </nav>

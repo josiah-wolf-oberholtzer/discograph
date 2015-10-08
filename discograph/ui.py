@@ -3,7 +3,6 @@ import json
 from flask import Blueprint
 from flask import current_app
 from flask import make_response
-from flask import redirect
 from flask import request
 from flask import render_template
 
@@ -16,17 +15,25 @@ blueprint = Blueprint('ui', __name__, template_folder='templates')
 
 @blueprint.route('/')
 def route__index():
+    import discograph
     app = current_app._get_current_object()
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
     initial_json = 'var dgData = null;'
+    on_mobile = request.MOBILE
+    parsed_args = helpers.parse_request_args(request.args)
+    original_role_names, original_year = parsed_args
+    multiselect_mapping = discograph.CreditRole.get_multiselect_mapping()
     rendered_template = render_template(
         'index.html',
         application_url=app.config['APPLICATION_ROOT'],
         initial_json=initial_json,
         is_a_return_visitor=is_a_return_visitor,
+        multiselect_mapping=multiselect_mapping,
         og_title='Disco/graph: visualizing music as a social graph',
         og_url='/',
-        on_mobile=request.MOBILE,
+        on_mobile=on_mobile,
+        original_role_names=original_role_names,
+        original_year=original_year,
         title='Disco/graph: Visualizing music as a social graph',
         )
     response = make_response(rendered_template)
@@ -36,7 +43,10 @@ def route__index():
 
 @blueprint.route('/<entity_type>/<int:entity_id>')
 def route__entity_type__entity_id(entity_type, entity_id):
+    import discograph
     app = current_app._get_current_object()
+    parsed_args = helpers.parse_request_args(request.args)
+    original_role_names, original_year = parsed_args
     if entity_type != 'artist':
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     on_mobile = request.MOBILE
@@ -60,27 +70,21 @@ def route__entity_type__entity_id(entity_type, entity_id):
     key = '{}-{}'.format(entity_type, entity_id)
     url = '/{}/{}'.format(entity_type, entity_id)
     title = 'Disco/graph: {}'.format(entity_name)
+    multiselect_mapping = discograph.CreditRole.get_multiselect_mapping()
     rendered_template = render_template(
         'index.html',
         application_url=app.config['APPLICATION_ROOT'],
         initial_json=initial_json,
         is_a_return_visitor=is_a_return_visitor,
         key=key,
+        multiselect_mapping=multiselect_mapping,
         og_title='Disco/graph: The "{}" network'.format(entity_name),
         og_url=url,
         on_mobile=on_mobile,
+        original_role_names=original_role_names,
+        original_year=original_year,
         title=title,
         )
     response = make_response(rendered_template)
     response.set_cookie('is_a_return_visitor', 'true')
     return response
-
-
-@blueprint.route('/random')
-def route__random():
-    entity_type, entity_id = helpers.discograph_api.get_random_entity()
-    if entity_type == 1:
-        return redirect('/artist/{}'.format(entity_id), status_code=302)
-    elif entity_type == 2:
-        return redirect('/label/{}'.format(entity_id), status_code=302)
-    raise exceptions.APIError(message='Bad Entity Type', status_code=404)
