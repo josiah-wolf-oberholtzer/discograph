@@ -50,7 +50,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
     if entity_type != 'artist':
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     on_mobile = request.MOBILE
-    data = helpers.discograph_api.get_network(
+    data = helpers.get_network(
         entity_id,
         entity_type,
         on_mobile=on_mobile,
