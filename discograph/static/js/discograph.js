@@ -850,6 +850,7 @@ function dg_network_processJson(json) {
             var oldNode = dg.network.data.nodeMap.get(key);
             oldNode.cluster = newNode.cluster;
             oldNode.distance = newNode.distance;
+            oldNode.links = newNode.links;
             oldNode.missing = newNode.missing;
             oldNode.missingByPage = newNode.missingByPage;
             oldNode.pages = newNode.pages;
