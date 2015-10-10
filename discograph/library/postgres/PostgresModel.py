@@ -7,7 +7,7 @@ from playhouse import postgres_ext
 
 database = postgres_ext.PostgresqlExtDatabase(
     'discograph',
-    server_side_cursors=True,
+    #server_side_cursors=True,
     user=None,
     )
 

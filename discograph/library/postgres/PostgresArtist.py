@@ -11,17 +11,18 @@ from discograph.library.Bootstrapper import Bootstrapper
 from discograph.library.postgres.PostgresModel import PostgresModel
 
 
-class PostgresLabel(PostgresModel):
+class PostgresArtist(PostgresModel):
 
     ### PEEWEE FIELDS ###
 
     id = peewee.IntegerField(primary_key=True)
-    contact_info = peewee.TextField(null=True)
-    name = peewee.TextField(index=True)
-    parent_label = postgres_ext.BinaryJSONField(null=True)
     profile = peewee.TextField(null=True)
-    sublabels = postgres_ext.BinaryJSONField(null=True)
-    urls = postgres_ext.ArrayField(peewee.TextField, null=True)
+    name = peewee.TextField(index=True)
+    real_name = peewee.TextField(null=True)
+    name_variations = postgres_ext.ArrayField(peewee.TextField, null=True)
+    aliases = postgres_ext.BinaryJSONField(null=True)
+    members = postgres_ext.BinaryJSONField(null=True)
+    groups = postgres_ext.BinaryJSONField(null=True)
 
     ### PEEWEE META ###
 
@@ -40,14 +41,16 @@ class PostgresLabel(PostgresModel):
     @classmethod
     def bootstrap_pass_one(cls):
         # Pass one.
-        labels_xml_path = Bootstrapper.labels_xml_path
-        with gzip.GzipFile(labels_xml_path, 'r') as file_pointer:
-            iterator = Bootstrapper.iterparse(file_pointer, 'label')
+        artists_xml_path = Bootstrapper.artists_xml_path
+        with gzip.GzipFile(artists_xml_path, 'r') as file_pointer:
+            iterator = Bootstrapper.iterparse(file_pointer, 'artist')
             for i, element in enumerate(iterator):
                 data = None
                 try:
                     with systemtools.Timer(verbose=False) as timer:
                         data = cls.tags_to_fields(element)
+                        if not data.get('name'):
+                            continue
                         data['random'] = random.random()
                         document = cls.create(**data)
                     message = u'{} (Pass 1) {} [{}]: {}'.format(
@@ -90,61 +93,69 @@ class PostgresLabel(PostgresModel):
                 )
             print(message)
 
-    @classmethod
-    def element_to_parent_label(cls, parent_label):
-        result = {}
-        if parent_label is None or parent_label.text is None:
-            return result
-        name = parent_label.text.strip()
-        if not name:
-            return result
-        result[name] = None
-        return result
+    def resolve_references(self):
+        model = type(self)
+        changed = False
+        if self.aliases:
+            for alias_name in self.aliases.keys():
+                query = model.select().where(model.name == alias_name)
+                found = list(query)
+                if not found:
+                    continue
+                changed = True
+                alias = found[0]
+                self.aliases[alias_name] = alias.id
+        if self.members:
+            for member_name in self.members.keys():
+                query = model.select().where(model.name == member_name)
+                found = list(query)
+                if not found:
+                    continue
+                changed = True
+                member = found[0]
+                self.members[member_name] = member.id
+        if self.groups:
+            for group_name in self.groups.keys():
+                query = model.select().where(model.name == group_name)
+                found = list(query)
+                if not found:
+                    continue
+                changed = True
+                group = found[0]
+                self.groups[group_name] = group.id
+        return changed
 
     @classmethod
-    def element_to_sublabels(cls, sublabels):
+    def element_to_names(cls, names):
         result = {}
-        if sublabels is None or not len(sublabels):
+        if names is None or not len(names):
             return result
-        for sublabel in sublabels:
-            name = sublabel.text
-            if name is None:
-                continue
-            name = name.strip()
+        for name in names:
+            name = name.text
             if not name:
                 continue
             result[name] = None
         return result
 
-    def resolve_references(self):
-        changed = False
-        if self.sublabels:
-            for sublabel_name in self.sublabels.keys():
-                query = self.select().where(type(self).name == sublabel_name)
-                found = list(query)
-                if not found:
-                    continue
-                changed = True
-                sublabel = found[0]
-                self.sublabels[sublabel_name] = sublabel.id
-        if self.parent_label:
-            for label_name in self.parent_label.keys():
-                query = self.select().where(type(self).name == label_name)
-                found = list(query)
-                if not found:
-                    continue
-                changed = True
-                parent_label = found[0]
-                self.parent_label[label_name] = parent_label.id
-        return changed
+    @classmethod
+    def element_to_names_and_ids(cls, names_and_ids):
+        result = {}
+        if names_and_ids is None or not len(names_and_ids):
+            return result
+        for i in range(0, len(names_and_ids), 2):
+            discogs_id = int(names_and_ids[i].text)
+            name = names_and_ids[i + 1].text
+            result[name] = discogs_id
+        return result
 
 
-PostgresLabel._tags_to_fields_mapping = {
-    'contact_info': ('contact_info', Bootstrapper.element_to_string),
+PostgresArtist._tags_to_fields_mapping = {
+    'aliases': ('aliases', PostgresArtist.element_to_names),
+    'groups': ('groups', PostgresArtist.element_to_names),
     'id': ('id', Bootstrapper.element_to_integer),
+    'members': ('members', PostgresArtist.element_to_names_and_ids),
     'name': ('name', Bootstrapper.element_to_string),
-    'parentLabel': ('parent_label', PostgresLabel.element_to_parent_label),
+    'namevariations': ('name_variations', Bootstrapper.element_to_strings),
     'profile': ('profile', Bootstrapper.element_to_string),
-    'sublabels': ('sublabels', PostgresLabel.element_to_sublabels),
-    'urls': ('urls', Bootstrapper.element_to_strings),
+    'realname': ('real_name', Bootstrapper.element_to_string),
     }
