@@ -5,7 +5,6 @@ import mongoengine
 import pprint
 import pymongo.errors
 import pymongo.operations
-import random
 from abjad.tools import datastructuretools
 from abjad.tools import systemtools
 from discograph.library.mongo.MongoModel import MongoModel

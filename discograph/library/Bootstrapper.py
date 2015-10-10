@@ -152,6 +152,8 @@ class Bootstrapper(object):
                 day = int(day)
             if day < 1:
                 day = 1
+            if 12 < month:
+                day, month = month, day
             date = datetime.datetime(year, month, 1, 0, 0)
             day_offset = day - 1
             date = date + datetime.timedelta(days=day_offset)

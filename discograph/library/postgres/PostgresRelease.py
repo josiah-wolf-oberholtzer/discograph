@@ -22,13 +22,13 @@ class PostgresRelease(PostgresModel):
 
     ### PEEWEE FIELDS ###
 
+    id = peewee.IntegerField(primary_key=True)
     artists = postgres_ext.BinaryJSONField(null=True)
     companies = postgres_ext.BinaryJSONField(null=True)
     country = peewee.TextField(null=True)
     extra_artists = postgres_ext.BinaryJSONField(null=True)
     formats = postgres_ext.BinaryJSONField(null=True)
     genres = postgres_ext.ArrayField(peewee.TextField, null=True)
-    id = peewee.IntegerField(primary_key=True)
     identifiers = postgres_ext.BinaryJSONField(null=True)
     labels = postgres_ext.BinaryJSONField(null=True)
     master_id = peewee.IntegerField(null=True)
@@ -47,15 +47,16 @@ class PostgresRelease(PostgresModel):
 
     @classmethod
     def bootstrap(cls):
-        cls.drop_collection()
+        cls.drop_table(True)
+        cls.create_table()
         cls.bootstrap_pass_one()
         cls.bootstrap_pass_two()
 
     @classmethod
     def bootstrap_pass_one(cls):
         # Pass one.
-        release_xml_path = Bootstrapper.release_xml_path
-        with gzip.GzipFile(release_xml_path, 'r') as file_pointer:
+        releases_xml_path = Bootstrapper.releases_xml_path
+        with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
             iterator = Bootstrapper.iterparse(file_pointer, 'release')
             for i, element in enumerate(iterator):
                 data = None

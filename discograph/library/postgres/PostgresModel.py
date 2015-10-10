@@ -2,6 +2,7 @@
 import peewee
 import random
 from abjad.tools import systemtools
+from playhouse import gfk
 from playhouse import postgres_ext
 
 
@@ -12,7 +13,7 @@ database = postgres_ext.PostgresqlExtDatabase(
     )
 
 
-class PostgresModel(peewee.Model):
+class PostgresModel(gfk.Model):
 
     ### PEEWEE FIELDS ###
 
