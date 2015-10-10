@@ -50,7 +50,7 @@ class PostgresLabel(PostgresModel):
                         data = cls.tags_to_fields(element)
                         data['random'] = random.random()
                         document = cls.create(**data)
-                    message = u'{} (Pass 1) {} [{}]: {}'.format(
+                    message = u'{} (Pass 1) {} [{:.8f}]: {}'.format(
                         cls.__name__.upper(),
                         document.id,
                         timer.elapsed_time,
