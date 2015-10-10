@@ -24,11 +24,11 @@ database = apsw_ext.APSWDatabase(
 
 class SqliteModel(peewee.Model):
 
-    ### PEEWEE FIELDS
+    ### PEEWEE FIELDS ###
 
     random = peewee.FloatField(index=True)
 
-    ### PEEWEE META
+    ### PEEWEE META ###
 
     class Meta:
         database = database
