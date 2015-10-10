@@ -19,6 +19,10 @@ The graph only shows 100 entities at a time, so double-click on any circle conta
 
 ![The "Morris Day" Network](/discograph.png)
 
+### Usage?
+
+Type an artist name into the search box and go! 
+
 # DEPLOYMENT NOTES :construction:
 
 ## Python
@@ -58,3 +62,15 @@ It's crucial to set LD_LIBRARY_PATH in the supervisord configuration:
     stdout_logfile = /tmp/discograph.log
     environment=HOME=/home/mbrsi,LD_LIBRARY_PATH=/usr/local/sqlite-3.8.11/lib:/usr/local/lib,LD_RUN_PATH=/usr/local/sqlite-3.8.11/lib
     ```
+# Requirements
+
+  -e git://github.com/Abjad/abjad.git#egg=abjad [development]
+    Flask-Mobility
+    apsw
+    flask
+    gunicorn
+    mongoengine
+    peewee
+    pytest
+    redis
+    six
