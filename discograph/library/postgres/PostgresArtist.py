@@ -16,13 +16,14 @@ class PostgresArtist(PostgresModel):
     ### PEEWEE FIELDS ###
 
     id = peewee.IntegerField(primary_key=True)
-    profile = peewee.TextField(null=True)
-    name = peewee.TextField(index=True)
-    real_name = peewee.TextField(null=True)
-    name_variations = postgres_ext.ArrayField(peewee.TextField, null=True)
     aliases = postgres_ext.BinaryJSONField(null=True)
-    members = postgres_ext.BinaryJSONField(null=True)
     groups = postgres_ext.BinaryJSONField(null=True)
+    members = postgres_ext.BinaryJSONField(null=True)
+    name = peewee.TextField(index=True)
+    name_variations = postgres_ext.ArrayField(peewee.TextField, null=True)
+    profile = peewee.TextField(null=True)
+    real_name = peewee.TextField(null=True)
+    urls = postgres_ext.ArrayField(peewee.TextField, null=True)
 
     ### PEEWEE META ###
 
@@ -163,4 +164,5 @@ PostgresArtist._tags_to_fields_mapping = {
     'namevariations': ('name_variations', Bootstrapper.element_to_strings),
     'profile': ('profile', Bootstrapper.element_to_string),
     'realname': ('real_name', Bootstrapper.element_to_string),
+    'urls': ('urls', Bootstrapper.element_to_strings),
     }

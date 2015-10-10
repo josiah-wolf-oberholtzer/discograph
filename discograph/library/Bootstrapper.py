@@ -53,9 +53,9 @@ class Bootstrapper(object):
             image_tags = element.findall('images')
             if image_tags:
                 element.remove(*image_tags)
-            url_tags = element.findall('urls')
-            if url_tags:
-                element.remove(*url_tags)
+            #url_tags = element.findall('urls')
+            #if url_tags:
+            #    element.remove(*url_tags)
             yield element
 
     @staticmethod
@@ -112,7 +112,7 @@ class Bootstrapper(object):
             }
         file_pointer = gzip.GzipFile(choices[tag], 'r')
         iterator = Bootstrapper.iterparse(file_pointer, tag)
-        #iterator = Bootstrapper.clean_elements(iterator)
+        iterator = Bootstrapper.clean_elements(iterator)
         return iterator
 
     @staticmethod

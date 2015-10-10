@@ -45,6 +45,9 @@ class Test(unittest.TestCase):
             The First 10 Records Were Released on [l=Earthtones Recordings]
             </profile>
                 <data_quality>Correct</data_quality>
+                <urls>
+                    <url>http://www.seasonsrecordings.com</url>
+                </urls>
                 <sublabels>
                     <label>Seasons Classics</label>
                     <label>Seasons Limited</label>

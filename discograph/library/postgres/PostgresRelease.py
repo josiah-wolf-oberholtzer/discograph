@@ -85,7 +85,8 @@ class PostgresRelease(PostgresModel):
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references()
             if not changed:
-                message = u'{} [SKIPPED] (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
+                message = u'{} [SKIPPED] (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'
+                message = message.format(
                     cls.__name__.upper(),
                     i,
                     document.id,
@@ -95,7 +96,8 @@ class PostgresRelease(PostgresModel):
                 print(message)
                 continue
             document.save()
-            message = u'{}           (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
+            message = u'{}           (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'
+            message = message.format(
                 cls.__name__.upper(),
                 i,
                 document.id,
@@ -103,6 +105,30 @@ class PostgresRelease(PostgresModel):
                 document.title,
                 )
             print(message)
+
+    def resolve_references(self):
+        import discograph
+        changed = False
+        label_class = discograph.PostgresLabel
+        for entry in self.companies:
+            name = entry['name']
+            query = label_class.select().where(label_class.name == name)
+            query = query.limit(1)
+            found = list(query)
+            if not found:
+                continue
+            entry['id'] = found[0].id
+            changed = True
+        for entry in self.labels:
+            name = entry['name']
+            query = label_class.select().where(label_class.name == name)
+            query = query.limit(1)
+            found = list(query)
+            if not found:
+                continue
+            entry['id'] = found[0].id
+            changed = True
+        return changed
 
     @classmethod
     def element_to_artist_credits(cls, element):
