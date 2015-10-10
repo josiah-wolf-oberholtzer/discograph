@@ -112,7 +112,7 @@ class Bootstrapper(object):
             }
         file_pointer = gzip.GzipFile(choices[tag], 'r')
         iterator = Bootstrapper.iterparse(file_pointer, tag)
-        iterator = Bootstrapper.clean_elements(iterator)
+        #iterator = Bootstrapper.clean_elements(iterator)
         return iterator
 
     @staticmethod

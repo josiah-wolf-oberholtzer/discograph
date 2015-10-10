@@ -2,11 +2,13 @@
 import peewee
 import random
 from abjad.tools import systemtools
+from playhouse import postgres_ext
 
 
-database = peewee.PostgresqlExtDatabase(
+database = postgres_ext.PostgresqlExtDatabase(
     'discograph',
-    user='postgres',
+    #user='postgres',
+    user=None,
     )
 
 
@@ -37,9 +39,9 @@ class PostgresModel(peewee.Model):
 
     @property
     def _storage_format_specification(self):
-        keyword_argument_names = sorted(self._fields)
-        if 'id' in keyword_argument_names:
-            keyword_argument_names.remove('id')
+        keyword_argument_names = sorted(self._meta.fields)
+        #if 'id' in keyword_argument_names:
+        #    keyword_argument_names.remove('id')
         for keyword_argument_name in keyword_argument_names[:]:
             value = getattr(self, keyword_argument_name)
             if isinstance(value, list) and not value:
@@ -55,7 +57,22 @@ class PostgresModel(peewee.Model):
 
     ### PUBLIC METHODS ###
 
+    @staticmethod
+    def connect():
+        database.connect()
+
     @classmethod
     def get_random(cls):
         n = random.random()
         return cls.select().where(cls.random > n).order_by(cls.random).get()
+
+    @classmethod
+    def tags_to_fields(cls, element):
+        data = {}
+        for child_element in element:
+            entry = cls._tags_to_fields_mapping.get(child_element.tag, None)
+            if entry is None:
+                continue
+            field_name, procedure = entry
+            data[field_name] = procedure(child_element)
+        return data
