@@ -93,6 +93,34 @@ class PostgresArtist(PostgresModel):
                 )
             print(message)
 
+    @classmethod
+    def element_to_names(cls, names):
+        result = {}
+        if names is None or not len(names):
+            return result
+        for name in names:
+            name = name.text
+            if not name:
+                continue
+            result[name] = None
+        return result
+
+    @classmethod
+    def element_to_names_and_ids(cls, names_and_ids):
+        result = {}
+        if names_and_ids is None or not len(names_and_ids):
+            return result
+        for i in range(0, len(names_and_ids), 2):
+            discogs_id = int(names_and_ids[i].text)
+            name = names_and_ids[i + 1].text
+            result[name] = discogs_id
+        return result
+
+    @classmethod
+    def from_element(cls, element):
+        data = cls.tags_to_fields(element)
+        return cls(**data)
+
     def resolve_references(self):
         model = type(self)
         changed = False
@@ -124,29 +152,6 @@ class PostgresArtist(PostgresModel):
                 group = found[0]
                 self.groups[group_name] = group.id
         return changed
-
-    @classmethod
-    def element_to_names(cls, names):
-        result = {}
-        if names is None or not len(names):
-            return result
-        for name in names:
-            name = name.text
-            if not name:
-                continue
-            result[name] = None
-        return result
-
-    @classmethod
-    def element_to_names_and_ids(cls, names_and_ids):
-        result = {}
-        if names_and_ids is None or not len(names_and_ids):
-            return result
-        for i in range(0, len(names_and_ids), 2):
-            discogs_id = int(names_and_ids[i].text)
-            name = names_and_ids[i + 1].text
-            result[name] = discogs_id
-        return result
 
 
 PostgresArtist._tags_to_fields_mapping = {

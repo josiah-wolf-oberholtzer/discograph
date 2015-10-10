@@ -116,6 +116,11 @@ class PostgresLabel(PostgresModel):
             result[name] = None
         return result
 
+    @classmethod
+    def from_element(cls, element):
+        data = cls.tags_to_fields(element)
+        return cls(**data)
+
     def resolve_references(self):
         changed = False
         if self.sublabels:

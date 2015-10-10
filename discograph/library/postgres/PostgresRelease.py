@@ -12,6 +12,16 @@ from discograph.library.postgres.PostgresModel import PostgresModel
 
 class PostgresRelease(PostgresModel):
 
+    ### CLASS VARIABLES ###
+
+    _artists_mapping = {}
+
+    _companies_mapping = {}
+
+    _labels_mapping = {}
+
+    _tracks_mapping = {}
+
     ### PEEWEE FIELDS ###
 
     artists = postgres_ext.BinaryJSONField(null=True)
@@ -98,27 +108,75 @@ class PostgresRelease(PostgresModel):
 
     @classmethod
     def element_to_artist_credits(cls, element):
-        pass
+        result = []
+        if element is None or not len(element):
+            return result
+        for subelement in element:
+            data = cls.tags_to_fields(subelement, mapping=cls._artists_mapping)
+            result.append(data)
+        return result
 
     @classmethod
     def element_to_company_credits(cls, element):
-        pass
+        result = []
+        if element is None or not len(element):
+            return result
+        for subelement in element:
+            data = cls.tags_to_fields(subelement, mapping=cls._companies_mapping)
+            result.append(data)
+        return result
 
     @classmethod
     def element_to_formats(cls, element):
-        pass
+        result = []
+        if element is None or not len(element):
+            return result
+        for subelement in element:
+            document = {
+                'name': subelement.get('name'),
+                'quantity': subelement.get('qty'),
+                }
+            if subelement.get('text'):
+                document['text'] = subelement.get('text')
+            if len(subelement):
+                subelement = subelement[0]
+                descriptions = Bootstrapper.element_to_strings(subelement)
+                document['descriptions'] = descriptions
+            result.append(document)
+        return result
 
     @classmethod
     def element_to_identifiers(cls, element):
-        pass
+        result = []
+        if element is None or not len(element):
+            return result
+        for subelement in element:
+            document = {
+                'description': subelement.get('description'),
+                'type': subelement.get('type'),
+                'value': subelement.get('value'),
+                }
+            result.append(document)
+        return result
 
     @classmethod
     def element_to_label_credits(cls, element):
-        pass
+        result = []
+        if element is None or not len(element):
+            return result
+        return result
 
     @classmethod
     def element_to_tracks(cls, element):
-        pass
+        result = []
+        if element is None or not len(element):
+            return result
+        return result
+
+    @classmethod
+    def from_element(cls, element):
+        data = cls.tags_to_fields(element)
+        return cls(**data)
 
 
 PostgresRelease._tags_to_fields_mapping = {

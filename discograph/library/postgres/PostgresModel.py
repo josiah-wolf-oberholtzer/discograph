@@ -67,10 +67,11 @@ class PostgresModel(peewee.Model):
         return cls.select().where(cls.random > n).order_by(cls.random).get()
 
     @classmethod
-    def tags_to_fields(cls, element):
+    def tags_to_fields(cls, element, mapping=None):
         data = {}
+        mapping = mapping or cls._tags_to_fields_mapping
         for child_element in element:
-            entry = cls._tags_to_fields_mapping.get(child_element.tag, None)
+            entry = mapping.get(child_element.tag, None)
             if entry is None:
                 continue
             field_name, procedure = entry
