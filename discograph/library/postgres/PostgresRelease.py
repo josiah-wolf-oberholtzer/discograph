@@ -179,6 +179,62 @@ class PostgresRelease(PostgresModel):
         return result
 
     @classmethod
+    def element_to_roles(cls, element):
+        def from_text(text):
+            name = ''
+            current_buffer = ''
+            details = []
+            had_detail = False
+            bracket_depth = 0
+            for character in text:
+                if character == '[':
+                    bracket_depth += 1
+                    if bracket_depth == 1 and not had_detail:
+                        name = current_buffer
+                        current_buffer = ''
+                        had_detail = True
+                    elif 1 < bracket_depth:
+                        current_buffer += character
+                elif character == ']':
+                    bracket_depth -= 1
+                    if not bracket_depth:
+                        details.append(current_buffer)
+                        current_buffer = ''
+                    else:
+                        current_buffer += character
+                else:
+                    current_buffer += character
+            if current_buffer and not had_detail:
+                name = current_buffer
+            name = name.strip()
+            detail = ', '.join(_.strip() for _ in details)
+            result = {'name': name}
+            if detail:
+                result['detail'] = detail
+            return result
+        credit_roles = []
+        if element is None or not element.text:
+            return credit_roles or None
+        current_text = ''
+        bracket_depth = 0
+        for character in element.text:
+            if character == '[':
+                bracket_depth += 1
+            elif character == ']':
+                bracket_depth -= 1
+            elif not bracket_depth and character == ',':
+                current_text = current_text.strip()
+                if current_text:
+                    credit_roles.append(from_text(current_text))
+                current_text = ''
+                continue
+            current_text += character
+        current_text = current_text.strip()
+        if current_text:
+            credit_roles.append(from_text(current_text))
+        return credit_roles or None
+
+    @classmethod
     def element_to_tracks(cls, element):
         result = []
         if element is None or not len(element):
@@ -220,7 +276,7 @@ PostgresRelease._artists_mapping = {
     'name': ('name', Bootstrapper.element_to_string),
     'anv': ('anv', Bootstrapper.element_to_string),
     'join': ('join', Bootstrapper.element_to_string),
-    'role': ('role', Bootstrapper.element_to_string),
+    'role': ('roles', PostgresRelease.element_to_roles),
     'tracks': ('tracks', Bootstrapper.element_to_string),
     }
 
