@@ -67,7 +67,7 @@ class PostgresModel(peewee.Model):
         return cls.select().where(cls.random > n).order_by(cls.random).get()
 
     @classmethod
-    def tags_to_fields(cls, element, mapping=None):
+    def tags_to_fields(cls, element, ignore_none=None, mapping=None):
         data = {}
         mapping = mapping or cls._tags_to_fields_mapping
         for child_element in element:
@@ -75,5 +75,8 @@ class PostgresModel(peewee.Model):
             if entry is None:
                 continue
             field_name, procedure = entry
-            data[field_name] = procedure(child_element)
+            value = procedure(child_element)
+            if ignore_none and value is None:
+                continue
+            data[field_name] = value
         return data

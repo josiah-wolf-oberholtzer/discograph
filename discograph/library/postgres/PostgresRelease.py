@@ -18,8 +18,6 @@ class PostgresRelease(PostgresModel):
 
     _companies_mapping = {}
 
-    _labels_mapping = {}
-
     _tracks_mapping = {}
 
     ### PEEWEE FIELDS ###
@@ -112,7 +110,11 @@ class PostgresRelease(PostgresModel):
         if element is None or not len(element):
             return result
         for subelement in element:
-            data = cls.tags_to_fields(subelement, mapping=cls._artists_mapping)
+            data = cls.tags_to_fields(
+                subelement,
+                ignore_none=True,
+                mapping=cls._artists_mapping,
+                )
             result.append(data)
         return result
 
@@ -122,7 +124,11 @@ class PostgresRelease(PostgresModel):
         if element is None or not len(element):
             return result
         for subelement in element:
-            data = cls.tags_to_fields(subelement, mapping=cls._companies_mapping)
+            data = cls.tags_to_fields(
+                subelement,
+                ignore_none=True,
+                mapping=cls._companies_mapping,
+                )
             result.append(data)
         return result
 
@@ -151,12 +157,12 @@ class PostgresRelease(PostgresModel):
         if element is None or not len(element):
             return result
         for subelement in element:
-            document = {
+            data = {
                 'description': subelement.get('description'),
                 'type': subelement.get('type'),
                 'value': subelement.get('value'),
                 }
-            result.append(document)
+            result.append(data)
         return result
 
     @classmethod
@@ -164,6 +170,12 @@ class PostgresRelease(PostgresModel):
         result = []
         if element is None or not len(element):
             return result
+        for subelement in element:
+            data = {
+                'catalog_number': subelement.get('catno'),
+                'name': subelement.get('name'),
+                }
+            result.append(data)
         return result
 
     @classmethod
@@ -171,6 +183,13 @@ class PostgresRelease(PostgresModel):
         result = []
         if element is None or not len(element):
             return result
+        for subelement in element:
+            data = cls.tags_to_fields(
+                subelement,
+                ignore_none=True,
+                mapping=cls._tracks_mapping,
+                )
+            result.append(data)
         return result
 
     @classmethod
@@ -193,4 +212,32 @@ PostgresRelease._tags_to_fields_mapping = {
     'styles': ('styles', Bootstrapper.element_to_strings),
     'title': ('title', Bootstrapper.element_to_string),
     'tracklist': ('tracklist', PostgresRelease.element_to_tracks),
+    }
+
+
+PostgresRelease._artists_mapping = {
+    'id': ('id', Bootstrapper.element_to_integer),
+    'name': ('name', Bootstrapper.element_to_string),
+    'anv': ('anv', Bootstrapper.element_to_string),
+    'join': ('join', Bootstrapper.element_to_string),
+    'role': ('role', Bootstrapper.element_to_string),
+    'tracks': ('tracks', Bootstrapper.element_to_string),
+    }
+
+
+PostgresRelease._companies_mapping = {
+    'id': ('id', Bootstrapper.element_to_integer),
+    'name': ('name', Bootstrapper.element_to_string),
+    'catno': ('catalog_number', Bootstrapper.element_to_string),
+    'entity_type': ('entity_type', Bootstrapper.element_to_integer),
+    'entity_type_name': ('entity_type_name', Bootstrapper.element_to_string),
+    }
+
+
+PostgresRelease._tracks_mapping = {
+    'position': ('position', Bootstrapper.element_to_string),
+    'title': ('title', Bootstrapper.element_to_string),
+    'duration': ('duration', Bootstrapper.element_to_string),
+    'artists': ('artists', PostgresRelease.element_to_artist_credits),
+    'extraartists': ('extra_artists', PostgresRelease.element_to_artist_credits),
     }
