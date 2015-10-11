@@ -43,28 +43,14 @@ class PostgresRelation(PostgresModel):
 
     @classmethod
     def bootstrap(cls):
-        print('A')
         cls.drop_table(True)
-        print('B')
         cls.create_table()
-        print('C')
-        #database = cls._meta.database
-        #database.set_autocommit(False)
-        #with database.transaction():
-        #    cls.bootstrap_pass_one()
-        #with database.transaction():
-        #    cls.bootstrap_pass_two()
-        #with database.transaction():
-        #    cls.bootstrap_pass_three()
-        #database.set_autocommit(True)
         cls.bootstrap_pass_one()
 
     @classmethod
     def bootstrap_pass_one(cls):
         import discograph
-        print('D')
         query = discograph.PostgresArtist.select()
-        print('E')
         for i, artist in enumerate(postgres_ext.ServerSide(query)):
             print('(idx:{}) (id:{}) {}'.format(
                 i,

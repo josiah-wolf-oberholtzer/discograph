@@ -43,6 +43,7 @@ class PostgresMaster(PostgresModel):
             xml_tag='master',
             xml_path=Bootstrapper.masters_xml_path,
             name_attr='title',
+            skip_without=['title'],
             )
 
 

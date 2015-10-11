@@ -89,7 +89,7 @@ class PostgresModel(gfk.Model):
                     with systemtools.Timer(verbose=False) as timer:
                         data = model_class.tags_to_fields(element)
                         if skip_without:
-                            if any(_ not in data for _ in skip_without):
+                            if any(not data.get(_) for _ in skip_without):
                                 continue
                         if element.get('id'):
                             data['id'] = element.get('id')
@@ -100,7 +100,7 @@ class PostgresModel(gfk.Model):
                         i,
                         document.id,
                         timer.elapsed_time,
-                        getattr(document, 'name_attr'),
+                        getattr(document, name_attr),
                         )
                     print(message)
                 except peewee.DataError as e:
