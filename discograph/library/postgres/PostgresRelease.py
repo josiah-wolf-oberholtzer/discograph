@@ -41,7 +41,7 @@ class PostgresRelease(PostgresModel):
     ### PEEWEE META ###
 
     class Meta:
-        pass
+        db_table = 'releases'
 
     ### PUBLIC METHODS ###
 
@@ -49,6 +49,13 @@ class PostgresRelease(PostgresModel):
     def bootstrap(cls):
         cls.drop_table(True)
         cls.create_table()
+        #database = cls._meta.database
+        #database.set_autocommit(False)
+        #with database.transaction():
+        #    cls.bootstrap_pass_one()
+        #with database.transaction():
+        #    cls.bootstrap_pass_two()
+        #database.set_autocommit(True)
         cls.bootstrap_pass_one()
         cls.bootstrap_pass_two()
 

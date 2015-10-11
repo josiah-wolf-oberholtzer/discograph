@@ -58,6 +58,14 @@ class PostgresModel(gfk.Model):
 
     ### PUBLIC METHODS ###
 
+    @classmethod
+    def bootstrap_postgres_models(cls):
+        import discograph
+        discograph.PostgresArtist.bootstrap()
+        discograph.PostgresLabel.bootstrap()
+        discograph.PostgresRelease.bootstrap()
+        discograph.PostgresRelation.bootstrap()
+
     @staticmethod
     def connect():
         database.connect()

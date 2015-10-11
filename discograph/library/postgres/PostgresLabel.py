@@ -26,7 +26,7 @@ class PostgresLabel(PostgresModel):
     ### PEEWEE META ###
 
     class Meta:
-        pass
+        db_table = 'labels'
 
     ### PUBLIC METHODS ###
 

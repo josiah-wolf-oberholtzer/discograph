@@ -28,7 +28,7 @@ class PostgresArtist(PostgresModel):
     ### PEEWEE META ###
 
     class Meta:
-        pass
+        db_table = 'artists'
 
     ### PUBLIC METHODS ###
 
