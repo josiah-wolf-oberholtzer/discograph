@@ -108,6 +108,41 @@ class PostgresModel(gfk.Model):
                     traceback.print_exc()
                     raise(e)
 
+    @classmethod
+    def bootstrap_pass_two(
+        cls,
+        model_class,
+        name_attr='name',
+        ):
+        skipped_template = u'{} [SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
+        changed_template = u'{}           (Pass 2) (id:{}) [{:.8f}]: {}'
+        corpus = {}
+        maximum_id = model_class.select(peewee.fn.Max(model_class.id)).scalar()
+        for i in range(1, maximum_id + 1):
+            query = model_class.select().where(model_class.id == i)
+            if not query.count():
+                continue
+            document = list(query)[0]
+            with systemtools.Timer(verbose=False) as timer:
+                changed = document.resolve_references(corpus)
+            if not changed:
+                message = skipped_template.format(
+                    model_class.__name__.upper(),
+                    document.id,
+                    timer.elapsed_time,
+                    getattr(document, name_attr),
+                    )
+                print(message)
+                continue
+            document.save()
+            message = changed_template.format(
+                model_class.__name__.upper(),
+                document.id,
+                timer.elapsed_time,
+                getattr(document, name_attr),
+                )
+            print(message)
+
     @staticmethod
     def connect():
         database.connect()

@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 import peewee
-from abjad.tools import systemtools
 from playhouse import postgres_ext
 from discograph.library.Bootstrapper import Bootstrapper
 from discograph.library.postgres.PostgresModel import PostgresModel
@@ -59,34 +58,7 @@ class PostgresRelease(PostgresModel):
 
     @classmethod
     def bootstrap_pass_two(cls):
-        skipped_template = u'{} [SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
-        changed_template = u'{}           (Pass 2) (id:{}) [{:.8f}]: {}'
-        corpus = {}
-        maximum_id = cls.select(peewee.fn.Max(cls.id)).scalar()
-        for i in range(1, maximum_id + 1):
-            query = cls.select().where(cls.id == i)
-            if not query.count():
-                continue
-            document = list(query)[0]
-            with systemtools.Timer(verbose=False) as timer:
-                changed = document.resolve_references(corpus)
-            if not changed:
-                message = skipped_template.format(
-                    cls.__name__.upper(),
-                    document.id,
-                    timer.elapsed_time,
-                    document.title,
-                    )
-                print(message)
-                continue
-            document.save()
-            message = changed_template.format(
-                cls.__name__.upper(),
-                document.id,
-                timer.elapsed_time,
-                document.title,
-                )
-            print(message)
+        PostgresModel.bootstrap_pass_two(cls, 'title')
 
     def resolve_references(self, corpus):
         import discograph
