@@ -1,9 +1,5 @@
 # -*- encoding: utf-8 -*-
-import gzip
 import peewee
-import pprint
-import random
-import traceback
 from abjad.tools import systemtools
 from playhouse import postgres_ext
 from discograph.library.Bootstrapper import Bootstrapper
@@ -49,48 +45,20 @@ class PostgresRelease(PostgresModel):
     def bootstrap(cls):
         cls.drop_table(True)
         cls.create_table()
-        #database = cls._meta.database
-        #database.set_autocommit(False)
-        #with database.transaction():
-        #    cls.bootstrap_pass_one()
-        #with database.transaction():
-        #    cls.bootstrap_pass_two()
-        #database.set_autocommit(True)
         cls.bootstrap_pass_one()
         cls.bootstrap_pass_two()
 
     @classmethod
     def bootstrap_pass_one(cls):
-        # Pass one.
-        releases_xml_path = Bootstrapper.releases_xml_path
-        with gzip.GzipFile(releases_xml_path, 'r') as file_pointer:
-            iterator = Bootstrapper.iterparse(file_pointer, 'release')
-            for i, element in enumerate(iterator):
-                data = None
-                try:
-                    with systemtools.Timer(verbose=False) as timer:
-                        data = cls.tags_to_fields(element)
-                        data['id'] = element.get('id')
-                        data['random'] = random.random()
-                        document = cls.create(**data)
-                    message = u'{} (Pass 1) (idx:{}) (id:{}) [{:.8f}]: {}'
-                    message = message.format(
-                        cls.__name__.upper(),
-                        i,
-                        document.id,
-                        timer.elapsed_time,
-                        document.title,
-                        )
-                    print(message)
-                except peewee.DataError as e:
-                    print('!!!!!!!!!!!!!!!!!!!!!!!')
-                    pprint.pprint(data)
-                    traceback.print_exc()
-                    raise(e)
+        PostgresModel.bootstrap_pass_one(
+            model_class=cls,
+            xml_tag='release',
+            xml_path=Bootstrapper.releases_xml_path,
+            name_attr='title',
+            )
 
     @classmethod
     def bootstrap_pass_two(cls):
-        # Pass two.
         query = cls.select()
         for i, document in enumerate(query):
             with systemtools.Timer(verbose=False) as timer:

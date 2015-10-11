@@ -1,9 +1,13 @@
 # -*- encoding: utf-8 -*-
+import gzip
 import peewee
+import pprint
 import random
+import traceback
 from abjad.tools import systemtools
 from playhouse import gfk
 from playhouse import postgres_ext
+from discograph.library.Bootstrapper import Bootstrapper
 
 
 database = postgres_ext.PostgresqlExtDatabase(
@@ -65,6 +69,44 @@ class PostgresModel(gfk.Model):
         discograph.PostgresLabel.bootstrap()
         discograph.PostgresRelease.bootstrap()
         discograph.PostgresRelation.bootstrap()
+
+    @classmethod
+    def bootstrap_pass_one(
+        cls,
+        model_class,
+        xml_tag,
+        xml_path,
+        name_attr='name',
+        skip_without=None,
+        ):
+        # Pass one.
+        template = u'{} (Pass 1) (idx:{}) (id:{}) [{:.8f}]: {}'
+        with gzip.GzipFile(xml_path, 'r') as file_pointer:
+            iterator = Bootstrapper.iterparse(file_pointer, xml_tag)
+            for i, element in enumerate(iterator):
+                data = None
+                try:
+                    with systemtools.Timer(verbose=False) as timer:
+                        data = model_class.tags_to_fields(element)
+                        if skip_without:
+                            if any(_ not in data for _ in skip_without):
+                                continue
+                        if element.get('id'):
+                            data['id'] = element.get('id')
+                        data['random'] = random.random()
+                        document = model_class.create(**data)
+                    message = template.format(
+                        model_class.__name__.upper(),
+                        i,
+                        document.id,
+                        timer.elapsed_time,
+                        getattr(document, 'name_attr'),
+                        )
+                    print(message)
+                except peewee.DataError as e:
+                    pprint.pprint(data)
+                    traceback.print_exc()
+                    raise(e)
 
     @staticmethod
     def connect():

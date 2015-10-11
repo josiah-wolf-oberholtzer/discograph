@@ -1,10 +1,6 @@
 # -*- encoding: utf-8 -*-
 from __future__ import print_function
-import gzip
 import peewee
-import pprint
-import random
-import traceback
 from abjad.tools import systemtools
 from playhouse import postgres_ext
 from discograph.library.Bootstrapper import Bootstrapper
@@ -39,29 +35,13 @@ class PostgresLabel(PostgresModel):
 
     @classmethod
     def bootstrap_pass_one(cls):
-        # Pass one.
-        labels_xml_path = Bootstrapper.labels_xml_path
-        with gzip.GzipFile(labels_xml_path, 'r') as file_pointer:
-            iterator = Bootstrapper.iterparse(file_pointer, 'label')
-            for i, element in enumerate(iterator):
-                data = None
-                try:
-                    with systemtools.Timer(verbose=False) as timer:
-                        data = cls.tags_to_fields(element)
-                        data['random'] = random.random()
-                        document = cls.create(**data)
-                    message = u'{} (Pass 1) {} [{:.8f}]: {}'.format(
-                        cls.__name__.upper(),
-                        document.id,
-                        timer.elapsed_time,
-                        document.name,
-                        )
-                    print(message)
-                except peewee.DataError as e:
-                    print('!!!!!!!!!!!!!!!!!!!!!!!')
-                    pprint.pprint(data)
-                    traceback.print_exc()
-                    raise(e)
+        PostgresModel.bootstrap_pass_one(
+            model_class=cls,
+            xml_tag='label',
+            xml_path=Bootstrapper.labels_xml_path,
+            name_attr='name',
+            skip_without=['name'],
+            )
 
     @classmethod
     def bootstrap_pass_two(cls):
