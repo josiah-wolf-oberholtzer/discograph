@@ -47,11 +47,11 @@ class PostgresArtist(PostgresModel):
 
     @classmethod
     def bootstrap_pass_two(cls):
-        # Pass two.
+        corpus = {}
         query = cls.select()
         for i, document in enumerate(query):
             with systemtools.Timer(verbose=False) as timer:
-                changed = document.resolve_references()
+                changed = document.resolve_references(corpus)
             if not changed:
                 message = u'{} [SKIPPED] (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
                     cls.__name__.upper(),
@@ -100,37 +100,39 @@ class PostgresArtist(PostgresModel):
         data = cls.tags_to_fields(element)
         return cls(**data)
 
-    def resolve_references(self):
-        model = type(self)
+    def resolve_references(self, corpus):
         changed = False
         if self.aliases:
-            for alias_name in self.aliases.keys():
-                query = model.select().where(model.name == alias_name)
-                found = list(query)
-                if not found:
-                    continue
-                changed = True
-                alias = found[0]
-                self.aliases[alias_name] = alias.id
+            for name in self.aliases.keys():
+                self.update_corpus(corpus, name)
+                if name in corpus:
+                    self.aliases[name] = corpus[name]
+                    changed = True
         if self.members:
-            for member_name in self.members.keys():
-                query = model.select().where(model.name == member_name)
-                found = list(query)
-                if not found:
-                    continue
-                changed = True
-                member = found[0]
-                self.members[member_name] = member.id
+            for name in self.members.keys():
+                self.update_corpus(corpus, name)
+                if name in corpus:
+                    self.members[name] = corpus[name]
+                    changed = True
         if self.groups:
-            for group_name in self.groups.keys():
-                query = model.select().where(model.name == group_name)
-                found = list(query)
-                if not found:
-                    continue
-                changed = True
-                group = found[0]
-                self.groups[group_name] = group.id
+            for name in self.groups.keys():
+                self.update_corpus(corpus, name)
+                if name in corpus:
+                    self.groups[name] = corpus[name]
+                    changed = True
         return changed
+
+    @classmethod
+    def update_corpus(cls, corpus, name):
+        import discograph
+        artist_class = discograph.PostgresArtist
+        if name in corpus:
+            return
+        query = artist_class.select().where(artist_class.name == name)
+        query = query.limit(1)
+        found = list(query)
+        if found:
+            corpus[name] = found[0].id
 
 
 PostgresArtist._tags_to_fields_mapping = {

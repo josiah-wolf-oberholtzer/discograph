@@ -45,11 +45,11 @@ class PostgresLabel(PostgresModel):
 
     @classmethod
     def bootstrap_pass_two(cls):
-        # Pass two.
+        corpus = {}
         query = cls.select()
         for i, document in enumerate(query):
             with systemtools.Timer(verbose=False) as timer:
-                changed = document.resolve_references()
+                changed = document.resolve_references(corpus)
             if not changed:
                 message = u'{} [SKIPPED] (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
                     cls.__name__.upper(),
@@ -101,27 +101,33 @@ class PostgresLabel(PostgresModel):
         data = cls.tags_to_fields(element)
         return cls(**data)
 
-    def resolve_references(self):
+    def resolve_references(self, corpus):
         changed = False
         if self.sublabels:
-            for sublabel_name in self.sublabels.keys():
-                query = self.select().where(type(self).name == sublabel_name)
-                found = list(query)
-                if not found:
-                    continue
-                changed = True
-                sublabel = found[0]
-                self.sublabels[sublabel_name] = sublabel.id
+            for name in self.sublabels.keys():
+                self.update_corpus(corpus, name)
+                if name in corpus:
+                    self.sublabels[name] = corpus[name]
+                    changed = True
         if self.parent_label:
-            for label_name in self.parent_label.keys():
-                query = self.select().where(type(self).name == label_name)
-                found = list(query)
-                if not found:
-                    continue
-                changed = True
-                parent_label = found[0]
-                self.parent_label[label_name] = parent_label.id
+            for name in self.parent_label.keys():
+                self.update_corpus(corpus, name)
+                if name in corpus:
+                    self.parent_label[name] = corpus[name]
+                    changed = True
         return changed
+
+    @classmethod
+    def update_corpus(cls, corpus, name):
+        import discograph
+        label_class = discograph.PostgresLabel
+        if name in corpus:
+            return
+        query = label_class.select().where(label_class.name == name)
+        query = query.limit(1)
+        found = list(query)
+        if found:
+            corpus[name] = found[0].id
 
 
 PostgresLabel._tags_to_fields_mapping = {

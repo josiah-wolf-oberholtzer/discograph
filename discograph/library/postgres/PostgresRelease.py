@@ -43,9 +43,9 @@ class PostgresRelease(PostgresModel):
 
     @classmethod
     def bootstrap(cls):
-        cls.drop_table(True)
-        cls.create_table()
-        cls.bootstrap_pass_one()
+        #cls.drop_table(True)
+        #cls.create_table()
+        #cls.bootstrap_pass_one()
         cls.bootstrap_pass_two()
 
     @classmethod
@@ -59,10 +59,15 @@ class PostgresRelease(PostgresModel):
 
     @classmethod
     def bootstrap_pass_two(cls):
-        query = cls.select()
-        for i, document in enumerate(query):
+        corpus = {}
+        maximum_id = cls.select(peewee.fn.Max(cls.id)).scalar()
+        for i in range(1, maximum_id + 1):
+            query = cls.select().where(cls.id == i)
+            if not query.count():
+                continue
+            document = list(query)[0]
             with systemtools.Timer(verbose=False) as timer:
-                changed = document.resolve_references()
+                changed = document.resolve_references(corpus)
             if not changed:
                 message = u'{} [SKIPPED] (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'
                 message = message.format(
@@ -85,28 +90,15 @@ class PostgresRelease(PostgresModel):
                 )
             print(message)
 
-    def resolve_references(self):
+    def resolve_references(self, corpus):
         import discograph
         changed = False
-        label_class = discograph.PostgresLabel
-        for entry in self.companies:
-            name = entry['name']
-            query = label_class.select().where(label_class.name == name)
-            query = query.limit(1)
-            found = list(query)
-            if not found:
-                continue
-            entry['id'] = found[0].id
-            changed = True
         for entry in self.labels:
             name = entry['name']
-            query = label_class.select().where(label_class.name == name)
-            query = query.limit(1)
-            found = list(query)
-            if not found:
-                continue
-            entry['id'] = found[0].id
-            changed = True
+            discograph.PostgresLabel.update_corpus(corpus, name)
+            if name in corpus:
+                entry['id'] = corpus[name]
+                changed = True
         return changed
 
     @classmethod
