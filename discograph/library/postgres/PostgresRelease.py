@@ -63,13 +63,16 @@ class PostgresRelease(PostgresModel):
                 try:
                     with systemtools.Timer(verbose=False) as timer:
                         data = cls.tags_to_fields(element)
+                        data['id'] = element.get('id')
                         data['random'] = random.random()
                         document = cls.create(**data)
-                    message = u'{} (Pass 1) {} [{:.8f}]: {}'.format(
+                    message = u'{} (Pass 1) (idx:{}) (id:{}) [{:.8f}]: {}'
+                    message = message.format(
                         cls.__name__.upper(),
+                        i,
                         document.id,
                         timer.elapsed_time,
-                        document.name,
+                        document.title,
                         )
                     print(message)
                 except peewee.DataError as e:
