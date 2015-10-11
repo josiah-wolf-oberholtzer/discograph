@@ -47,15 +47,20 @@ class PostgresArtist(PostgresModel):
 
     @classmethod
     def bootstrap_pass_two(cls):
+        skipped_template = u'{} [SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
+        changed_template = u'{}           (Pass 2) (id:{}) [{:.8f}]: {}'
         corpus = {}
-        query = cls.select()
-        for i, document in enumerate(query):
+        maximum_id = cls.select(peewee.fn.Max(cls.id)).scalar()
+        for i in range(1, maximum_id + 1):
+            query = cls.select().where(cls.id == i)
+            if not query.count():
+                continue
+            document = list(query)[0]
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references(corpus)
             if not changed:
-                message = u'{} [SKIPPED] (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
+                message = skipped_template.format(
                     cls.__name__.upper(),
-                    i,
                     document.id,
                     timer.elapsed_time,
                     document.name,
@@ -63,9 +68,8 @@ class PostgresArtist(PostgresModel):
                 print(message)
                 continue
             document.save()
-            message = u'{}           (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'.format(
+            message = changed_template.format(
                 cls.__name__.upper(),
-                i,
                 document.id,
                 timer.elapsed_time,
                 document.name,

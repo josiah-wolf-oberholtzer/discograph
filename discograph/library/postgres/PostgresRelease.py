@@ -59,6 +59,8 @@ class PostgresRelease(PostgresModel):
 
     @classmethod
     def bootstrap_pass_two(cls):
+        skipped_template = u'{} [SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
+        changed_template = u'{}           (Pass 2) (id:{}) [{:.8f}]: {}'
         corpus = {}
         maximum_id = cls.select(peewee.fn.Max(cls.id)).scalar()
         for i in range(1, maximum_id + 1):
@@ -69,10 +71,8 @@ class PostgresRelease(PostgresModel):
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references(corpus)
             if not changed:
-                message = u'{} [SKIPPED] (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'
-                message = message.format(
+                message = skipped_template.format(
                     cls.__name__.upper(),
-                    i,
                     document.id,
                     timer.elapsed_time,
                     document.title,
@@ -80,10 +80,8 @@ class PostgresRelease(PostgresModel):
                 print(message)
                 continue
             document.save()
-            message = u'{}           (Pass 2) (idx:{}) (id:{}) [{:.8f}]: {}'
-            message = message.format(
+            message = changed_template.format(
                 cls.__name__.upper(),
-                i,
                 document.id,
                 timer.elapsed_time,
                 document.title,
