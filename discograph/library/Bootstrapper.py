@@ -1,10 +1,12 @@
 # -*- encoding: utf-8 -*-
 import datetime
+import glob
 import gzip
 import os
 import re
 import traceback
 from xml.dom import minidom
+from abjad.tools import systemtools
 try:
     from xml.etree import cElementTree as ElementTree
 except ImportError:
@@ -19,33 +21,19 @@ class Bootstrapper(object):
     date_no_dashes_regex = re.compile('^(\d{4})(\d{2})(\d{2})$')
     year_regex = re.compile('^\d\d\d\d$')
 
-    data_directory = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)),
-        '..',
-        'data',
-        )
-
-    artists_xml_path = os.path.join(
-        data_directory,
-        'discogs_20150810_artists.xml.gz',
-        )
-
-    labels_xml_path = os.path.join(
-        data_directory,
-        'discogs_20150810_labels.xml.gz',
-        )
-
-    masters_xml_path = os.path.join(
-        data_directory,
-        'discogs_20150810_masters.xml.gz',
-        )
-
-    releases_xml_path = os.path.join(
-        data_directory,
-        'discogs_20150810_releases.xml.gz',
-        )
-
     ### PUBLIC METHODS ###
+
+    @staticmethod
+    def get_xml_path(tag):
+        data_directory = os.path.join(
+            os.path.abspath(os.path.dirname(__file__)),
+            '..',
+            'data',
+            )
+        glob_pattern = 'discogs_*_{}s.xml.gz'.format(tag)
+        with systemtools.TemporaryDirectoryChange(data_directory):
+            files = sorted(glob.glob(glob_pattern))
+        return os.path.join(data_directory, files[-1])
 
     @staticmethod
     def clean_elements(elements):
@@ -104,13 +92,8 @@ class Bootstrapper(object):
 
     @staticmethod
     def get_iterator(tag):
-        choices = {
-            'artist': Bootstrapper.artists_xml_path,
-            'label': Bootstrapper.labels_xml_path,
-            'master': Bootstrapper.masters_xml_path,
-            'release': Bootstrapper.releases_xml_path,
-            }
-        file_pointer = gzip.GzipFile(choices[tag], 'r')
+        file_path = Bootstrapper.get_xml_path(tag)
+        file_pointer = gzip.GzipFile(file_path, 'r')
         iterator = Bootstrapper.iterparse(file_pointer, tag)
         iterator = Bootstrapper.clean_elements(iterator)
         return iterator
