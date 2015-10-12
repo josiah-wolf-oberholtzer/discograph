@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 import peewee
 from playhouse import gfk
-from playhouse import postgres_ext
 from discograph.library.postgres.PostgresRelease import PostgresRelease
 from discograph.library.postgres.PostgresModel import PostgresModel
 
@@ -145,10 +144,35 @@ class PostgresRelation(PostgresModel):
 
     @classmethod
     def from_label(cls, label):
-        pass
+        import discograph
+        triples = set()
+        role = 'Sublabel Of'
+        if label.sublabels:
+            for sublabel_name, sublabel_id in label.sublabels.items():
+                if not sublabel_id:
+                    continue
+                id_one, id_two = sublabel_id, label.id
+                entity_one = (discograph.PostgresLabel, id_one)
+                entity_two = (discograph.PostgresLabel, id_two)
+                triples.add((entity_one, role, entity_two))
+        if label.parent_label:
+            for parent_label_name, parent_label_id in label.parent_label.items():
+                if not parent_label_id:
+                    continue
+                id_one, id_two = label.id, parent_label_id
+                entity_one = (discograph.PostgresLabel, id_one)
+                entity_two = (discograph.PostgresLabel, id_two)
+                triples.add((entity_one, role, entity_two))
+        triples = (_ for _ in triples
+            if all((_[0][1], _[1], _[2][1]))
+            )
+        key_function = lambda x: (x[0][1], x[1], x[2][1])
+        triples = sorted(triples, key=key_function)
+        relations = cls.from_triples(triples)
+        return relations
 
     @classmethod
-    def from_triples(cls, triples, release=None):
+    def from_triples(cls, triples, release_id=None):
         relations = []
         for entity_one, role, entity_two in triples:
             entity_one_class, entity_one_id = entity_one
@@ -158,8 +182,9 @@ class PostgresRelation(PostgresModel):
             relation = dict(
                 entity_one=entity_one,
                 entity_two=entity_two,
-                release=release,
                 role=role,
                 )
+            if release_id:
+                relation['release_id'] = release_id
             relations.append(relation)
         return relations
