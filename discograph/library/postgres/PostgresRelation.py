@@ -46,6 +46,8 @@ class PostgresRelation(PostgresModel):
         cls.drop_table(True)
         cls.create_table()
         cls.bootstrap_pass_one()
+        #cls.bootstrap_pass_two()
+        #cls.bootstrap_pass_three()
 
     @classmethod
     def bootstrap_pass_one(cls):
@@ -94,12 +96,14 @@ class PostgresRelation(PostgresModel):
                 continue
             document = list(query)[0]
             if document.master_id:
+                # Attempt to add master_id:master.main_release_id to corpus.
                 if document.master_id not in corpus:
                     where_clause = master_class.id == document.master_id
                     query = master_class.select().where(where_clause)
                     if query.count():
                         found = list(query)[0]
                         corpus[document.master_id] = found.main_release_id
+                # Skip if this release is not the master's main release.
                 if (
                     document.master_id in corpus and
                     document.master_id != corpus[document.master_id]
@@ -117,23 +121,19 @@ class PostgresRelation(PostgresModel):
         import discograph
         triples = set()
         role = 'Alias'
-        for alias in artist.aliases:
-            if not alias['id']:
+        for alias_name, alias_id in artist.aliases.items():
+            if not alias_id:
                 continue
-            alias = discograph.PostgresArtist(id=alias['id'])
-            artist_one, artist_two = sorted(
-                [artist, alias],
-                key=lambda x: x.id,
-                )
-            entity_one = (discograph.PostgresArtist, artist_one.id)
-            entity_two = (discograph.PostgresArtist, artist_two.id)
+            id_one, id_two = sorted([artist.id, alias_id])
+            entity_one = (discograph.PostgresArtist, id_one)
+            entity_two = (discograph.PostgresArtist, id_two)
             triples.add((entity_one, role, entity_two))
         role = 'Member Of'
-        for member in artist.members:
-            if not member['id']:
+        for member_name, member_id in artist.members.items():
+            if not member_id:
                 continue
-            entity_one = (discograph.PostgresArtist, member['id'])
-            entity_two = (discograph.PostgresArtist, artist['id'])
+            entity_one = (discograph.PostgresArtist, member_id)
+            entity_two = (discograph.PostgresArtist, artist.id)
             triples.add((entity_one, role, entity_two))
         triples = (_ for _ in triples
             if all((_[0][1], _[1], _[2][1]))

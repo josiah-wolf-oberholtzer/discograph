@@ -53,6 +53,7 @@ class PostgresRelease(PostgresModel):
             model_class=cls,
             xml_tag='release',
             name_attr='title',
+            skip_without=['title'],
             )
 
     @classmethod
