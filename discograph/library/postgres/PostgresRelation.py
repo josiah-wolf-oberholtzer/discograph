@@ -50,32 +50,67 @@ class PostgresRelation(PostgresModel):
     @classmethod
     def bootstrap_pass_one(cls):
         import discograph
-        query = discograph.PostgresArtist.select()
-        for i, artist in enumerate(postgres_ext.ServerSide(query)):
-            print('(idx:{}) (id:{}) {}'.format(
-                i,
-                artist.id,
-                artist.name,
+        model_class = discograph.PostgresArtist
+        maximum_id = model_class.select(peewee.fn.Max(model_class.id)).scalar()
+        for i in range(1, maximum_id + 1):
+            query = model_class.select().where(model_class.id == i)
+            if not query.count():
+                continue
+            document = list(query)[0]
+            print('(id:{}) {}'.format(
+                document.id,
+                document.name,
                 ))
-            relations = cls.from_artist(artist)
+            relations = cls.from_artist(document)
             cls.insert_many(relations)
 
     @classmethod
     def bootstrap_pass_two(cls):
         import discograph
-        query = discograph.PostgresLabel.select()
-        for i, label in enumerate(query):
-            print('(idx:{}) (id:{}) {}'.format(
-                i,
-                label.id,
-                label.name,
+        model_class = discograph.PostgresLabel
+        maximum_id = model_class.select(peewee.fn.Max(model_class.id)).scalar()
+        for i in range(1, maximum_id + 1):
+            query = model_class.select().where(model_class.id == i)
+            if not query.count():
+                continue
+            document = list(query)[0]
+            print('(id:{}) {}'.format(
+                document.id,
+                document.name,
                 ))
-            relations = cls.from_label(label)
+            relations = cls.from_label(document)
             cls.insert_many(relations)
 
     @classmethod
     def bootstrap_pass_three(cls):
-        pass
+        import discograph
+        corpus = {}
+        release_class = discograph.PostgresRelease
+        master_class = discograph.PostgresMaster
+        maximum_id = release_class.select(peewee.fn.Max(release_class.id)).scalar()
+        for i in range(1, maximum_id + 1):
+            query = release_class.select().where(release_class.id == i)
+            if not query.count():
+                continue
+            document = list(query)[0]
+            if document.master_id:
+                if document.master_id not in corpus:
+                    where_clause = master_class.id == document.master_id
+                    query = master_class.select().where(where_clause)
+                    if query.count():
+                        found = list(query)[0]
+                        corpus[document.master_id] = found.main_release_id
+                if (
+                    document.master_id in corpus and
+                    document.master_id != corpus[document.master_id]
+                    ):
+                    continue
+            print('(id:{}) {}'.format(
+                document.id,
+                document.name,
+                ))
+            relations = cls.from_release(document)
+            cls.insert_many(relations)
 
     @classmethod
     def from_artist(cls, artist):
