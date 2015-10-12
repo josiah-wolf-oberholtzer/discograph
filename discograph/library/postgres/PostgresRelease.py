@@ -42,9 +42,9 @@ class PostgresRelease(PostgresModel):
 
     @classmethod
     def bootstrap(cls):
-        #cls.drop_table(True)
-        #cls.create_table()
-        #cls.bootstrap_pass_one()
+        cls.drop_table(True)
+        cls.create_table()
+        cls.bootstrap_pass_one()
         cls.bootstrap_pass_two()
 
     @classmethod
@@ -52,7 +52,6 @@ class PostgresRelease(PostgresModel):
         PostgresModel.bootstrap_pass_one(
             model_class=cls,
             xml_tag='release',
-            xml_path=Bootstrapper.releases_xml_path,
             name_attr='title',
             )
 

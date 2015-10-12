@@ -37,7 +37,6 @@ class PostgresLabel(PostgresModel):
         PostgresModel.bootstrap_pass_one(
             model_class=cls,
             xml_tag='label',
-            xml_path=Bootstrapper.labels_xml_path,
             name_attr='name',
             skip_without=['name'],
             )

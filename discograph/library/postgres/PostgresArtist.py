@@ -39,7 +39,6 @@ class PostgresArtist(PostgresModel):
         PostgresModel.bootstrap_pass_one(
             model_class=cls,
             xml_tag='artist',
-            xml_path=Bootstrapper.artists_xml_path,
             name_attr='name',
             skip_without=['name'],
             )

@@ -67,6 +67,7 @@ class PostgresModel(gfk.Model):
         import discograph
         discograph.PostgresArtist.bootstrap()
         discograph.PostgresLabel.bootstrap()
+        discograph.PostgresMaster.bootstrap()
         discograph.PostgresRelease.bootstrap()
         discograph.PostgresRelation.bootstrap()
 
@@ -75,12 +76,12 @@ class PostgresModel(gfk.Model):
         cls,
         model_class,
         xml_tag,
-        xml_path,
         name_attr='name',
         skip_without=None,
         ):
         # Pass one.
         template = u'{} (Pass 1) (idx:{}) (id:{}) [{:.8f}]: {}'
+        xml_path = Bootstrapper.get_xml_path(xml_tag)
         with gzip.GzipFile(xml_path, 'r') as file_pointer:
             iterator = Bootstrapper.iterparse(file_pointer, xml_tag)
             for i, element in enumerate(iterator):
