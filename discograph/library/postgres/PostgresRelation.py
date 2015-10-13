@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+import itertools
 import peewee
 from playhouse import gfk
 from discograph.library.postgres.PostgresRelease import PostgresRelease
@@ -6,6 +7,16 @@ from discograph.library.postgres.PostgresModel import PostgresModel
 
 
 class PostgresRelation(PostgresModel):
+
+    ### CLASS VARIABLES ###
+
+    aggregate_role_names = (
+        'Compiled By',
+        'Curated By',
+        'DJ Mix',
+        'Hosted By',
+        'Presenter',
+        )
 
     ### PEEWEE FIELDS ###
 
@@ -170,6 +181,113 @@ class PostgresRelation(PostgresModel):
         triples = sorted(triples, key=key_function)
         relations = cls.from_triples(triples)
         return relations
+
+    @classmethod
+    def from_release(cls, release):
+        import discograph
+
+        triples = set()
+        artists, labels, is_compilation = cls.get_release_setup(release)
+
+        triples.update(cls.get_artist_label_relations(
+            artists,
+            labels,
+            is_compilation,
+            ))
+
+        aggregate_roles = {}
+        if is_compilation:
+            iterator = itertools.product(labels, release.extra_artists)
+        else:
+            iterator = itertools.product(artists, release.extra_artists)
+        for entity_two, credit in iterator:
+            for role in credit['roles']:
+                role_name = role['name']
+                if role_name not in discograph.CreditRole.all_credit_roles:
+                    continue
+                elif role_name in cls.aggregate_role_names:
+                    if role_name not in aggregate_roles:
+                        aggregate_roles[role_name] = []
+                    aggregate_credit = (discograph.PostgresArtist, credit['id'])
+                    aggregate_roles[role_name].append(aggregate_credit)
+                    continue
+                entity_one = (discograph.PostgresArtist, credit['id'])
+                triples.add((entity_one, role_name, entity_two))
+
+        all_track_artists = set()
+        for track in release.tracklist:
+            track_artists = set(
+                (discograph.PostgresArtist, _['id'])
+                for _ in track.get('artists', ())
+                )
+            all_track_artists.update(track_artists)
+            if not track.get('extra_artists'):
+                continue
+            track_artists = track_artists or artists or labels
+            iterator = itertools.product(track_artists, track['extra_artists'])
+            for entity_two, credit in iterator:
+                for role in credit['roles']:
+                    role_name = role['name']
+                    if role_name not in discograph.CreditRole.all_credit_roles:
+                        continue
+                    entity_one = (discograph.PostgresArtist, credit['id'])
+                    triples.add((entity_one, role_name, entity_two))
+
+        for role_name, aggregate_artists in aggregate_roles.items():
+            iterator = itertools.product(all_track_artists, aggregate_artists)
+            for track_artist, aggregate_artist in iterator:
+                #entity_one = (type(aggregate_artist), aggregate_artist.id)
+                #entity_two = (type(track_artist), track_artist.id)
+                entity_one = aggregate_artist
+                entity_two = track_artist
+                triples.add((entity_one, role_name, entity_two))
+
+        triples = (_ for _ in triples
+            if all((_[0][1], _[1], _[2][1]))
+            )
+        key_function = lambda x: (x[0][1], x[1], x[2][1])
+        triples = sorted(triples, key=key_function)
+        relations = cls.from_triples(triples)
+        return relations
+
+    @classmethod
+    def get_artist_label_relations(cls, artists, labels, is_compilation):
+        triples = set()
+        iterator = itertools.product(artists, labels)
+        if is_compilation:
+            role = 'Compiled On'
+        else:
+            role = 'Released On'
+        for artist, label in iterator:
+            triples.add((artist, role, label))
+        return triples
+
+    @classmethod
+    def get_release_setup(cls, release):
+        import discograph
+        is_compilation = False
+        artists = set(
+            (discograph.PostgresArtist, _['id'])
+            for _ in release.artists
+            )
+        labels = set(
+            (discograph.PostgresLabel, _['id'])
+            for _ in release.labels
+            )
+        if len(artists) == 1 and release.artists[0]['name'] == 'Various':
+            is_compilation = True
+            artists.clear()
+            for track in release.tracklist:
+                artists.update(
+                    (discograph.PostgresArtist, _['id'])
+                    for _ in track['artists']
+                    )
+        for format_ in release.formats:
+            for description in format_['descriptions']:
+                if description == 'Compilation':
+                    is_compilation = True
+                    break
+        return artists, labels, is_compilation
 
     @classmethod
     def from_triples(cls, triples, release_id=None):

@@ -60,13 +60,20 @@ class PostgresRelease(PostgresModel):
     def bootstrap_pass_two(cls):
         PostgresModel.bootstrap_pass_two(cls, 'title')
 
-    def resolve_references(self, corpus):
+    def resolve_references(self, corpus, spuriously=False):
         import discograph
         changed = False
+        spurious_id = 0
         for entry in self.labels:
             name = entry['name']
-            discograph.PostgresLabel.update_corpus(corpus, name)
+            if not spuriously:
+                discograph.PostgresLabel.update_corpus(corpus, name)
             if name in corpus:
+                entry['id'] = corpus[name]
+                changed = True
+            elif spuriously:
+                spurious_id -= 1
+                corpus[name] = spurious_id
                 entry['id'] = corpus[name]
                 changed = True
         return changed
