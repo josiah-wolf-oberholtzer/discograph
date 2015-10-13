@@ -288,8 +288,9 @@ class PostgresRelation(PostgresModel):
             for _ in release.artists
             )
         labels = set(
-            (cls.EntityType.LABEL, _['id'])
+            (cls.EntityType.LABEL, _.get('id'))
             for _ in release.labels
+            if _.get('id')
             )
         if len(artists) == 1 and release.artists[0]['name'] == 'Various':
             is_compilation = True
