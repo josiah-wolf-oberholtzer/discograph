@@ -25,6 +25,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
                 'release_id': 1,
                 'role': 'Released On',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 239,
@@ -33,6 +34,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 1,
                 'role': 'Music By',
+                'year': 1999,
                 },
             ]
         assert actual == expected
@@ -157,6 +159,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
                 'release_id': 103,
                 'role': 'Compiled On',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 196,
@@ -165,6 +168,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
                 'release_id': 103,
                 'role': 'Compiled On',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 197,
@@ -173,6 +177,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
                 'release_id': 103,
                 'role': 'Compiled On',
+                'year': 1999,
                 },
             ]
         assert actual == expected
@@ -324,6 +329,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 5,
                 'role': 'Producer',
+                'year': 1995,
                 },
             {
                 'entity_one_id': 22,
@@ -332,6 +338,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
                 'release_id': 5,
                 'role': 'Released On',
+                'year': 1995,
                 },
             {
                 'entity_one_id': 25,
@@ -340,6 +347,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 5,
                 'role': 'Performer',
+                'year': 1995,
                 },
             {
                 'entity_one_id': 415403,
@@ -348,6 +356,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 5,
                 'role': 'Voice',
+                'year': 1995,
                 },
             {
                 'entity_one_id': 519207,
@@ -356,6 +365,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 5,
                 'role': 'Performer',
+                'year': 1995,
                 },
             {
                 'entity_one_id': 539207,
@@ -364,6 +374,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 5,
                 'role': 'Cover',
+                'year': 1995,
                 },
             {
                 'entity_one_id': 539207,
@@ -372,6 +383,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 5,
                 'role': 'Design',
+                'year': 1995,
                 },
             ]
         assert actual == expected
@@ -635,6 +647,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
                 'release_id': 36,
                 'role': 'Compiled On',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -643,6 +656,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -651,6 +665,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -659,6 +674,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -667,6 +683,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -675,6 +692,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -683,6 +701,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -691,6 +710,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -699,6 +719,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -707,6 +728,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -715,6 +737,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 64,
@@ -723,6 +746,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 36400,
@@ -731,6 +755,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'Featuring',
+                'year': 2000,
                 },
             {
                 'entity_one_id': 36400,
@@ -739,6 +764,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'Featuring',
+                'year': 2000,
                 },
             ]
         assert actual == expected
@@ -1317,6 +1343,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
                 'release_id': 3286,
                 'role': 'Released On',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 9559,
@@ -1325,6 +1352,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Vocals',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 9559,
@@ -1333,6 +1361,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Written-By',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 12601,
@@ -1341,6 +1370,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Guitar',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 13481,
@@ -1349,6 +1379,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Engineer',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 31885,
@@ -1357,6 +1388,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Keyboards',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 56668,
@@ -1365,6 +1397,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Percussion',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 56668,
@@ -1373,6 +1406,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Vocals',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 56668,
@@ -1381,6 +1415,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Written-By',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 86765,
@@ -1389,6 +1424,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Photography',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 133484,
@@ -1397,6 +1433,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Effects',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 133484,
@@ -1405,6 +1442,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Written-By',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 156648,
@@ -1413,6 +1451,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Viola',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 156648,
@@ -1421,6 +1460,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Violin',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 246316,
@@ -1429,6 +1469,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Edited By',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 246316,
@@ -1437,6 +1478,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Engineer',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 246316,
@@ -1445,6 +1487,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Percussion',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 246316,
@@ -1453,6 +1496,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Programmed By',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 246316,
@@ -1461,6 +1505,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Written-By',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 308472,
@@ -1469,6 +1514,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Bass',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 308472,
@@ -1477,6 +1523,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Cello',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 308472,
@@ -1485,6 +1532,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Effects',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 308472,
@@ -1493,6 +1541,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Guitar',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 308472,
@@ -1501,6 +1550,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Keyboards',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 308472,
@@ -1509,6 +1559,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Percussion',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 308472,
@@ -1517,6 +1568,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Programmed By',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 308472,
@@ -1525,6 +1577,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Written-By',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 328648,
@@ -1533,6 +1586,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Flute',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 328648,
@@ -1541,6 +1595,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Saxophone',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 330312,
@@ -1549,6 +1604,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Double Bass',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 364438,
@@ -1557,6 +1613,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Mastered By',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 383869,
@@ -1565,6 +1622,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Percussion',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 388361,
@@ -1573,6 +1631,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Mastered By',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 392454,
@@ -1581,6 +1640,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Guitar',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 402322,
@@ -1589,6 +1649,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Trombone',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 402323,
@@ -1597,6 +1658,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Guitar',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 402324,
@@ -1605,6 +1667,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Trumpet',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 402325,
@@ -1613,6 +1676,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Guitar',
+                'year': 1999,
                 },
             {
                 'entity_one_id': 1832523,
@@ -1621,6 +1685,7 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 3286,
                 'role': 'Artwork By',
+                'year': 1999,
                 },
             ]
         assert actual == expected
