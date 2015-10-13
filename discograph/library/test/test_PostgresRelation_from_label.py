@@ -29,14 +29,18 @@ class Test(unittest.TestCase):
         actual = discograph.PostgresRelation.from_label(label_document)
         expected = [
             {
-                'entity_one': discograph.PostgresLabel(id=66542),
-                'entity_two': discograph.PostgresLabel(id=3),
+                'entity_one_id': 66542,
+                'entity_one_type': discograph.PostgresRelation.EntityType.LABEL,
+                'entity_two_id': 3,
+                'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
                 'role': 'Sublabel Of',
                 },
             {
-                'entity_one': discograph.PostgresLabel(id=297127),
-                'entity_two': discograph.PostgresLabel(id=3),
+                'entity_one_id': 297127,
+                'entity_one_type': discograph.PostgresRelation.EntityType.LABEL,
+                'entity_two_id': 3,
+                'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
                 'role': 'Sublabel Of',
-                }
+                },
             ]
         assert actual == expected

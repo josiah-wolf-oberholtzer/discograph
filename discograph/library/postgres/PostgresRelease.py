@@ -225,6 +225,7 @@ class PostgresRelease(PostgresModel):
     @classmethod
     def from_element(cls, element):
         data = cls.tags_to_fields(element)
+        data['id'] = int(element.get('id'))
         return cls(**data)
 
 
