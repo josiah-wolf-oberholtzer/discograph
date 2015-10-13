@@ -29,8 +29,8 @@ class PostgresRelation(PostgresModel):
     entity_two_type = peewee.IntegerField()
     entity_two_id = peewee.IntegerField()
     role = peewee.CharField()
-    release_id = peewee.IntegerField(null=True)
-    year = peewee.IntegerField(null=True)
+    release_id = peewee.IntegerField(default=-1)
+    year = peewee.IntegerField(default=-1)
 
     ### PEEWEE META ###
 
@@ -41,6 +41,15 @@ class PostgresRelation(PostgresModel):
             (('entity_two_type', 'entity_two_id', 'role', 'year'), False),
             (('entity_one_type', 'entity_one_id',
               'entity_two_type', 'entity_two_id', 'role', 'year'), False),
+            )
+        primary_key = peewee.CompositeKey(
+            'entity_one_type',
+            'entity_one_id',
+            'entity_two_type',
+            'entity_two_id',
+            'role',
+            'release_id',
+            'year',
             )
 
     ### PUBLIC METHODS ###
@@ -77,8 +86,7 @@ class PostgresRelation(PostgresModel):
                     relation['entity_two_type'].name,
                     relation['entity_two_id'],
                     ))
-            if relations:
-                cls.insert_many(relations).execute()
+                cls.create_or_get(**relation)
 
     @classmethod
     def bootstrap_pass_two(cls):
@@ -104,8 +112,7 @@ class PostgresRelation(PostgresModel):
                     relation['entity_two_type'].name,
                     relation['entity_two_id'],
                     ))
-            if relations:
-                cls.insert_many(relations).execute()
+                cls.create_or_get(**relation)
 
     @classmethod
     def bootstrap_pass_three(cls):
@@ -135,7 +142,7 @@ class PostgresRelation(PostgresModel):
                     continue
             print('(id:{}) {}'.format(
                 document.id,
-                document.name,
+                document.title,
                 ))
             relations = cls.from_release(document)
             for relation in relations:
@@ -147,8 +154,7 @@ class PostgresRelation(PostgresModel):
                     relation['entity_two_type'].name,
                     relation['entity_two_id'],
                     ))
-            if relations:
-                cls.insert_many(relations).execute()
+                cls.create_or_get(**relation)
 
     @classmethod
     def from_artist(cls, artist):
@@ -291,10 +297,10 @@ class PostgresRelation(PostgresModel):
             for track in release.tracklist:
                 artists.update(
                     (cls.EntityType.ARTIST, _['id'])
-                    for _ in track['artists']
+                    for _ in track.get('artists', ())
                     )
         for format_ in release.formats:
-            for description in format_['descriptions']:
+            for description in format_.get('descriptions', ()):
                 if description == 'Compilation':
                     is_compilation = True
                     break
