@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import itertools
 import peewee
+import random
 from abjad.tools import datastructuretools
 from discograph.library.postgres.PostgresModel import PostgresModel
 
@@ -27,9 +28,9 @@ class PostgresRelation(PostgresModel):
     entity_one_id = peewee.IntegerField()
     entity_two_type = peewee.IntegerField()
     entity_two_id = peewee.IntegerField()
-    role = peewee.IntegerField()
-    release_id = peewee.IntegerField()
-    year = peewee.IntegerField()
+    role = peewee.CharField()
+    release_id = peewee.IntegerField(null=True)
+    year = peewee.IntegerField(null=True)
 
     ### PEEWEE META ###
 
@@ -68,9 +69,16 @@ class PostgresRelation(PostgresModel):
                 ))
             relations = cls.from_artist(document)
             for relation in relations:
+                relation['random'] = random.random()
                 print('    {}-{} -> {!r} -> {}-{}'.format(
+                    relation['entity_one_type'].name,
+                    relation['entity_one_id'],
+                    relation['role'],
+                    relation['entity_two_type'].name,
+                    relation['entity_two_id'],
                     ))
-            cls.insert_many(relations).execute()
+            if relations:
+                cls.insert_many(relations).execute()
 
     @classmethod
     def bootstrap_pass_two(cls):
@@ -87,7 +95,17 @@ class PostgresRelation(PostgresModel):
                 document.name,
                 ))
             relations = cls.from_label(document)
-            cls.insert_many(relations)
+            for relation in relations:
+                relation['random'] = random.random()
+                print('    {}-{} -> {!r} -> {}-{}'.format(
+                    relation['entity_one_type'].name,
+                    relation['entity_one_id'],
+                    relation['role'],
+                    relation['entity_two_type'].name,
+                    relation['entity_two_id'],
+                    ))
+            if relations:
+                cls.insert_many(relations).execute()
 
     @classmethod
     def bootstrap_pass_three(cls):
@@ -120,7 +138,17 @@ class PostgresRelation(PostgresModel):
                 document.name,
                 ))
             relations = cls.from_release(document)
-            cls.insert_many(relations)
+            for relation in relations:
+                relation['random'] = random.random()
+                print('    {}-{} -> {!r} -> {}-{}'.format(
+                    relation['entity_one_type'].name,
+                    relation['entity_one_id'],
+                    relation['role'],
+                    relation['entity_two_type'].name,
+                    relation['entity_two_id'],
+                    ))
+            if relations:
+                cls.insert_many(relations).execute()
 
     @classmethod
     def from_artist(cls, artist):
@@ -231,7 +259,7 @@ class PostgresRelation(PostgresModel):
                 entity_two = track_artist
                 triples.add((entity_one, role_name, entity_two))
         triples = sorted(triples)
-        relations = cls.from_triples(triples, release_id=release.id)
+        relations = cls.from_triples(triples, release=release)
         return relations
 
     @classmethod
@@ -273,13 +301,11 @@ class PostgresRelation(PostgresModel):
         return artists, labels, is_compilation
 
     @classmethod
-    def from_triples(cls, triples, release_id=None):
+    def from_triples(cls, triples, release=None):
         relations = []
         for entity_one, role, entity_two in triples:
             entity_one_type, entity_one_id = entity_one
-            #entity_one = entity_one_class(id=entity_one_id)
             entity_two_type, entity_two_id = entity_two
-            #entity_two = entity_two_class(id=entity_two_id)
             relation = dict(
                 entity_one_id=entity_one_id,
                 entity_one_type=entity_one_type,
@@ -287,7 +313,9 @@ class PostgresRelation(PostgresModel):
                 entity_two_type=entity_two_type,
                 role=role,
                 )
-            if release_id:
-                relation['release_id'] = release_id
+            if release is not None:
+                relation['release_id'] = release.id
+                if release.release_date is not None:
+                    relation['year'] = release.release_date.year
             relations.append(relation)
         return relations
