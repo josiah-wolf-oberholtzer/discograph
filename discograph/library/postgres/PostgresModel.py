@@ -6,13 +6,13 @@ import random
 import traceback
 from abjad.tools import systemtools
 from playhouse import gfk
-from playhouse import postgres_ext
+from playhouse import pool
 from discograph.library.Bootstrapper import Bootstrapper
 
 
-database = postgres_ext.PostgresqlExtDatabase(
+database = pool.PooledPostgresqlExtDatabase(
     'discograph',
-    #server_side_cursors=True,
+    max_connections=16,
     user=None,
     )
 

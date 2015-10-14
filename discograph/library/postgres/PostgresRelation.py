@@ -2,6 +2,8 @@
 import itertools
 import peewee
 import random
+import multiprocessing
+import time
 from abjad.tools import datastructuretools
 from discograph.library.postgres.PostgresModel import PostgresModel
 
@@ -13,6 +15,28 @@ class PostgresRelation(PostgresModel):
     class EntityType(datastructuretools.Enumeration):
         ARTIST = 1
         LABEL = 2
+
+    class BootstrapWorker(multiprocessing.Process):
+
+        corpus = {}
+
+        def __init__(self, queue):
+            multiprocessing.Process.__init__(self)
+            self.queue = queue
+
+        def run(self):
+            proc_name = self.name
+            while True:
+                task = self.queue.get()
+                if task is None:
+                    self.queue.task_done()
+                    break
+                PostgresRelation.bootstrap_pass_three_inner(
+                    task,
+                    self.corpus,
+                    annotation=proc_name,
+                    )
+                self.queue.task_done()
 
     aggregate_role_names = (
         'Compiled By',
@@ -117,20 +141,42 @@ class PostgresRelation(PostgresModel):
     @classmethod
     def bootstrap_pass_three(cls):
         import discograph
-        corpus = {}
         release_class = discograph.PostgresRelease
         maximum_id = release_class.select(peewee.fn.Max(release_class.id)).scalar()
-        for i in range(1, maximum_id + 1):
-            query = release_class.select().where(release_class.id == i)
+        queue = multiprocessing.JoinableQueue()
+        workers = [cls.BootstrapWorker(queue) for _ in range(4)]
+        for worker in workers:
+            worker.start()
+        for release_id in range(1, maximum_id + 1):
+            while not queue.empty():
+                time.sleep(0.0001)
+            queue.put(release_id)
+        for worker in workers:
+            queue.put(None)
+        queue.join()
+        queue.close()
+        for worker in workers:
+            worker.join()
+        for worker in workers:
+            worker.terminate()
+
+    @classmethod
+    def bootstrap_pass_three_inner(cls, release_id, corpus, annotation=''):
+        import discograph
+        database = cls._meta.database
+        with database.execution_context(with_transaction=False):
+            release_class = discograph.PostgresRelease
+            master_class = discograph.PostgresMaster
+            query = release_class.select().where(release_class.id == release_id)
             if not query.count():
-                continue
+                return
             document = query.get()
             if document.master_id:
                 if document.master_id in corpus:
                     main_release_id = corpus[document.master_id]
                 else:
-                    where_clause = discograph.PostgresMaster.id == document.master_id
-                    query = discograph.PostgresMaster.select().where(where_clause)
+                    where_clause = master_class.id == document.master_id
+                    query = master_class.select().where(where_clause)
                     if query.count():
                         master = query.get()
                         corpus[document.master_id] = master.main_release_id
@@ -138,39 +184,21 @@ class PostgresRelation(PostgresModel):
                     else:
                         main_release_id = document.id
                 if main_release_id != document.id:
-                    print('(id:{}) [SKIPPED] {}'.format(
+                    print('[{}] (id:{}) [SKIPPED] {}'.format(
+                        annotation,
                         document.id,
                         document.title,
                         ))
-                    continue
-                # Attempt to add master_id:master.main_release_id to corpus.
-                #if document.master_id not in corpus:
-                #    where_clause = master_class.id == document.master_id
-                #    query = master_class.select().where(where_clause)
-                #    if query.count():
-                #        found = list(query)[0]
-                #        corpus[document.master_id] = found.main_release_id
-                # Skip if this release is not the master's main release.
-                #if (
-                #    document.master_id in corpus and
-                #    document.master_id != corpus[document.master_id]
-                #    ):
-                #    continue
+                    return
             relations = cls.from_release(document)
-            print('(id:{})           [{}] {}'.format(
+            print('[{}] (id:{})           [{}] {}'.format(
+                annotation,
                 document.id,
                 len(relations),
                 document.title,
                 ))
             for relation in relations:
                 relation['random'] = random.random()
-                #print('    {}-{} -> {!r} -> {}-{}'.format(
-                #    relation['entity_one_type'].name,
-                #    relation['entity_one_id'],
-                #    relation['role'],
-                #    relation['entity_two_type'].name,
-                #    relation['entity_two_id'],
-                #    ))
                 cls.create_or_get(**relation)
 
     @classmethod
