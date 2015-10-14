@@ -71,7 +71,7 @@ class PostgresRelation(PostgresModel):
             query = model_class.select().where(model_class.id == i)
             if not query.count():
                 continue
-            document = list(query)[0]
+            document = query.get()
             print('(id:{}) {}'.format(
                 document.id,
                 document.name,
@@ -97,7 +97,7 @@ class PostgresRelation(PostgresModel):
             query = model_class.select().where(model_class.id == i)
             if not query.count():
                 continue
-            document = list(query)[0]
+            document = query.get()
             print('(id:{}) {}'.format(
                 document.id,
                 document.name,
@@ -124,14 +124,19 @@ class PostgresRelation(PostgresModel):
             query = release_class.select().where(release_class.id == i)
             if not query.count():
                 continue
-            document = list(query)[0]
+            document = query.get()
             if document.master_id:
                 if document.master_id in corpus:
                     main_release_id = corpus[document.master_id]
                 else:
-                    master = discograph.PostgresMaster.get(id=document.master_id)
-                    corpus[document.master_id] = master.main_release_id
-                    main_release_id = corpus[document.master_id]
+                    where_clause = discograph.PostgresMaster.id == document.master_id
+                    query = discograph.PostgresMaster.select().where(where_clause)
+                    if query.count():
+                        master = query.get()
+                        corpus[document.master_id] = master.main_release_id
+                        main_release_id = corpus[document.master_id]
+                    else:
+                        main_release_id = document.id
                 if main_release_id != document.id:
                     print('(id:{}) [SKIPPED] {}'.format(
                         document.id,

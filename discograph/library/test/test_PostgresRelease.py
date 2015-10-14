@@ -17,7 +17,8 @@ class Test(unittest.TestCase):
                 artists=[
                     {
                         'id': 1,
-                        'name': 'Persuader, The',
+                        'join': ',',
+                        'name': 'The Persuader',
                         },
                     ],
                 companies=[
@@ -55,6 +56,7 @@ class Test(unittest.TestCase):
                         },
                     ],
                 genres=['Electronic'],
+                id=1,
                 identifiers=[
                     {
                         'description': 'A-Side',
@@ -171,6 +173,7 @@ class Test(unittest.TestCase):
                         },
                     ],
                 genres=['Electronic'],
+                id=3,
                 identifiers=[
                     {
                         'description': None,
@@ -247,7 +250,7 @@ class Test(unittest.TestCase):
                             {
                                 'id': 1,
                                 'join': ',',
-                                'name': 'Persuader, The',
+                                'name': 'The Persuader',
                                 },
                             ],
                         'duration': '4:27',

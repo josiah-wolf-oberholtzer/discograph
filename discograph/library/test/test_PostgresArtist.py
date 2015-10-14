@@ -21,11 +21,11 @@ class Test(unittest.TestCase):
                     "Janne Me' Amazonen": None,
                     'Jesper Dahlbäck': None,
                     'Lenk': None,
-                    'Pinguin Man, The': None,
+                    'The Pinguin Man': None,
                     },
                 id=1,
-                name='Persuader, The',
-                name_variations=['Persuader', 'Presuader, The'],
+                name='The Persuader',
+                name_variations=['Persuader', 'The Presuader'],
                 real_name='Jesper Dahlbäck',
                 )
             """)

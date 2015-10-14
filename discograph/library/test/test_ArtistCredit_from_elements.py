@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
             <artists>
                 <artist>
                     <id>1</id>
-                    <name>Persuader, The</name>
+                    <name>The Persuader</name>
                     <anv/>
                     <join/>
                     <role/>
@@ -38,7 +38,7 @@ class Test(unittest.TestCase):
         assert format(artist_credits[0]) == stringtools.normalize(r'''
             discograph.library.mongo.ArtistCredit(
                 discogs_id=1,
-                name='Persuader, The',
+                name='The Persuader',
                 )
             ''')
 

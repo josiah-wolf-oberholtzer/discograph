@@ -31,9 +31,9 @@ class Test(unittest.TestCase):
                 <artists>
                     <artist>
                         <id>1</id>
-                        <name>Persuader, The</name>
+                        <name>The Persuader</name>
                         <anv/>
-                        <join/>
+                        <join>,</join>
                         <role/>
                         <tracks/>
                     </artist>
@@ -45,7 +45,7 @@ class Test(unittest.TestCase):
                 <extraartists>
                     <artist>
                         <id>239</id>
-                        <name>Jesper Dahlb\xe4ck</name>
+                        <name>Jesper Dahlbäck</name>
                         <anv/>
                         <join/>
                         <role>Music By [All Tracks By]</role>
@@ -56,7 +56,7 @@ class Test(unittest.TestCase):
                     <format name="Vinyl" qty="2" text="">
                         <descriptions>
                             <description>12&quot;</description>
-                            <description>33 \u2153 RPM</description>
+                            <description>33 ⅓ RPM</description>
                         </descriptions>
                     </format>
                 </formats>
@@ -68,13 +68,13 @@ class Test(unittest.TestCase):
                 </styles>
                 <country>Sweden</country>
                 <released>1999-03-00</released>
-                <notes>The song titles are the names of Stockholm's districts.
+                <notes>The song titles are the names of 6 of Stockholm's 82 districts.
             </notes>
-                <data_quality>Complete and Correct</data_quality>
+                <data_quality>Correct</data_quality>
                 <tracklist>
                     <track>
                         <position>A</position>
-                        <title>\xd6stermalm</title>
+                        <title>Östermalm</title>
                         <duration>4:45</duration>
                     </track>
                     <track>
@@ -89,7 +89,7 @@ class Test(unittest.TestCase):
                     </track>
                     <track>
                         <position>C1</position>
-                        <title>S\xf6dermalm</title>
+                        <title>Södermalm</title>
                         <duration>5:38</duration>
                     </track>
                     <track>
@@ -111,12 +111,16 @@ class Test(unittest.TestCase):
                 </identifiers>
                 <videos>
                     <video duration="290" embed="true" src="http://www.youtube.com/watch?v=AHuQWcylaU4">
-                        <title>The Persuader (Jesper Dahlb\xe4ck) - \xd6stermalm</title>
-                        <description>The Persuader (Jesper Dahlb\xe4ck) - \xd6stermalm</description>
+                        <title>The Persuader (Jesper Dahlbäck) - Östermalm</title>
+                        <description>The Persuader (Jesper Dahlbäck) - Östermalm</description>
                     </video>
                     <video duration="380" embed="true" src="http://www.youtube.com/watch?v=5rA8CTKKEP4">
                         <title>The Persuader - Vasastaden</title>
                         <description>The Persuader - Vasastaden</description>
+                    </video>
+                    <video duration="175" embed="true" src="http://www.youtube.com/watch?v=fcPzlx_UQPM">
+                        <title>The Persuader - Kungsholmen</title>
+                        <description>The Persuader - Kungsholmen</description>
                     </video>
                     <video duration="335" embed="true" src="http://www.youtube.com/watch?v=QVdDhOnoR8k">
                         <title>The Persuader-Stockholm-Sodermalm</title>
@@ -147,7 +151,8 @@ class Test(unittest.TestCase):
                 </companies>
             </release>
             ''')
-        assert actual.splitlines() == expected.splitlines()
+        assert actual == expected
+        #assert actual.splitlines() == expected.splitlines()
         release_document = library.Release.from_element(release_element)
         actual = format(release_document)
         expected = stringtools.normalize(u"""
@@ -155,7 +160,8 @@ class Test(unittest.TestCase):
                 artists=[
                     discograph.library.mongo.ArtistCredit(
                         discogs_id=1,
-                        name='Persuader, The',
+                        join=',',
+                        name='The Persuader',
                         ),
                     ],
                 companies=[
@@ -383,7 +389,7 @@ class Test(unittest.TestCase):
                         <artists>
                             <artist>
                                 <id>1</id>
-                                <name>Persuader, The</name>
+                                <name>The Persuader</name>
                                 <anv/>
                                 <join>,</join>
                                 <role/>
@@ -730,7 +736,7 @@ class Test(unittest.TestCase):
                             discograph.library.mongo.ArtistCredit(
                                 discogs_id=1,
                                 join=',',
-                                name='Persuader, The',
+                                name='The Persuader',
                                 ),
                             ],
                         duration='4:27',
