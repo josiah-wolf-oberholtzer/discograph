@@ -52,8 +52,8 @@ class PostgresRelation(PostgresModel):
     entity_one_id = peewee.IntegerField()
     entity_two_type = peewee.IntegerField()
     entity_two_id = peewee.IntegerField()
-    role = peewee.CharField()
     release_id = peewee.IntegerField(default=-1)
+    role = peewee.CharField()
     year = peewee.IntegerField(default=-1)
 
     ### PEEWEE META ###

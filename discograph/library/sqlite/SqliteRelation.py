@@ -2,6 +2,7 @@
 import peewee
 import random
 from discograph.library.sqlite.SqliteModel import SqliteModel
+from playhouse import postgres_ext
 
 
 class SqliteRelation(SqliteModel):
@@ -23,6 +24,17 @@ class SqliteRelation(SqliteModel):
         indexes = (
             (('entity_one_id', 'entity_one_type', 'role_name', 'year'), False),
             (('entity_two_id', 'entity_two_type', 'role_name', 'year'), False),
+            (('entity_one_type', 'entity_one_id',
+              'entity_two_type', 'entity_two_id', 'role', 'year'), False),
+            )
+        primary_key = peewee.CompositeKey(
+            'entity_one_type',
+            'entity_one_id',
+            'entity_two_type',
+            'entity_two_id',
+            'role',
+            'release_id',
+            'year',
             )
 
     ### PUBLIC METHODS ###
@@ -32,19 +44,30 @@ class SqliteRelation(SqliteModel):
         import discograph
         discograph.SqliteRelation.drop_table(fail_silently=True)
         discograph.SqliteRelation.create_table()
-        count = discograph.Relation.objects.count()
-        query = discograph.Relation._get_collection().find()
+        query = discograph.PostgresRelation.select()
+        count = query.count()
+        query = postgres_ext.ServerSide(query)
+        #count = discograph.Relation.objects.count()
+        #query = discograph.Relation._get_collection().find()
         rows = []
-        for i, mongo_document in enumerate(query, 1):
+        #for i, mongo_document in enumerate(query, 1):
+        for i, document in enumerate(query):
             rows.append(dict(
                 id=i,
-                entity_one_id=mongo_document.get('entity_one_id'),
-                entity_one_type=mongo_document.get('entity_one_type'),
-                entity_two_id=mongo_document.get('entity_two_id'),
-                entity_two_type=mongo_document.get('entity_two_type'),
-                year=mongo_document.get('year'),
-                release_id=mongo_document.get('release_id'),
-                role_name=mongo_document.get('role_name'),
+                entity_one_id=document.entity_one_id,
+                entity_one_type=document.entity_one_type,
+                entity_two_id=document.entity_two_id,
+                entity_two_type=document.entity_two_type,
+                year=document.year,
+                role_name=document.role,
+                release_id=document.release_id,
+                #entity_one_id=mongo_document.get('entity_one_id'),
+                #entity_one_type=mongo_document.get('entity_one_type'),
+                #entity_two_id=mongo_document.get('entity_two_id'),
+                #entity_two_type=mongo_document.get('entity_two_type'),
+                #year=mongo_document.get('year'),
+                #release_id=mongo_document.get('release_id'),
+                #role_name=mongo_document.get('role_name'),
                 random=random.random(),
                 ))
             #if mongo_document.get('role_name') not in ('Alias', 'Member Of'):
