@@ -119,7 +119,6 @@ class PostgresRelation(PostgresModel):
         import discograph
         corpus = {}
         release_class = discograph.PostgresRelease
-        master_class = discograph.PostgresMaster
         maximum_id = release_class.select(peewee.fn.Max(release_class.id)).scalar()
         for i in range(1, maximum_id + 1):
             query = release_class.select().where(release_class.id == i)
@@ -127,33 +126,46 @@ class PostgresRelation(PostgresModel):
                 continue
             document = list(query)[0]
             if document.master_id:
-                # Attempt to add master_id:master.main_release_id to corpus.
-                if document.master_id not in corpus:
-                    where_clause = master_class.id == document.master_id
-                    query = master_class.select().where(where_clause)
-                    if query.count():
-                        found = list(query)[0]
-                        corpus[document.master_id] = found.main_release_id
-                # Skip if this release is not the master's main release.
-                if (
-                    document.master_id in corpus and
-                    document.master_id != corpus[document.master_id]
-                    ):
+                if document.master_id in corpus:
+                    main_release_id = corpus[document.master_id]
+                else:
+                    master = discograph.PostgresMaster.get(id=document.master_id)
+                    corpus[document.master_id] = master.main_release_id
+                    main_release_id = corpus[document.master_id]
+                if main_release_id != document.id:
+                    print('(id:{}) [SKIPPED] {}'.format(
+                        document.id,
+                        document.title,
+                        ))
                     continue
-            print('(id:{}) {}'.format(
+                # Attempt to add master_id:master.main_release_id to corpus.
+                #if document.master_id not in corpus:
+                #    where_clause = master_class.id == document.master_id
+                #    query = master_class.select().where(where_clause)
+                #    if query.count():
+                #        found = list(query)[0]
+                #        corpus[document.master_id] = found.main_release_id
+                # Skip if this release is not the master's main release.
+                #if (
+                #    document.master_id in corpus and
+                #    document.master_id != corpus[document.master_id]
+                #    ):
+                #    continue
+            relations = cls.from_release(document)
+            print('(id:{})           [{}] {}'.format(
                 document.id,
+                len(relations),
                 document.title,
                 ))
-            relations = cls.from_release(document)
             for relation in relations:
                 relation['random'] = random.random()
-                print('    {}-{} -> {!r} -> {}-{}'.format(
-                    relation['entity_one_type'].name,
-                    relation['entity_one_id'],
-                    relation['role'],
-                    relation['entity_two_type'].name,
-                    relation['entity_two_id'],
-                    ))
+                #print('    {}-{} -> {!r} -> {}-{}'.format(
+                #    relation['entity_one_type'].name,
+                #    relation['entity_one_id'],
+                #    relation['role'],
+                #    relation['entity_two_type'].name,
+                #    relation['entity_two_id'],
+                #    ))
                 cls.create_or_get(**relation)
 
     @classmethod
@@ -252,7 +264,7 @@ class PostgresRelation(PostgresModel):
             track_artists = track_artists or artists or labels
             iterator = itertools.product(track_artists, track['extra_artists'])
             for entity_two, credit in iterator:
-                for role in credit['roles']:
+                for role in credit.get('roles', ()):
                     role_name = role['name']
                     if role_name not in discograph.CreditRole.all_credit_roles:
                         continue
