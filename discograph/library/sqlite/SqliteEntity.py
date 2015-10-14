@@ -58,6 +58,46 @@ class SqliteEntity(SqliteModel):
                 (float(i) / count) * 100),
                 )
 
+    @classmethod
+    def _load_from_postgres_class(cls, postgres_class):
+        import discograph
+        entity_type = 1
+        if postgres_class == discograph.PostgresLabel:
+            entity_type = 2
+        count = postgres_class.select(peewee.fn.Max(postgres_class.id)).scalar()
+        rows = []
+        for i in range(1, count + 1):
+            query = postgres_class.select().where(postgres_class.id == i)
+            if not query.count():
+                continue
+            postgres_document = query.get()
+            if postgres_document.name:
+                rows.append(dict(
+                    entity_id=postgres_document.id,
+                    entity_type=entity_type,
+                    name=postgres_document.name,
+                    random=random.random(),
+                    ))
+            if len(rows) == 100:
+                cls.insert_many(rows).execute()
+                rows = []
+                print('[{}] Processing {}... {} of {} [{:.3f}%]'.format(
+                    cls.__name__,
+                    postgres_class.__name__,
+                    i,
+                    count,
+                    (float(i) / count) * 100),
+                    )
+        if rows:
+            cls.insert_many(rows).execute()
+            print('[{}] Processing {}... {} of {} [{:.3f}%]'.format(
+                cls.__name__,
+                postgres_class.__name__,
+                i,
+                count,
+                (float(i) / count) * 100),
+                )
+
     ### PUBLIC METHODS ###
 
     @classmethod
@@ -70,8 +110,10 @@ class SqliteEntity(SqliteModel):
             content=discograph.SqliteEntity,
             tokenize='unicode61',
             )
-        cls._load_from_mongo_class(discograph.Artist)
-        cls._load_from_mongo_class(discograph.Label)
+        #cls._load_from_mongo_class(discograph.Artist)
+        #cls._load_from_mongo_class(discograph.Label)
+        cls._load_from_postgres_class(discograph.PostgresArtist)
+        cls._load_from_postgres_class(discograph.PostgresLabel)
         discograph.SqliteFTSEntity.rebuild()
         discograph.SqliteFTSEntity.optimize()
 
