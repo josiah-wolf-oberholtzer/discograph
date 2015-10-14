@@ -19,7 +19,7 @@ class TestCase(unittest.TestCase):
 
     def test_network_3(self):
         response = self.app.get('/api/label/network/1')
-        assert response.status == '404 NOT FOUND'
+        assert response.status == '200 OK'
 
     def test_search_01(self):
         response = self.app.get('/api/search/Morris')
@@ -28,6 +28,7 @@ class TestCase(unittest.TestCase):
         assert data == {
             'results': [
                 {'key': 'artist-175844', 'name': 'Morris'},
+                {'key': 'label-501118', 'name': 'Morris'},
                 {'key': 'artist-2370760', 'name': 'Morris G. Morris'},
                 {'key': 'artist-3723', 'name': 'Chris Morris'},
                 {'key': 'artist-3985', 'name': 'Mixmaster Morris'},
@@ -36,7 +37,6 @@ class TestCase(unittest.TestCase):
                 {'key': 'artist-27005', 'name': 'Morris Nightingale'},
                 {'key': 'artist-32224', 'name': 'DJ Morris'},
                 {'key': 'artist-33751', 'name': 'Max & Morris'},
-                {'key': 'artist-33927', 'name': 'Stephen Morris'},
                 ],
             }
 
