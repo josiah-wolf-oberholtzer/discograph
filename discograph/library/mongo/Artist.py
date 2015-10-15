@@ -193,7 +193,7 @@ class Artist(MongoModel, mongoengine.Document):
             {'$group': {
                 '_id': {
                     'year': '$year',
-                    'role_name': '$role_name',
+                    'role': '$role',
                     },
                 'total': {'$sum': 1}
                 }},
@@ -201,7 +201,7 @@ class Artist(MongoModel, mongoengine.Document):
                 '_id': '$_id.year',
                 'totals': {
                     '$push': {
-                        'role_name': '$_id.role_name',
+                        'role': '$_id.role',
                         'total': '$total',
                         },
                     },

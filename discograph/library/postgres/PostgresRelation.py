@@ -38,7 +38,7 @@ class PostgresRelation(PostgresModel):
                     )
                 self.queue.task_done()
 
-    aggregate_role_names = (
+    aggregate_roles = (
         'Compiled By',
         'Curated By',
         'DJ Mix',
@@ -274,17 +274,17 @@ class PostgresRelation(PostgresModel):
             iterator = itertools.product(artists, release.extra_artists)
         for entity_two, credit in iterator:
             for role in credit['roles']:
-                role_name = role['name']
-                if role_name not in discograph.CreditRole.all_credit_roles:
+                role = role['name']
+                if role not in discograph.CreditRole.all_credit_roles:
                     continue
-                elif role_name in cls.aggregate_role_names:
-                    if role_name not in aggregate_roles:
-                        aggregate_roles[role_name] = []
+                elif role in cls.aggregate_roles:
+                    if role not in aggregate_roles:
+                        aggregate_roles[role] = []
                     aggregate_credit = (cls.EntityType.ARTIST, credit['id'])
-                    aggregate_roles[role_name].append(aggregate_credit)
+                    aggregate_roles[role].append(aggregate_credit)
                     continue
                 entity_one = (cls.EntityType.ARTIST, credit['id'])
-                triples.add((entity_one, role_name, entity_two))
+                triples.add((entity_one, role, entity_two))
         all_track_artists = set()
         for track in release.tracklist:
             track_artists = set(
@@ -298,17 +298,17 @@ class PostgresRelation(PostgresModel):
             iterator = itertools.product(track_artists, track['extra_artists'])
             for entity_two, credit in iterator:
                 for role in credit.get('roles', ()):
-                    role_name = role['name']
-                    if role_name not in discograph.CreditRole.all_credit_roles:
+                    role = role['name']
+                    if role not in discograph.CreditRole.all_credit_roles:
                         continue
                     entity_one = (cls.EntityType.ARTIST, credit['id'])
-                    triples.add((entity_one, role_name, entity_two))
-        for role_name, aggregate_artists in aggregate_roles.items():
+                    triples.add((entity_one, role, entity_two))
+        for role, aggregate_artists in aggregate_roles.items():
             iterator = itertools.product(all_track_artists, aggregate_artists)
             for track_artist, aggregate_artist in iterator:
                 entity_one = aggregate_artist
                 entity_two = track_artist
-                triples.add((entity_one, role_name, entity_two))
+                triples.add((entity_one, role, entity_two))
         triples = sorted(triples)
         relations = cls.from_triples(triples, release=release)
         return relations

@@ -46,7 +46,7 @@ class RelationGrapher(object):
         degree=3,
         link_ratio=None,
         max_nodes=None,
-        role_names=None,
+        roles=None,
         year=None,
         ):
         assert isinstance(center_entity, SqliteEntity)
@@ -66,16 +66,16 @@ class RelationGrapher(object):
         else:
             link_ratio = 3
         self.link_ratio = link_ratio
-        role_names = role_names or None
-        if role_names:
-            if isinstance(role_names, six.string_types):
-                role_names = (role_names,)
-            elif not isinstance(role_names, collections.Iterable):
-                role_names = (role_names,)
-            role_names = tuple(role_names)
+        roles = roles or None
+        if roles:
+            if isinstance(roles, six.string_types):
+                roles = (roles,)
+            elif not isinstance(roles, collections.Iterable):
+                roles = (roles,)
+            roles = tuple(roles)
             assert all(_ in CreditRole.all_credit_roles
-                for _ in role_names)
-        self.role_names = role_names
+                for _ in roles)
+        self.roles = roles
         if year is not None:
             if isinstance(year, collections.Sequence):
                 year = tuple(int(_) for _ in year)
@@ -131,10 +131,10 @@ class RelationGrapher(object):
     def collect_entities(self, verbose=True):
         max_nodes = self.max_nodes or 100
         max_links = self.link_ratio * max_nodes
-        original_role_names = self.role_names or ()
-        provisional_role_names = set(original_role_names)
-        provisional_role_names.update(['Alias', 'Member Of'])
-        provisional_role_names = sorted(provisional_role_names)
+        original_roles = self.roles or ()
+        provisional_roles = set(original_roles)
+        provisional_roles.update(['Alias', 'Member Of'])
+        provisional_roles = sorted(provisional_roles)
         initial_key = (
             self.center_entity.entity_type,
             self.center_entity.entity_id,
@@ -143,7 +143,7 @@ class RelationGrapher(object):
         links = dict()
         nodes = dict()
         break_on_next_loop = False
-        self.report_search_start(max_links, max_nodes, original_role_names, verbose=verbose)
+        self.report_search_start(max_links, max_nodes, original_roles, verbose=verbose)
         for distance in range(self.degree + 1):
             to_visit = list(entity_keys_to_visit)
             for key in to_visit:
@@ -153,9 +153,9 @@ class RelationGrapher(object):
                 if verbose: print('        Exiting search loop.')
                 break
             if 0 < distance:
-                for role_name in self.roles_to_prune:
-                    if role_name in provisional_role_names:
-                        provisional_role_names.remove(role_name)
+                for role in self.roles_to_prune:
+                    if role in provisional_roles:
+                        provisional_roles.remove(role)
             if 0 < distance:
                 if max_nodes <= (len(nodes) + len(to_visit)):
                     if verbose: print('        Max nodes: exiting next search loop.')
@@ -164,7 +164,7 @@ class RelationGrapher(object):
                 entity_keys=to_visit,
                 distance=distance,
                 nodes=nodes,
-                role_names=provisional_role_names,
+                roles=provisional_roles,
                 year=None,
                 verbose=verbose,
                 )
@@ -188,18 +188,18 @@ class RelationGrapher(object):
                     entity_keys_to_visit=entity_keys_to_visit,
                     links=links,
                     nodes=nodes,
-                    original_role_names=original_role_names,
+                    original_roles=original_roles,
                     relation=relation,
                     )
-        if 'Released On' in original_role_names and len(links) < max_links:
-            relations = self.cross_reference(nodes, role_names=['Released On'])
+        if 'Released On' in original_roles and len(links) < max_links:
+            relations = self.cross_reference(nodes, roles=['Released On'])
             for relation in relations:
                 self.process_relation(
                     distance=distance,
                     entity_keys_to_visit=entity_keys_to_visit,
                     links=links,
                     nodes=nodes,
-                    original_role_names=original_role_names,
+                    original_roles=original_roles,
                     relation=relation,
                     )
         if verbose:
@@ -501,7 +501,7 @@ class RelationGrapher(object):
         entity_keys_to_visit,
         links,
         nodes,
-        original_role_names,
+        original_roles,
         relation,
         ):
         e1k = (relation.entity_one_type, relation.entity_one_id)
@@ -512,15 +512,15 @@ class RelationGrapher(object):
         if e2k not in nodes:
             entity_keys_to_visit.add(e2k)
             nodes[e2k] = self.entity_key_to_node(e2k, distance + 1)
-        if relation.role_name == 'Alias':
+        if relation.role == 'Alias':
             nodes[e1k]['aliases'].add(e2k[1])
             nodes[e2k]['aliases'].add(e1k[1])
-        elif relation.role_name in ('Member Of', 'Sublabel Of'):
+        elif relation.role in ('Member Of', 'Sublabel Of'):
             nodes[e2k]['members'].add(e1k[1])
-        if relation.role_name not in original_role_names:
+        if relation.role not in original_roles:
             return
         link = dict(
-            role=relation.role_name,
+            role=relation.role,
             source=e1k,
             target=e2k,
             )
@@ -669,13 +669,13 @@ class RelationGrapher(object):
         entity_keys,
         distance=None,
         nodes=None,
-        role_names=None,
+        roles=None,
         year=None,
         verbose=True,
         ):
-        print('        Roles:', role_names)
+        print('        Roles:', roles)
         entity_query_cap = 999
-        entity_query_cap -= (1 + len(role_names)) * 2
+        entity_query_cap -= (1 + len(roles)) * 2
         if isinstance(year, int):
             entity_query_cap -= 2
         elif year:
@@ -688,7 +688,7 @@ class RelationGrapher(object):
             entity_key_slice = entity_keys[start:stop]
             found = SqliteRelation.search_multi(
                 entity_key_slice,
-                role_names=role_names,
+                roles=roles,
                 verbose=verbose,
                 year=year,
                 )
@@ -700,7 +700,7 @@ class RelationGrapher(object):
         entity_keys,
         distance=None,
         nodes=None,
-        role_names=None,
+        roles=None,
         year=None,
         verbose=True,
         ):
@@ -709,7 +709,7 @@ class RelationGrapher(object):
         #       Then, you can pull that collection out of the cache,
         #       And add in the remaining (generally sparser) exotic roles on top.
         #       That will likely balance speed and storage space.
-        print('        Roles:', role_names)
+        print('        Roles:', roles)
         max_links = (self.max_nodes or 100) * self.link_ratio
         relations = []
         for entity_key in entity_keys:
@@ -727,7 +727,7 @@ class RelationGrapher(object):
             query = SqliteRelation.search(
                 entity_id=entity_id,
                 entity_type=entity_type,
-                role_names=role_names,
+                roles=roles,
                 year=year,
                 query_only=True,
                 )
@@ -741,7 +741,7 @@ class RelationGrapher(object):
             relations.extend(list(query))
         return relations
 
-    def cross_reference(self, nodes, role_names, verbose=True):
+    def cross_reference(self, nodes, roles, verbose=True):
         if verbose:
             print('    Cross-referencing artists and labels.')
         root_key = (
@@ -750,7 +750,7 @@ class RelationGrapher(object):
             )
         query_cap = 1000
         query_cap -= 2
-        query_cap -= len(role_names)
+        query_cap -= len(roles)
         query_cap //= 2
         artists = []
         labels = []
@@ -776,7 +776,7 @@ class RelationGrapher(object):
             found = SqliteRelation.search_bimulti(
                 artists,
                 labels,
-                role_names=role_names,
+                roles=roles,
                 )
             relations.extend(found)
         return relations
@@ -785,7 +785,7 @@ class RelationGrapher(object):
         self,
         max_links,
         max_nodes,
-        role_names,
+        roles,
         verbose=True,
         ):
         if verbose:
@@ -796,7 +796,7 @@ class RelationGrapher(object):
             message = message.format(max_links)
             print(message)
             message = '    Roles: {}'
-            message = message.format(role_names)
+            message = message.format(roles)
             print(message)
 
     def report_search_loop_start(
@@ -823,17 +823,17 @@ class RelationGrapher(object):
             print(message)
 
     @classmethod
-    def make_cache_key(cls, template, entity_type, entity_id, role_names=None, year=None):
+    def make_cache_key(cls, template, entity_type, entity_id, roles=None, year=None):
         if isinstance(entity_type, int):
             entity_type = cls.entity_type_names[entity_type]
         key = template.format(entity_type=entity_type, entity_id=entity_id)
-        if role_names or year:
+        if roles or year:
             parts = []
-            if role_names:
-                role_names = (cls.word_pattern.sub('+', _) for _ in role_names)
-                role_names = ('roles[]={}'.format(_) for _ in role_names)
-                role_names = '&'.join(sorted(role_names))
-                parts.append(role_names)
+            if roles:
+                roles = (cls.word_pattern.sub('+', _) for _ in roles)
+                roles = ('roles[]={}'.format(_) for _ in roles)
+                roles = '&'.join(sorted(roles))
+                parts.append(roles)
             if year:
                 if isinstance(year, int):
                     year = 'year={}'.format(year)

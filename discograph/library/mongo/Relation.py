@@ -41,7 +41,7 @@ class Relation(MongoModel, mongoengine.Document):
     entity_two_type = mongoengine.IntField()
     genres = mongoengine.ListField(mongoengine.StringField(), null=True)
     release_id = mongoengine.IntField(null=True)
-    role_name = mongoengine.StringField()
+    role = mongoengine.StringField()
     styles = mongoengine.ListField(mongoengine.StringField(), null=True)
     subcategory = mongoengine.IntField(null=True)
     year = mongoengine.IntField(null=True)
@@ -51,17 +51,17 @@ class Relation(MongoModel, mongoengine.Document):
     meta = {
         'indexes': [
 
-            ('entity_one_type', 'entity_one_id', 'role_name'),
-            ('entity_two_type', 'entity_two_id', 'role_name'),
+            ('entity_one_type', 'entity_one_id', 'role'),
+            ('entity_two_type', 'entity_two_id', 'role'),
 
-            ('role_name', 'entity_one_type', 'entity_one_id'),
-            ('role_name', 'entity_two_type', 'entity_two_id'),
+            ('role', 'entity_one_type', 'entity_one_id'),
+            ('role', 'entity_two_type', 'entity_two_id'),
 
-            ('role_name', 'entity_one_id'),
-            ('role_name', 'entity_two_id'),
+            ('role', 'entity_one_id'),
+            ('role', 'entity_two_id'),
 
-            ('entity_one_id', 'entity_one_type', 'role_name'),
-            ('entity_two_id', 'entity_two_type', 'role_name'),
+            ('entity_one_id', 'entity_one_type', 'role'),
+            ('entity_two_id', 'entity_two_type', 'role'),
 
             ]
         }
@@ -81,10 +81,10 @@ class Relation(MongoModel, mongoengine.Document):
             pprint.pprint(bwe.details)
 
     @classmethod
-    def _get_categories(cls, role_name):
+    def _get_categories(cls, role):
         from discograph import library
         categories = library.CreditRole.all_credit_roles.get(
-            role_name, None)
+            role, None)
         if not categories:
             return None, None
         if len(categories) == 1:
@@ -105,7 +105,7 @@ class Relation(MongoModel, mongoengine.Document):
         entity_two_type = document['entity_two_type']
         #is_trivial = document['is_trivial']
         release_id = document['release_id']
-        role_name = document['role_name']
+        role = document['role']
         styles = document['styles']
         if styles is not None:
             styles = tuple(styles)
@@ -122,7 +122,7 @@ class Relation(MongoModel, mongoengine.Document):
             entity_two_type,
             #is_trivial,
             release_id,
-            role_name,
+            role,
             styles,
             subcategory,
             year,
@@ -228,7 +228,7 @@ class Relation(MongoModel, mongoengine.Document):
     def count_roles(cls):
         query = cls.objects.aggregate(
             {'$match': {}},
-            {'$group': {'_id': '$role_name', 'total': {'$sum': 1}}},
+            {'$group': {'_id': '$role', 'total': {'$sum': 1}}},
             )
         result = {}
         for item in query:
@@ -304,18 +304,18 @@ class Relation(MongoModel, mongoengine.Document):
             country = release.country or None
             genres = [] or release.genres or []
             styles = [] or release.styles or []
-        for entity_one, role_name, entity_two in triples:
+        for entity_one, role, entity_two in triples:
             entity_one_type = cls.EntityType.ARTIST
             if issubclass(entity_one.class_, (library.Label, library.LabelReference)):
                 entity_one_type = cls.EntityType.LABEL
             entity_two_type = cls.EntityType.ARTIST
             if issubclass(entity_two.class_, (library.Label, library.LabelReference)):
                 entity_two_type = cls.EntityType.LABEL
-            category, subcategory = cls._get_categories(role_name)
+            category, subcategory = cls._get_categories(role)
             #is_trivial = None
             #if (
             #    entity_one_type == entity_two_type == cls.EntityType.ARTIST and
-            #    role_name not in ('Member Of', 'Alias')
+            #    role not in ('Member Of', 'Alias')
             #    ):
             #    if entity_one.discogs_id == entity_two.discogs_id:
             #        is_trivial = True
@@ -335,7 +335,7 @@ class Relation(MongoModel, mongoengine.Document):
                 entity_two_type=entity_two_type,
                 genres=genres,
                 release_id=release_id,
-                role_name=role_name,
+                role=role,
                 styles=styles,
                 subcategory=subcategory,
                 year=year,
@@ -378,7 +378,7 @@ class Relation(MongoModel, mongoengine.Document):
 
         # TODO: Filter out "Hosted By", "Presenter", "DJ Mix", "Compiled By"
         aggregate_roles = {}
-        aggregate_role_names = (
+        aggregate_roles = (
             'Compiled By',
             'Curated By',
             'DJ Mix',
@@ -394,16 +394,16 @@ class Relation(MongoModel, mongoengine.Document):
         for entity_two, credit in iterator:
             entity_two = cls.model_to_tuple(entity_two)
             for role in credit.roles:
-                role_name = role.name
-                if role_name not in library.CreditRole.all_credit_roles:
+                role = role.name
+                if role not in library.CreditRole.all_credit_roles:
                     continue
-                elif role_name in aggregate_role_names:
-                    if role_name not in aggregate_roles:
-                        aggregate_roles[role_name] = []
-                    aggregate_roles[role_name].append(credit)
+                elif role in aggregate_roles:
+                    if role not in aggregate_roles:
+                        aggregate_roles[role] = []
+                    aggregate_roles[role].append(credit)
                     continue
                 entity_one = cls.model_to_tuple(credit)
-                triples.add((entity_one, role_name, entity_two))
+                triples.add((entity_one, role, entity_two))
 
         # Handle extra artists on individual tracks.
         all_track_artists = set()
@@ -415,19 +415,19 @@ class Relation(MongoModel, mongoengine.Document):
             for entity_two, credit in iterator:
                 entity_two = cls.model_to_tuple(entity_two)
                 for role in credit.roles:
-                    role_name = role.name
-                    if role_name not in library.CreditRole.all_credit_roles:
+                    role = role.name
+                    if role not in library.CreditRole.all_credit_roles:
                         continue
                     entity_one = cls.model_to_tuple(credit)
-                    triples.add((entity_one, role_name, entity_two))
+                    triples.add((entity_one, role, entity_two))
 
         # Handle aggregate artists (DJ, Compiler, Curator, Presenter, etc.)
-        for role_name, aggregate_artists in aggregate_roles.items():
+        for role, aggregate_artists in aggregate_roles.items():
             iterator = itertools.product(all_track_artists, aggregate_artists)
             for track_artist, aggregate_artist in iterator:
                 entity_one = cls.model_to_tuple(aggregate_artist)
                 entity_two = cls.model_to_tuple(track_artist)
-                triples.add((entity_one, role_name, entity_two))
+                triples.add((entity_one, role, entity_two))
 
         key_function = lambda x: (
             getattr(x[0], 'discogs_id', 0) or 0,

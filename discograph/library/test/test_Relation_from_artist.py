@@ -40,7 +40,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=100000000,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
-                role_name='Alias',
+                role='Alias',
                 )
             discograph.library.mongo.Relation(
                 category=discograph.library.mongo.CreditRole.Category.RELATION,
@@ -48,7 +48,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=100000001,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
-                role_name='Alias',
+                role='Alias',
                 )
             discograph.library.mongo.Relation(
                 category=discograph.library.mongo.CreditRole.Category.RELATION,
@@ -56,7 +56,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=100000002,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
-                role_name='Alias',
+                role='Alias',
                 )
             discograph.library.mongo.Relation(
                 category=discograph.library.mongo.CreditRole.Category.RELATION,
@@ -64,7 +64,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=100000003,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
-                role_name='Alias',
+                role='Alias',
                 )
             discograph.library.mongo.Relation(
                 category=discograph.library.mongo.CreditRole.Category.RELATION,
@@ -72,7 +72,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=100000004,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
-                role_name='Alias',
+                role='Alias',
                 )
             discograph.library.mongo.Relation(
                 category=discograph.library.mongo.CreditRole.Category.RELATION,
@@ -80,7 +80,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=2,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
-                role_name='Member Of',
+                role='Member Of',
                 )
             discograph.library.mongo.Relation(
                 category=discograph.library.mongo.CreditRole.Category.RELATION,
@@ -88,7 +88,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_id=2,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
-                role_name='Member Of',
+                role='Member Of',
                 )
             ''')
         assert actual == expected

@@ -793,13 +793,13 @@ class CreditRole(MongoModel, mongoengine.EmbeddedDocument):
 
     @classmethod
     def get_multiselect_mapping(cls):
-        excluded_role_names = [
+        excluded_roles = [
             'Alias',
             'Member Of',
             ]
         mapping = collections.OrderedDict()
-        for role_name, categories in cls.all_credit_roles.items():
-            if categories is None or role_name in excluded_role_names:
+        for role, categories in cls.all_credit_roles.items():
+            if categories is None or role in excluded_roles:
                 continue
             if len(categories) == 1:
                 category_name = cls.category_names[categories[0]]
@@ -807,5 +807,5 @@ class CreditRole(MongoModel, mongoengine.EmbeddedDocument):
                 category_name = cls.subcategory_names[categories[1]]
             if category_name not in mapping:
                 mapping[category_name] = []
-            mapping[category_name].append(role_name)
+            mapping[category_name].append(role)
         return mapping

@@ -18,7 +18,8 @@ database = apsw_ext.APSWDatabase(
         ('journal_mode', 'WAL'),
         ('cache_size', 20000),
         ('mmap_size', 1024 * 1024 * 32),
-        )
+        ),
+    timeout=1000,
     )
 
 

@@ -21,44 +21,6 @@ class SqliteEntity(SqliteModel):
     ### PRIVATE METHODS ###
 
     @classmethod
-    def _load_from_mongo_class(cls, mongo_class):
-        import discograph
-        entity_type = 1
-        if mongo_class == discograph.Label:
-            entity_type = 2
-        query = mongo_class.objects().no_cache().timeout(False)
-        query = query.only('discogs_id', 'name')
-        count = query.count()
-        rows = []
-        for i, mongo_document in enumerate(query, 1):
-            if mongo_document.discogs_id and mongo_document.name:
-                rows.append(dict(
-                    entity_id=mongo_document.discogs_id,
-                    entity_type=entity_type,
-                    name=mongo_document.name,
-                    random=random.random(),
-                    ))
-            if len(rows) == 100:
-                cls.insert_many(rows).execute()
-                rows = []
-                print('[{}] Processing {}... {} of {} [{:.3f}%]'.format(
-                    cls.__name__,
-                    mongo_class.__name__,
-                    i,
-                    count,
-                    (float(i) / count) * 100),
-                    )
-        if rows:
-            cls.insert_many(rows).execute()
-            print('[{}] Processing {}... {} of {} [{:.3f}%]'.format(
-                cls.__name__,
-                mongo_class.__name__,
-                i,
-                count,
-                (float(i) / count) * 100),
-                )
-
-    @classmethod
     def _load_from_postgres_class(cls, postgres_class):
         import discograph
         entity_type = 1
@@ -110,8 +72,6 @@ class SqliteEntity(SqliteModel):
             content=discograph.SqliteEntity,
             tokenize='unicode61',
             )
-        #cls._load_from_mongo_class(discograph.Artist)
-        #cls._load_from_mongo_class(discograph.Label)
         cls._load_from_postgres_class(discograph.PostgresArtist)
         cls._load_from_postgres_class(discograph.PostgresLabel)
         discograph.SqliteFTSEntity.rebuild()

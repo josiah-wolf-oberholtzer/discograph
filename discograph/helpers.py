@@ -46,7 +46,7 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True):
     entity = get_entity(entity_type, entity_id)
     if entity is None:
         return None
-    role_names = [
+    roles = [
         'Alias',
         'Member Of',
         'Released On',
@@ -62,7 +62,7 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True):
         center_entity=entity,
         degree=degree,
         max_nodes=max_nodes,
-        role_names=role_names,
+        roles=roles,
         )
     with systemtools.Timer(exit_message='Network query time:'):
         data = relation_grapher.get_network()
@@ -71,9 +71,9 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True):
     return data
 
 
-def get_random_entity(role_names=None):
+def get_random_entity(roles=None):
     import discograph
-    relation = discograph.SqliteRelation.get_random(role_names=role_names)
+    relation = discograph.SqliteRelation.get_random(roles=roles)
     entity_choice = random.randint(1, 2)
     if entity_choice == 1:
         entity_type = relation.entity_one_type
@@ -87,7 +87,7 @@ def get_random_entity(role_names=None):
 def parse_request_args(args):
     from discograph.library.mongo import CreditRole
     year = None
-    role_names = set()
+    roles = set()
     for key in args:
         if key == 'year':
             value = args[key]
@@ -101,11 +101,11 @@ def parse_request_args(args):
                 pass
         elif key == 'roles[]':
             value = args.getlist(key)
-            for role_name in value:
-                if role_name in CreditRole.all_credit_roles:
-                    role_names.add(role_name)
-    role_names = list(sorted(role_names))
-    return role_names, year
+            for role in value:
+                if role in CreditRole.all_credit_roles:
+                    roles.add(role)
+    roles = list(sorted(roles))
+    return roles, year
 
 
 def search_entities(search_string, cache=True):

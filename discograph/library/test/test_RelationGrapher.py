@@ -16,11 +16,11 @@ class Test(unittest.TestCase):
 
     def test_collect_entities_01(self):
         artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
-        role_names = ['Alias', 'Member Of']
+        roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
             degree=1,
-            role_names=role_names,
+            roles=roles,
             )
         nodes, links = grapher.collect_entities()
 
@@ -121,11 +121,11 @@ class Test(unittest.TestCase):
 
     def test_collect_entities_02(self):
         artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
-        role_names = ['Alias', 'Member Of']
+        roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
             degree=2,
-            role_names=role_names,
+            roles=roles,
             )
         nodes, links = grapher.collect_entities()
 
@@ -484,11 +484,11 @@ class Test(unittest.TestCase):
 
     def test_collect_entities_03(self):
         artist = discograph.SqliteEntity.get(entity_type=1, entity_id=910459)
-        role_names = ['Alias', 'Member Of']
+        roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
             degree=1,
-            role_names=role_names,
+            roles=roles,
             )
         nodes, links = grapher.collect_entities()
         assert nodes == {
@@ -689,11 +689,11 @@ class Test(unittest.TestCase):
 
     def test_collect_entities_04(self):
         artist = discograph.SqliteEntity.get(entity_type=1, entity_id=882758)
-        role_names = ['Alias', 'Member Of']
+        roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
             degree=3,
-            role_names=role_names,
+            roles=roles,
             max_nodes=100,
             link_ratio=2,
             )
@@ -707,12 +707,12 @@ class Test(unittest.TestCase):
 
     def test_get_network_01(self):
         artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
-        role_names = ['Alias', 'Member Of']
+        roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
             degree=2,
             max_nodes=5,
-            role_names=role_names,
+            roles=roles,
             )
         network = grapher.get_network()
         assert network == {
@@ -988,12 +988,12 @@ class Test(unittest.TestCase):
 
     def test_get_network_02(self):
         artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
-        role_names = ['Alias', 'Member Of']
+        roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
             degree=2,
             link_ratio=2,
-            role_names=role_names,
+            roles=roles,
             )
         network = grapher.get_network()
         assert network == {
@@ -1266,11 +1266,11 @@ class Test(unittest.TestCase):
 
     def test_get_network_03(self):
         artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
-        role_names = ['Alias', 'Member Of']
+        roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
             degree=1,
-            role_names=role_names,
+            roles=roles,
             )
         network = grapher.get_network()
         assert network == {

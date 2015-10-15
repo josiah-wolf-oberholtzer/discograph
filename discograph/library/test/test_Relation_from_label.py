@@ -74,7 +74,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 entity_two_id=3,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
-                role_name='Sublabel Of',
+                role='Sublabel Of',
                 )
             discograph.library.mongo.Relation(
                 category=discograph.library.mongo.CreditRole.Category.RELATION,
@@ -82,7 +82,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 entity_two_id=3,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
-                role_name='Sublabel Of',
+                role='Sublabel Of',
                 )
             ''')
         assert actual == expected

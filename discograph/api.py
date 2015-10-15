@@ -38,9 +38,9 @@ def route__api__search(search_string):
 @blueprint.route('/random')
 @decorators.limit(max_requests=60, period=60)
 def route__api__random():
-    role_names = ['Alias', 'Member Of']
+    roles = ['Alias', 'Member Of']
     entity_type, entity_id = helpers.get_random_entity(
-        role_names=role_names,
+        roles=roles,
         )
     entity_type = {
         1: 'artist',

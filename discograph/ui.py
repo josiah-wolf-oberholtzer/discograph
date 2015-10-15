@@ -21,7 +21,7 @@ def route__index():
     initial_json = 'var dgData = null;'
     on_mobile = request.MOBILE
     parsed_args = helpers.parse_request_args(request.args)
-    original_role_names, original_year = parsed_args
+    original_roles, original_year = parsed_args
     multiselect_mapping = discograph.CreditRole.get_multiselect_mapping()
     rendered_template = render_template(
         'index.html',
@@ -32,7 +32,7 @@ def route__index():
         og_title='Disco/graph: visualizing music as a social graph',
         og_url='/',
         on_mobile=on_mobile,
-        original_role_names=original_role_names,
+        original_roles=original_roles,
         original_year=original_year,
         title='Disco/graph: Visualizing music as a social graph',
         )
@@ -46,7 +46,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
     import discograph
     app = current_app._get_current_object()
     parsed_args = helpers.parse_request_args(request.args)
-    original_role_names, original_year = parsed_args
+    original_roles, original_year = parsed_args
     if entity_type not in ('artist', 'label'):
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     on_mobile = request.MOBILE
@@ -81,7 +81,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
         og_title='Disco/graph: The "{}" network'.format(entity_name),
         og_url=url,
         on_mobile=on_mobile,
-        original_role_names=original_role_names,
+        original_roles=original_roles,
         original_year=original_year,
         title=title,
         )

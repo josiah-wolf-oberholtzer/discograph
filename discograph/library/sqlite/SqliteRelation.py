@@ -14,7 +14,7 @@ class SqliteRelation(SqliteModel):
     entity_two_id = peewee.IntegerField()
     entity_two_type = peewee.IntegerField()
     release_id = peewee.IntegerField(null=True)
-    role_name = peewee.CharField()
+    role = peewee.CharField()
     year = peewee.IntegerField(null=True)
 
     ### PEEWEE META ###
@@ -22,8 +22,8 @@ class SqliteRelation(SqliteModel):
     class Meta:
         db_table = 'relation'
         indexes = (
-            (('entity_one_id', 'entity_one_type', 'role_name', 'year'), False),
-            (('entity_two_id', 'entity_two_type', 'role_name', 'year'), False),
+            (('entity_one_id', 'entity_one_type', 'role', 'year'), False),
+            (('entity_two_id', 'entity_two_type', 'role', 'year'), False),
             (('entity_one_type', 'entity_one_id',
               'entity_two_type', 'entity_two_id', 'role', 'year'), False),
             )
@@ -47,31 +47,18 @@ class SqliteRelation(SqliteModel):
         query = discograph.PostgresRelation.select()
         count = query.count()
         query = postgres_ext.ServerSide(query)
-        #count = discograph.Relation.objects.count()
-        #query = discograph.Relation._get_collection().find()
         rows = []
-        #for i, mongo_document in enumerate(query, 1):
         for i, document in enumerate(query):
             rows.append(dict(
-                id=i,
                 entity_one_id=document.entity_one_id,
                 entity_one_type=document.entity_one_type,
                 entity_two_id=document.entity_two_id,
                 entity_two_type=document.entity_two_type,
                 year=document.year,
-                role_name=document.role,
+                role=document.role,
                 release_id=document.release_id,
-                #entity_one_id=mongo_document.get('entity_one_id'),
-                #entity_one_type=mongo_document.get('entity_one_type'),
-                #entity_two_id=mongo_document.get('entity_two_id'),
-                #entity_two_type=mongo_document.get('entity_two_type'),
-                #year=mongo_document.get('year'),
-                #release_id=mongo_document.get('release_id'),
-                #role_name=mongo_document.get('role_name'),
-                random=random.random(),
+                random=document.random,
                 ))
-            #if mongo_document.get('role_name') not in ('Alias', 'Member Of'):
-            #    break
             if len(rows) == 100:
                 discograph.SqliteRelation.insert_many(rows).execute()
                 rows = []
@@ -83,15 +70,15 @@ class SqliteRelation(SqliteModel):
                 i, count, (float(i) / count) * 100))
 
     @classmethod
-    def get_random(cls, role_names=None):
+    def get_random(cls, roles=None):
         n = random.random()
         where_clause = (cls.random > n)
-        if role_names:
-            where_clause &= (cls.role_name.in_(role_names))
+        if roles:
+            where_clause &= (cls.roles.in_(roles))
         return cls.select().where(where_clause).order_by(cls.random).get()
 
     @classmethod
-    def search(cls, entity_id, entity_type=1, role_names=None, year=None, query_only=False):
+    def search(cls, entity_id, entity_type=1, roles=None, year=None, query_only=False):
         where_clause = (
             (cls.entity_one_id == entity_id) &
             (cls.entity_one_type == entity_type)
@@ -100,8 +87,8 @@ class SqliteRelation(SqliteModel):
             (cls.entity_two_id == entity_id) &
             (cls.entity_two_type == entity_type)
             )
-        if role_names:
-            where_clause &= (cls.role_name.in_(role_names))
+        if roles:
+            where_clause &= (cls.role.in_(roles))
         if year is not None:
             year_clause = cls.year.is_null(True)
             if isinstance(year, int):
@@ -115,7 +102,7 @@ class SqliteRelation(SqliteModel):
         return list(query)
 
     @classmethod
-    def search_multi(cls, entities, role_names=None, year=None, verbose=True):
+    def search_multi(cls, entities, roles=None, year=None, verbose=True):
         def build_where_clause(entity_ids, entity_type):
             where_clause = (
                 (cls.entity_one_type == entity_type) &
@@ -124,8 +111,8 @@ class SqliteRelation(SqliteModel):
                 (cls.entity_two_type == entity_type) &
                 (cls.entity_two_id.in_(entity_ids))
                 )
-            if role_names:
-                where_clause &= cls.role_name.in_(role_names)
+            if roles:
+                where_clause &= cls.role.in_(roles)
             if year is not None:
                 year_clause = cls.year.is_null(True)
                 if isinstance(year, int):
@@ -157,14 +144,14 @@ class SqliteRelation(SqliteModel):
         return relations
 
     @classmethod
-    def search_bimulti(cls, lh_entities, rh_entities, role_names=None, year=None, verbose=True):
+    def search_bimulti(cls, lh_entities, rh_entities, roles=None, year=None, verbose=True):
         def build_query(lh_type, lh_ids, rh_type, rh_ids):
             where_clause = cls.entity_one_type == lh_type
             where_clause &= cls.entity_two_type == rh_type
             where_clause &= cls.entity_one_id.in_(lh_ids)
             where_clause &= cls.entity_two_id.in_(rh_ids)
-            if role_names:
-                where_clause &= cls.role_name.in_(role_names)
+            if roles:
+                where_clause &= cls.role.in_(roles)
             if year is not None:
                 year_clause = cls.year.is_null(True)
                 if isinstance(year, int):

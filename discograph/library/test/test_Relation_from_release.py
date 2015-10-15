@@ -38,7 +38,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 genres=['Electronic'],
                 release_id=1,
-                role_name='Released On',
+                role='Released On',
                 styles=['Deep House'],
                 year=1999,
                 )
@@ -51,7 +51,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=1,
-                role_name='Music By',
+                role='Music By',
                 styles=['Deep House'],
                 year=1999,
                 )
@@ -177,7 +177,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 release_id=103,
-                role_name='Compiled On',
+                role='Compiled On',
                 year=1999,
                 )
             discograph.library.mongo.Relation(
@@ -186,7 +186,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 release_id=103,
-                role_name='Compiled On',
+                role='Compiled On',
                 year=1999,
                 )
             discograph.library.mongo.Relation(
@@ -195,7 +195,7 @@ class Test(unittest.TestCase):
                 entity_one_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 entity_two_type=discograph.library.mongo.Relation.EntityType.LABEL,
                 release_id=103,
-                role_name='Compiled On',
+                role='Compiled On',
                 year=1999,
                 )
             ''')
@@ -350,7 +350,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
-                role_name='Producer',
+                role='Producer',
                 styles=['Abstract', 'Ambient'],
                 year=1995,
                 )
@@ -363,7 +363,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
-                role_name='Performer',
+                role='Performer',
                 styles=['Abstract', 'Ambient'],
                 subcategory=discograph.library.mongo.CreditRole.Subcategory.OTHER_MUSICAL,
                 year=1995,
@@ -377,7 +377,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
-                role_name='Voice',
+                role='Voice',
                 styles=['Abstract', 'Ambient'],
                 year=1995,
                 )
@@ -390,7 +390,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
-                role_name='Performer',
+                role='Performer',
                 styles=['Abstract', 'Ambient'],
                 subcategory=discograph.library.mongo.CreditRole.Subcategory.OTHER_MUSICAL,
                 year=1995,
@@ -404,7 +404,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
-                role_name='Cover',
+                role='Cover',
                 styles=['Abstract', 'Ambient'],
                 year=1995,
                 )
@@ -417,7 +417,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=5,
-                role_name='Design',
+                role='Design',
                 styles=['Abstract', 'Ambient'],
                 year=1995,
                 )
@@ -685,7 +685,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -698,7 +698,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -711,7 +711,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -724,7 +724,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -737,7 +737,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -750,7 +750,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -763,7 +763,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -776,7 +776,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -789,7 +789,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -802,7 +802,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -815,7 +815,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='DJ Mix',
+                role='DJ Mix',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -828,7 +828,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='Featuring',
+                role='Featuring',
                 styles=['Trance'],
                 year=2000,
                 )
@@ -841,7 +841,7 @@ class Test(unittest.TestCase):
                 entity_two_type=discograph.library.mongo.Relation.EntityType.ARTIST,
                 genres=['Electronic'],
                 release_id=36,
-                role_name='Featuring',
+                role='Featuring',
                 styles=['Trance'],
                 year=2000,
                 )
