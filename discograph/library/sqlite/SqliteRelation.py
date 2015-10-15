@@ -71,11 +71,15 @@ class SqliteRelation(SqliteModel):
 
     @classmethod
     def get_random(cls, roles=None):
+        max_random = cls.select(peewee.fn.Max(cls.random)).scalar()
         n = random.random()
+        while max_random < n:
+            n = random.random()
         where_clause = (cls.random > n)
         if roles:
-            where_clause &= (cls.roles.in_(roles))
-        return cls.select().where(where_clause).order_by(cls.random).get()
+            where_clause &= (cls.role.in_(roles))
+        query = cls.select().where(where_clause).order_by(cls.random)
+        return query.get()
 
     @classmethod
     def search(cls, entity_id, entity_type=1, roles=None, year=None, query_only=False):

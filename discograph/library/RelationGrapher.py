@@ -362,27 +362,7 @@ class RelationGrapher(object):
             ]
         return '-'.join(str(_) for _ in pieces)
 
-    def get_network(self):
-        nodes, links = self.collect_entities()
-        cluster_count = 0
-        cluster_map = {}
-        for node in nodes.values():
-            cluster = None
-            if node['aliases']:
-                if node['id'] not in cluster_map:
-                    cluster_count += 1
-                    cluster_map[node['id']] = cluster_count
-                    for alias_id in node['aliases']:
-                        cluster_map[alias_id] = cluster_count
-                cluster = cluster_map[node['id']]
-            if not node['aliases']:
-                del(node['aliases'])
-            else:
-                node['aliases'] = tuple(sorted(node['aliases']))
-            if cluster is not None:
-                node['cluster'] = cluster
-            node['size'] = len(node.pop('members'))
-            node['links'] = tuple(sorted(node['links']))
+    def postprocess_links(self, links):
         links = tuple(sorted(links.values(),
             key=lambda x: (
                 x['source'],
@@ -399,8 +379,44 @@ class RelationGrapher(object):
                 link['target'] = 'artist-{}'.format(link['target'][1])
             else:
                 link['target'] = 'label-{}'.format(link['target'][1])
+            if link['year'] == -1:
+                del(link['year'])
+            if link['release_id'] == -1:
+                del(link['release_id'])
+        return links
+
+    def postprocess_nodes(self, nodes):
+        cluster_count = 0
+        cluster_map = {}
+        for node in sorted(
+            nodes.values(),
+            key=lambda x: len(x['aliases']),
+            reverse=True,
+            ):
+            cluster = None
+            if node['aliases']:
+                if node['id'] not in cluster_map:
+                    cluster_count += 1
+                    cluster_map[node['id']] = cluster_count
+                    for alias_id in node['aliases']:
+                        cluster_map[alias_id] = cluster_count
+                cluster = cluster_map[node['id']]
+            if not node['aliases']:
+                del(node['aliases'])
+            else:
+                node['aliases'] = tuple(sorted(node['aliases']))
+            if cluster is not None:
+                node['cluster'] = cluster
+            node['size'] = len(node.pop('members'))
+            node['links'] = tuple(sorted(node['links']))
         nodes = tuple(sorted(nodes.values(),
             key=lambda x: (x['type'], x['id'])))
+        return nodes
+
+    def get_network(self):
+        nodes, links = self.collect_entities()
+        nodes = self.postprocess_nodes(nodes)
+        links = self.postprocess_links(links)
         if self.center_entity.entity_type == 1:
             key = 'artist-{}'.format(self.center_entity.entity_id)
         elif self.center_entity.entity_type == 2:
