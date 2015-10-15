@@ -85,7 +85,7 @@ def get_random_entity(roles=None):
 
 
 def parse_request_args(args):
-    from discograph.library.mongo import CreditRole
+    from discograph.library import CreditRole
     year = None
     roles = set()
     for key in args:

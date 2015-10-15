@@ -6,7 +6,7 @@ import re
 import redis
 import six
 from discograph.library.TrellisNode import TrellisNode
-from discograph.library.mongo.CreditRole import CreditRole
+from discograph.library.CreditRole import CreditRole
 from discograph.library.sqlite.SqliteEntity import SqliteEntity
 from discograph.library.sqlite.SqliteRelation import SqliteRelation
 
