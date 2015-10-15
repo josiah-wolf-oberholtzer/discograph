@@ -1,7 +1,9 @@
 # -*- encoding: utf-8 -*-
 import collections
+import itertools
 import math
 import re
+import redis
 import six
 from discograph.library.TrellisNode import TrellisNode
 from discograph.library.mongo.CreditRole import CreditRole
@@ -13,14 +15,34 @@ class RelationGrapher(object):
 
     ### CLASS VARIABLES ###
 
+    entity_type_names = {
+        1: 'artist',
+        2: 'label',
+        }
+
+    entity_name_types = {
+        'artist': 1,
+        'label': 2,
+        }
+
+    roles_to_prune = [
+        'Released On',
+        'Compiled On',
+        'Producer',
+        'Remix',
+        'DJ Mix',
+        'Written-By',
+        ]
+
     word_pattern = re.compile('\s+')
+
+    redis_client = redis.StrictRedis()
 
     ### INITIALIZER ###
 
     def __init__(
         self,
         center_entity,
-        cache=None,
         degree=3,
         link_ratio=None,
         max_nodes=None,
@@ -32,7 +54,6 @@ class RelationGrapher(object):
         degree = int(degree)
         assert 0 < degree
         self.degree = degree
-        self.cache = cache
         if max_nodes is not None:
             max_nodes = int(max_nodes)
             assert 0 < max_nodes
@@ -111,16 +132,6 @@ class RelationGrapher(object):
         max_nodes = self.max_nodes or 100
         max_links = self.link_ratio * max_nodes
         original_role_names = self.role_names or ()
-        if verbose:
-            message = '    Max nodes: {}'
-            message = message.format(max_nodes)
-            print(message)
-            message = '    Max links: {}'
-            message = message.format(max_links)
-            print(message)
-            message = '    Roles: {}'
-            message = message.format(original_role_names)
-            print(message)
         provisional_role_names = set(original_role_names)
         provisional_role_names.update(['Alias', 'Member Of'])
         provisional_role_names = sorted(provisional_role_names)
@@ -132,46 +143,31 @@ class RelationGrapher(object):
         links = dict()
         nodes = dict()
         break_on_next_loop = False
-        distance_pruned_roles = {
-            0: ['Released On', 'Compiled On'],
-            1: ['Producer', 'Remix', 'DJ Mix'],
-            }
+        self.report_search_start(max_links, max_nodes, original_role_names, verbose=verbose)
         for distance in range(self.degree + 1):
-            current_entity_keys_to_visit = list(entity_keys_to_visit)
-            for key in current_entity_keys_to_visit:
+            to_visit = list(entity_keys_to_visit)
+            for key in to_visit:
                 nodes.setdefault(key, self.entity_key_to_node(key, distance))
-            if verbose:
-                to_visit_count = len(current_entity_keys_to_visit)
-                message = '    At distance {}:'
-                message = message.format(distance)
-                print(message)
-                message = '        {} old nodes'
-                message = message.format(len(nodes) - to_visit_count)
-                print(message)
-                message = '        {} old links'
-                message = message.format(len(links))
-                print(message)
-                message = '        {} new nodes'
-                message = message.format(to_visit_count)
-                print(message)
+            self.report_search_loop_start(distance, links, nodes, to_visit, verbose=verbose)
             if break_on_next_loop:
-                if verbose:
-                    print('        Exiting search loop.')
+                if verbose: print('        Exiting search loop.')
                 break
-            if 1 < distance:
-                if max_nodes <= len(nodes):
-                    if verbose:
-                        print('        Max nodes: exiting next search loop.')
+            if 0 < distance:
+                for role_name in self.roles_to_prune:
+                    if role_name in provisional_role_names:
+                        provisional_role_names.remove(role_name)
+            if 0 < distance:
+                if max_nodes <= (len(nodes) + len(to_visit)):
+                    if verbose: print('        Max nodes: exiting next search loop.')
                     break_on_next_loop = True
-            relations = self.query_relations(
-                entity_keys=current_entity_keys_to_visit,
+            relations = self.query_relations_new(
+                entity_keys=to_visit,
+                distance=distance,
+                nodes=nodes,
                 role_names=provisional_role_names,
                 year=None,
                 verbose=verbose,
                 )
-            for role_name in distance_pruned_roles.get(distance, []):
-                if role_name in provisional_role_names:
-                    provisional_role_names.remove(role_name)
             if verbose:
                 message = '            {} new links'
                 message = message.format(len(relations))
@@ -180,14 +176,23 @@ class RelationGrapher(object):
                 break_on_next_loop = True
             if 1 < distance:
                 if max_links * 3 <= len(relations):
-                    if verbose:
-                        print('        Max links: exiting immediately.')
+                    if verbose: print('        Max links: exiting immediately.')
                     break
                 if max_links <= len(relations):
-                    if verbose:
-                        print('        Max links: exiting next search loop.')
+                    if verbose: print('        Max links: exiting next search loop.')
                     break_on_next_loop = True
             entity_keys_to_visit.clear()
+            for relation in relations:
+                self.process_relation(
+                    distance=distance,
+                    entity_keys_to_visit=entity_keys_to_visit,
+                    links=links,
+                    nodes=nodes,
+                    original_role_names=original_role_names,
+                    relation=relation,
+                    )
+        if 'Released On' in original_role_names and len(links) < max_links:
+            relations = self.cross_reference(nodes, role_names=['Released On'])
             for relation in relations:
                 self.process_relation(
                     distance=distance,
@@ -203,15 +208,13 @@ class RelationGrapher(object):
             print(message)
         self.query_node_names(nodes)
         self.prune_nameless(nodes, links, verbose=verbose)
+        self.prune_not_on_label(nodes, links, verbose=verbose)
         self.prune_unvisited(entity_keys_to_visit, nodes, links, verbose=verbose)
         trellis = self.build_trellis(nodes, links, verbose=verbose)
         pages = self.partition_trellis(trellis, nodes, links)
         self.page_entities(nodes, links, pages, trellis)
         self.prune_unpaged_links(nodes, links, verbose=verbose)
-        #self.prune_excess_nodes(nodes, links, verbose=verbose)
-        #self.prune_excess_links(nodes, links, verbose=verbose)
-        if verbose:
-            print('Finally: {} / {}'.format(len(nodes), len(links)))
+        if verbose: print('Finally: {} / {}'.format(len(nodes), len(links)))
         return nodes, links
 
     def entity_key_to_node(self, entity_key, distance):
@@ -593,6 +596,15 @@ class RelationGrapher(object):
             message = message.format(len(nodes), len(links))
             print(message)
 
+    def prune_not_on_label(self, nodes, links, verbose=True):
+        for node in tuple(nodes.values()):
+            if 'Not On Label' in node.get('name', ''):
+                self.prune_node(node, nodes, links, update_missing_count=False)
+        if verbose:
+            message = '    Pruning "Not On Label": {} / {}'
+            message = message.format(len(nodes), len(links))
+            print(message)
+
     def prune_node(self, node, nodes, links, update_missing_count=True):
         if node is None:
             return
@@ -652,7 +664,15 @@ class RelationGrapher(object):
         for entity in entities:
             nodes[(entity.entity_type, entity.entity_id)]['name'] = entity.name
 
-    def query_relations(self, entity_keys, role_names=None, year=None, verbose=True):
+    def query_relations(
+        self,
+        entity_keys,
+        distance=None,
+        nodes=None,
+        role_names=None,
+        year=None,
+        verbose=True,
+        ):
         print('        Roles:', role_names)
         entity_query_cap = 999
         entity_query_cap -= (1 + len(role_names)) * 2
@@ -674,3 +694,174 @@ class RelationGrapher(object):
                 )
             relations.extend(found)
         return relations
+
+    def query_relations_new(
+        self,
+        entity_keys,
+        distance=None,
+        nodes=None,
+        role_names=None,
+        year=None,
+        verbose=True,
+        ):
+        # TODO: Cache each entity's local neighborhood, BUT
+        #       Only cache it for Alias, Member Of, Released On and Sublabel Of.
+        #       Then, you can pull that collection out of the cache,
+        #       And add in the remaining (generally sparser) exotic roles on top.
+        #       That will likely balance speed and storage space.
+        print('        Roles:', role_names)
+        max_links = (self.max_nodes or 100) * self.link_ratio
+        relations = []
+        for entity_key in entity_keys:
+            entity_type, entity_id = entity_key
+            entity_query = SqliteEntity.select().where(
+                SqliteEntity.entity_id == entity_id,
+                SqliteEntity.entity_type == entity_type,
+                )
+            if not entity_query.count():
+                continue
+            entity = list(entity_query)[0]
+            if 'Not On Label' in entity.name:
+                print('             Skipping: "Not On Label"')
+                continue
+            query = SqliteRelation.search(
+                entity_id=entity_id,
+                entity_type=entity_type,
+                role_names=role_names,
+                year=year,
+                query_only=True,
+                )
+            count = query.count()
+            if 0 < distance and max_links < count:
+                nodes[entity_key]['missing'] += count
+                message = '            Skipping: "{}" w/ {} links'
+                message = message.format(entity.name, count)
+                print(message)
+                continue
+            relations.extend(list(query))
+        return relations
+
+    def cross_reference(self, nodes, role_names, verbose=True):
+        if verbose:
+            print('    Cross-referencing artists and labels.')
+        root_key = (
+            self.center_entity.entity_type,
+            self.center_entity.entity_id,
+            )
+        query_cap = 1000
+        query_cap -= 2
+        query_cap -= len(role_names)
+        query_cap //= 2
+        artists = []
+        labels = []
+        grouped_artists = []
+        grouped_labels = []
+        for key in nodes:
+            if key == root_key:
+                continue
+            if key[0] == 1:
+                artists.append(key)
+            elif key[0] == 2:
+                labels.append(key)
+        artists.sort()
+        labels.sort()
+        for i in range(0, len(artists), query_cap):
+            grouped_artists.append(artists[i:i + query_cap])
+        for i in range(0, len(labels), query_cap):
+            grouped_labels.append(labels[i:i + query_cap])
+        iterator = itertools.product(grouped_artists, grouped_labels)
+        relations = []
+        for artists, labels in iterator:
+            print(len(artists), len(labels))
+            found = SqliteRelation.search_bimulti(
+                artists,
+                labels,
+                role_names=role_names,
+                )
+            relations.extend(found)
+        return relations
+
+    def report_search_start(
+        self,
+        max_links,
+        max_nodes,
+        role_names,
+        verbose=True,
+        ):
+        if verbose:
+            message = '    Max nodes: {}'
+            message = message.format(max_nodes)
+            print(message)
+            message = '    Max links: {}'
+            message = message.format(max_links)
+            print(message)
+            message = '    Roles: {}'
+            message = message.format(role_names)
+            print(message)
+
+    def report_search_loop_start(
+        self,
+        distance,
+        links,
+        nodes,
+        to_visit,
+        verbose=True,
+        ):
+        if verbose:
+            to_visit_count = len(to_visit)
+            message = '    At distance {}:'
+            message = message.format(distance)
+            print(message)
+            message = '        {} old nodes'
+            message = message.format(len(nodes) - to_visit_count)
+            print(message)
+            message = '        {} old links'
+            message = message.format(len(links))
+            print(message)
+            message = '        {} new nodes'
+            message = message.format(to_visit_count)
+            print(message)
+
+    @classmethod
+    def make_cache_key(cls, template, entity_type, entity_id, role_names=None, year=None):
+        if isinstance(entity_type, int):
+            entity_type = cls.entity_type_names[entity_type]
+        key = template.format(entity_type=entity_type, entity_id=entity_id)
+        if role_names or year:
+            parts = []
+            if role_names:
+                role_names = (cls.word_pattern.sub('+', _) for _ in role_names)
+                role_names = ('roles[]={}'.format(_) for _ in role_names)
+                role_names = '&'.join(sorted(role_names))
+                parts.append(role_names)
+            if year:
+                if isinstance(year, int):
+                    year = 'year={}'.format(year)
+                else:
+                    year = '-'.join(str(_) for _ in year)
+                    year = 'year={}'.format(year)
+                parts.append(year)
+            query_string = '&'.join(parts)
+            key = '{}?{}'.format(key, query_string)
+        key = 'discograph:{}'.format(key)
+        return key
+
+    @classmethod
+    def cache_get(cls, key, use_redis=False):
+        from discograph import app
+        if use_redis:
+            cache = app.rcache
+        else:
+            cache = app.fcache
+        return cache.get(key)
+
+    @classmethod
+    def cache_set(cls, key, value, timeout=None, use_redis=False):
+        from discograph import app
+        if not timeout:
+            timeout = 60 * 60 * 24
+        if use_redis:
+            cache = app.rcache
+        else:
+            cache = app.fcache
+        cache.set(key, value, timeout=timeout)

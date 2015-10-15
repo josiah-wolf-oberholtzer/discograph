@@ -287,7 +287,8 @@ function dg_network_handleAsyncError(error) {
     text += '<strong>' + status + '!</strong> ' + message;
     text += '</div>';
     $('#flash').append(text);
-    //window.history.back();
+    setTimeout(function() { dg.network.isUpdating = false; }, 2000);
+    dg_style_loading(false);
 }
 
 function dg_network_handleAsyncData(json, pushHistory, params) {
@@ -310,9 +311,26 @@ function dg_network_handleAsyncData(json, pushHistory, params) {
     dg_network_startForceLayout();
     dg_network_selectNode(dg.network.data.json.center.key);
     setTimeout(function() { dg.network.isUpdating = false; }, 2000);
-    $("#page-loading")
-        .removeClass("glyphicon-animate glyphicon-refresh")
-        .addClass("glyphicon-random");
+    dg_style_loading(false);
+}
+
+function dg_style_loading(state) {
+    if (state) {
+        dg.network.layers.root.transition()
+            .duration(250)
+            .style("opacity", 0.333);
+        $("#page-loading")
+            .removeClass("glyphicon-random")
+            .addClass("glyphicon-animate glyphicon-refresh");
+    } else {
+        dg.network.layers.root.transition()
+            .delay(250)
+            .duration(1000)
+            .style("opacity", 1);
+        $("#page-loading")
+            .removeClass("glyphicon-animate glyphicon-refresh")
+            .addClass("glyphicon-random");
+    }
 }
 
 function dg_network_navigate(key, pushHistory) {
@@ -331,13 +349,7 @@ function dg_network_navigate(key, pushHistory) {
             dg.network.dimensions[1] / 2,
         ];
     }
-    dg.network.layers.root.transition()
-        .duration(250)
-        .style("opacity", 0.333);
-    $("#page-loading")
-        .removeClass("glyphicon-random")
-        .addClass("glyphicon-animate glyphicon-refresh")
-        ;
+    dg_style_loading(true);
     var url = "/api/" + entityType + "/network/" + entityId;
     $.ajax({
         cache: true,
@@ -705,9 +717,6 @@ function dg_network_startForceLayout() {
     dg_network_onLinkEnter(dg.network.selections.link.enter());
     dg_network_onLinkExit(dg.network.selections.link.exit());
     dg_network_onLinkUpdate(dg.network.selections.link);
-    dg.network.layers.root.transition()
-        .duration(1000)
-        .style("opacity", 1);
     dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
     dg.network.forceLayout.start();
 }
@@ -1052,7 +1061,7 @@ $(document).ready(function() {
                     .removeClass("glyphicon-random")
                     .addClass("glyphicon-animate glyphicon-refresh");
                 d3.json(url, function(error, json) {
-                    if (error) { console.warn(error); return; }
+                    if (error) { dg_network_handleAsyncError(error); return; }
                     dg_network_navigate(json.center, true);
                 });
             } else {

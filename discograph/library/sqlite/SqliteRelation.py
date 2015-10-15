@@ -91,29 +91,25 @@ class SqliteRelation(SqliteModel):
         return cls.select().where(where_clause).order_by(cls.random).get()
 
     @classmethod
-    def search(cls, entity_id, entity_type=1, role_names=None, query_only=False):
-        if not role_names:
-            query = cls.select().where(
-                (
-                    (cls.entity_one_id == entity_id) &
-                    (cls.entity_one_type == entity_type)
-                    ) | (
-                    (cls.entity_two_id == entity_id) &
-                    (cls.entity_two_type == entity_type)
-                    )
-                )
-        else:
-            query = cls.select().where(
-                (
-                    (cls.entity_one_id == entity_id) &
-                    (cls.entity_one_type == entity_type) &
-                    (cls.role_name.in_(role_names))
-                    ) | (
-                    (cls.entity_two_id == entity_id) &
-                    (cls.entity_two_type == entity_type) &
-                    (cls.role_name.in_(role_names))
-                    )
-                )
+    def search(cls, entity_id, entity_type=1, role_names=None, year=None, query_only=False):
+        where_clause = (
+            (cls.entity_one_id == entity_id) &
+            (cls.entity_one_type == entity_type)
+            )
+        where_clause |= (
+            (cls.entity_two_id == entity_id) &
+            (cls.entity_two_type == entity_type)
+            )
+        if role_names:
+            where_clause &= (cls.role_name.in_(role_names))
+        if year is not None:
+            year_clause = cls.year.is_null(True)
+            if isinstance(year, int):
+                year_clause |= cls.year == year
+            else:
+                year_clause |= cls.year.between(year[0], year[1])
+            where_clause &= year_clause
+        query = cls.select().where(where_clause)
         if query_only:
             return query
         return list(query)
@@ -158,4 +154,59 @@ class SqliteRelation(SqliteModel):
             label_query = cls.select().where(label_where_clause)
             #print(label_query)
             relations.extend(list(label_query))
+        return relations
+
+    @classmethod
+    def search_bimulti(cls, lh_entities, rh_entities, role_names=None, year=None, verbose=True):
+        def build_query(lh_type, lh_ids, rh_type, rh_ids):
+            where_clause = cls.entity_one_type == lh_type
+            where_clause &= cls.entity_two_type == rh_type
+            where_clause &= cls.entity_one_id.in_(lh_ids)
+            where_clause &= cls.entity_two_id.in_(rh_ids)
+            if role_names:
+                where_clause &= cls.role_name.in_(role_names)
+            if year is not None:
+                year_clause = cls.year.is_null(True)
+                if isinstance(year, int):
+                    year_clause |= cls.year == year
+                else:
+                    year_clause |= cls.year.between(year[0], year[1])
+                where_clause &= year_clause
+            query = cls.select().where(where_clause)
+            return query
+        lh_artist_ids = []
+        lh_label_ids = []
+        rh_artist_ids = []
+        rh_label_ids = []
+        for entity_type, entity_id in lh_entities:
+            if entity_type == 1:
+                lh_artist_ids.append(entity_id)
+            else:
+                lh_label_ids.append(entity_id)
+        for entity_type, entity_id in rh_entities:
+            if entity_type == 1:
+                rh_artist_ids.append(entity_id)
+            else:
+                rh_label_ids.append(entity_id)
+        relations = []
+        if lh_artist_ids:
+            lh_type, lh_ids = 1, lh_artist_ids
+            if rh_artist_ids:
+                rh_type, rh_ids = 1, rh_artist_ids
+                query = build_query(lh_type, lh_ids, rh_type, rh_ids)
+                relations.extend(list(query))
+            if rh_label_ids:
+                rh_type, rh_ids = 2, rh_label_ids
+                query = build_query(lh_type, lh_ids, rh_type, rh_ids)
+                relations.extend(list(query))
+        if lh_label_ids:
+            lh_type, lh_ids = 2, lh_label_ids
+            if rh_artist_ids:
+                rh_type, rh_ids = 1, rh_artist_ids
+                query = build_query(lh_type, lh_ids, rh_type, rh_ids)
+                relations.extend(list(query))
+            if rh_label_ids:
+                rh_type, rh_ids = 2, rh_label_ids
+                query = build_query(lh_type, lh_ids, rh_type, rh_ids)
+                relations.extend(list(query))
         return relations
