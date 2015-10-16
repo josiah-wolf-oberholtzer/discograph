@@ -21,12 +21,12 @@ class SqliteRelation(SqliteModel):
 
     class Meta:
         db_table = 'relation'
-        indexes = (
-            (('entity_one_id', 'entity_one_type', 'role', 'year'), False),
-            (('entity_two_id', 'entity_two_type', 'role', 'year'), False),
-            (('entity_one_type', 'entity_one_id',
-              'entity_two_type', 'entity_two_id', 'role', 'year'), False),
-            )
+        #indexes = (
+        #    (('entity_one_id', 'entity_one_type', 'role', 'year'), False),
+        #    (('entity_two_id', 'entity_two_type', 'role', 'year'), False),
+        #    (('entity_one_type', 'entity_one_id',
+        #      'entity_two_type', 'entity_two_id', 'role', 'year'), False),
+        #    )
         primary_key = peewee.CompositeKey(
             'entity_one_type',
             'entity_one_id',
@@ -39,14 +39,18 @@ class SqliteRelation(SqliteModel):
 
     ### PUBLIC METHODS ###
 
-    @staticmethod
-    def bootstrap():
+    @classmethod
+    def bootstrap(cls):
         import discograph
+        print('Dropping table.')
         discograph.SqliteRelation.drop_table(fail_silently=True)
+        print('Creating table.')
         discograph.SqliteRelation.create_table()
+        print('Building PostgreSQL query.')
         query = discograph.PostgresRelation.select()
         count = query.count()
         query = postgres_ext.ServerSide(query)
+        print('Enumerating...')
         rows = []
         for i, document in enumerate(query):
             rows.append(dict(
@@ -60,25 +64,38 @@ class SqliteRelation(SqliteModel):
                 random=document.random,
                 ))
             if len(rows) == 100:
-                discograph.SqliteRelation.insert_many(rows).execute()
+                with cls._meta.database.atomic():
+                    discograph.SqliteRelation.insert_many(rows).execute()
                 rows = []
                 print('Processing... {} of {} [{:.3f}%]'.format(
                     i, count, (float(i) / count) * 100))
         if rows:
-            discograph.SqliteRelation.insert_many(rows).execute()
+            with cls._meta.database.atomic():
+                discograph.SqliteRelation.insert_many(rows).execute()
             print('Processing... {} of {} [{:.3f}%]'.format(
                 i, count, (float(i) / count) * 100))
+        print('Creating indexes...')
+        index_field_sequences = [
+            ('entity_one_id', 'entity_one_type', 'role', 'year'),
+            ('entity_two_id', 'entity_two_type', 'role', 'year'),
+            ('entity_one_type', 'entity_one_id', 'entity_two_type', 'entity_two_id', 'role', 'year'),
+            ]
+        for index_field_sequence in index_field_sequences:
+            cls._meta.database.create_index(cls, index_field_sequence)
 
     @classmethod
     def get_random(cls, roles=None):
-        max_random = cls.select(peewee.fn.Max(cls.random)).scalar()
         n = random.random()
-        while max_random < n:
-            n = random.random()
         where_clause = (cls.random > n)
         if roles:
             where_clause &= (cls.role.in_(roles))
-        query = cls.select().where(where_clause).order_by(cls.random)
+        query = cls.select().where(where_clause).order_by(cls.random).limit(1)
+        while not query.count():
+            n = random.random()
+            where_clause = (cls.random > n)
+            if roles:
+                where_clause &= (cls.role.in_(roles))
+            query = cls.select().where(where_clause).order_by(cls.random).limit(1)
         return query.get()
 
     @classmethod

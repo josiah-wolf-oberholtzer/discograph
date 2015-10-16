@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 import peewee
-from playhouse import gfk
 from playhouse import postgres_ext
 from discograph.library.postgres.PostgresModel import PostgresModel
 
@@ -9,11 +8,12 @@ class PostgresEntity(PostgresModel):
 
     ### PEEWEE FIELDS ###
 
-    entity = gfk.GFKField('entity_type', 'entity_id')
     entity_id = peewee.IntegerField()
-    entity_type = peewee.CharField()
+    entity_type = peewee.IntegerField()
     name = peewee.TextField(index=True)
-    relation_counts = postgres_ext.HStoreField()
+    relation_counts = postgres_ext.BinaryJSONField()
+    metadata = postgres_ext.BinaryJSONField()
+    entities = postgres_ext.BinaryJSONField()
 
     ### PEEWEE META ###
 

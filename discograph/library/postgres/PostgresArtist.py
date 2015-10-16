@@ -11,10 +11,12 @@ class PostgresArtist(PostgresModel):
     ### PEEWEE FIELDS ###
 
     id = peewee.IntegerField(primary_key=True)
+    name = peewee.TextField(index=True)
+
     aliases = postgres_ext.BinaryJSONField(null=True)
     groups = postgres_ext.BinaryJSONField(null=True)
     members = postgres_ext.BinaryJSONField(null=True)
-    name = peewee.TextField(index=True)
+
     name_variations = postgres_ext.ArrayField(peewee.TextField, null=True)
     profile = peewee.TextField(null=True)
     real_name = peewee.TextField(null=True)

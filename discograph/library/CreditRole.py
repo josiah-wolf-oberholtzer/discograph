@@ -1,10 +1,11 @@
 # -*- encoding: utf-8 -*-
 import collections
 import re
+from abjad.tools import abctools
 from abjad.tools import datastructuretools
 
 
-class CreditRole(object):
+class CreditRole(abctools.AbjadValueObject):
 
     ### CLASS VARIABLES ###
 

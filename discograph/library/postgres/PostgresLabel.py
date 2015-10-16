@@ -11,11 +11,13 @@ class PostgresLabel(PostgresModel):
     ### PEEWEE FIELDS ###
 
     id = peewee.IntegerField(primary_key=True)
-    contact_info = peewee.TextField(null=True)
     name = peewee.TextField(index=True)
-    parent_label = postgres_ext.BinaryJSONField(null=True)
-    profile = peewee.TextField(null=True)
+
     sublabels = postgres_ext.BinaryJSONField(null=True)
+    parent_label = postgres_ext.BinaryJSONField(null=True)
+
+    contact_info = peewee.TextField(null=True)
+    profile = peewee.TextField(null=True)
     urls = postgres_ext.ArrayField(peewee.TextField, null=True)
 
     ### PEEWEE META ###

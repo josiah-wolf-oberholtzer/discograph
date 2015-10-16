@@ -157,7 +157,8 @@ class RelationGrapher(object):
                     if role in provisional_roles:
                         provisional_roles.remove(role)
             if 0 < distance:
-                if max_nodes <= (len(nodes) + len(to_visit)):
+                #if max_nodes <= (len(nodes) + len(to_visit)):
+                if max_nodes <= len(nodes):
                     if verbose: print('        Max nodes: exiting next search loop.')
                     break_on_next_loop = True
             relations = self.query_relations_new(
@@ -362,57 +363,6 @@ class RelationGrapher(object):
             ]
         return '-'.join(str(_) for _ in pieces)
 
-    def postprocess_links(self, links):
-        links = tuple(sorted(links.values(),
-            key=lambda x: (
-                x['source'],
-                x['role'],
-                x['target'],
-                x.get('release_id')
-                )))
-        for link in links:
-            if link['source'][0] == 1:
-                link['source'] = 'artist-{}'.format(link['source'][1])
-            else:
-                link['source'] = 'label-{}'.format(link['source'][1])
-            if link['target'][0] == 1:
-                link['target'] = 'artist-{}'.format(link['target'][1])
-            else:
-                link['target'] = 'label-{}'.format(link['target'][1])
-            if link['year'] == -1:
-                del(link['year'])
-            if link['release_id'] == -1:
-                del(link['release_id'])
-        return links
-
-    def postprocess_nodes(self, nodes):
-        cluster_count = 0
-        cluster_map = {}
-        for node in sorted(
-            nodes.values(),
-            key=lambda x: len(x['aliases']),
-            reverse=True,
-            ):
-            cluster = None
-            if node['aliases']:
-                if node['id'] not in cluster_map:
-                    cluster_count += 1
-                    cluster_map[node['id']] = cluster_count
-                    for alias_id in node['aliases']:
-                        cluster_map[alias_id] = cluster_count
-                cluster = cluster_map[node['id']]
-            if not node['aliases']:
-                del(node['aliases'])
-            else:
-                node['aliases'] = tuple(sorted(node['aliases']))
-            if cluster is not None:
-                node['cluster'] = cluster
-            node['size'] = len(node.pop('members'))
-            node['links'] = tuple(sorted(node['links']))
-        nodes = tuple(sorted(nodes.values(),
-            key=lambda x: (x['type'], x['id'])))
-        return nodes
-
     def get_network(self):
         nodes, links = self.collect_entities()
         nodes = self.postprocess_nodes(nodes)
@@ -511,6 +461,53 @@ class RelationGrapher(object):
                 print(message)
         return pages
 
+    def postprocess_links(self, links):
+        links = tuple(sorted(links.values(),
+            key=lambda x: (
+                x['source'],
+                x['role'],
+                x['target'],
+                x.get('release_id')
+                )))
+        for link in links:
+            if link['source'][0] == 1:
+                link['source'] = 'artist-{}'.format(link['source'][1])
+            else:
+                link['source'] = 'label-{}'.format(link['source'][1])
+            if link['target'][0] == 1:
+                link['target'] = 'artist-{}'.format(link['target'][1])
+            else:
+                link['target'] = 'label-{}'.format(link['target'][1])
+        return links
+
+    def postprocess_nodes(self, nodes):
+        cluster_count = 0
+        cluster_map = {}
+        for node in sorted(
+            nodes.values(),
+            key=lambda x: len(x['aliases']),
+            reverse=True,
+            ):
+            cluster = None
+            if node['aliases']:
+                if node['id'] not in cluster_map:
+                    cluster_count += 1
+                    cluster_map[node['id']] = cluster_count
+                    for alias_id in node['aliases']:
+                        cluster_map[alias_id] = cluster_count
+                cluster = cluster_map[node['id']]
+            if not node['aliases']:
+                del(node['aliases'])
+            else:
+                node['aliases'] = tuple(sorted(node['aliases']))
+            if cluster is not None:
+                node['cluster'] = cluster
+            node['size'] = len(node.pop('members'))
+            node['links'] = tuple(sorted(node['links']))
+        nodes = tuple(sorted(nodes.values(),
+            key=lambda x: (x['type'], x['id'])))
+        return nodes
+
     def process_relation(
         self,
         distance,
@@ -540,10 +537,10 @@ class RelationGrapher(object):
             source=e1k,
             target=e2k,
             )
-        if relation.release_id:
-            link['release_id'] = relation.release_id
-        if relation.year:
-            link['year'] = relation.year
+        #if relation.release_id:
+        #    link['release_id'] = relation.release_id
+        #if relation.year:
+        #    link['year'] = relation.year
         link['distance'] = min(
             nodes[e1k]['distance'],
             nodes[e2k]['distance'],
