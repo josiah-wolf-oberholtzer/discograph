@@ -3,8 +3,8 @@ Flask-Mobility
 apsw
 flask
 gunicorn
-mongoengine
 peewee
+psychopg2
 pytest
 redis
 six

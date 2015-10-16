@@ -47,10 +47,7 @@ class Bootstrapper(object):
             yield element
 
     @staticmethod
-    def element_to_datetime(element):
-        if element is None:
-            return None
-        date_string = element.text.strip()
+    def parse_release_date(date_string):
         # empty string
         if not date_string:
             return None
@@ -71,6 +68,13 @@ class Bootstrapper(object):
             return Bootstrapper.validate_release_date(year, month, day)
         # other: "?", "????", "None", "Unknown"
         return None
+
+    @staticmethod
+    def element_to_datetime(element):
+        if element is None:
+            return None
+        date_string = element.text.strip()
+        return Bootstrapper.parse_release_date(date_string)
 
     @staticmethod
     def element_to_integer(element):
