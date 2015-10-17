@@ -2,10 +2,10 @@
 import collections
 import itertools
 import math
-import pprint
 import re
 import redis
 import six
+from abjad.tools import systemtools
 from discograph.library.TrellisNode import TrellisNode
 from discograph.library.CreditRole import CreditRole
 from discograph.library.sqlite.SqliteEntity import SqliteEntity
@@ -137,8 +137,6 @@ class RelationGrapher(object):
         return trellis
 
     def collect_entities(self, verbose=True):
-        max_nodes = self.max_nodes or 100
-        max_links = self.link_ratio * max_nodes
         original_roles = self.roles or ()
         provisional_roles = set(original_roles)
         provisional_roles.update(['Alias', 'Member Of'])
@@ -151,14 +149,34 @@ class RelationGrapher(object):
         links = dict()
         nodes = dict()
         break_on_next_loop = False
-        self.report_search_start(max_links, max_nodes, original_roles, verbose=verbose)
+        max_nodes = self.max_nodes or 100
+        max_links = self.link_ratio * max_nodes
+        self.report_search_start(
+            max_links,
+            max_nodes,
+            original_roles,
+            verbose=verbose,
+            )
+
+        ###
+
         for distance in range(self.degree + 1):
             to_visit = list(entity_keys_to_visit)
             for key in to_visit:
                 nodes.setdefault(key, self.entity_key_to_node(key, distance))
-            self.report_search_loop_start(distance, links, nodes, to_visit, verbose=verbose)
+
+            ###
+
+            self.report_search_loop_start(
+                distance,
+                links,
+                nodes,
+                to_visit,
+                verbose=verbose,
+                )
             if break_on_next_loop:
-                if verbose: print('        Exiting search loop.')
+                if verbose:
+                    print('        Exiting search loop.')
                 break
             if 0 < distance and max_nodes / 4 < len(nodes):
                 for role in self.roles_to_prune:
@@ -169,9 +187,13 @@ class RelationGrapher(object):
                         provisional_roles.remove('Sublabel Of')
             if 0 < distance:
                 if max_nodes <= len(nodes):
-                    if verbose: print('        Max nodes: exiting next search loop.')
+                    if verbose:
+                        print('        Max nodes: exiting next search loop.')
                     break_on_next_loop = True
-            relations = self.query_relations_new(
+
+            ###
+
+            relations = self.query_relations(
                 entity_keys=to_visit,
                 distance=distance,
                 nodes=nodes,
@@ -180,19 +202,25 @@ class RelationGrapher(object):
                 year=None,
                 verbose=verbose,
                 )
+
+            ###
+
             if verbose:
                 message = '            {} new links'
                 message = message.format(len(relations))
                 print(message)
             if not relations:
+                break
+            if max_links * 3 <= len(relations):
+                if verbose: print('        Max links: exiting next search loop.')
                 break_on_next_loop = True
             if 1 < distance:
-                if max_links * 3 <= len(relations):
-                    if verbose: print('        Max links: exiting immediately.')
-                    break
                 if max_links <= len(relations):
                     if verbose: print('        Max links: exiting next search loop.')
                     break_on_next_loop = True
+
+            ###
+
             entity_keys_to_visit.clear()
             for relation in relations:
                 self.process_relation(
@@ -203,6 +231,9 @@ class RelationGrapher(object):
                     original_roles=original_roles,
                     relation=relation,
                     )
+
+        ###
+
         if 'Released On' in original_roles:
             relations = self.cross_reference(nodes, roles=['Released On'])
             relations = self.group_relations_for_collection(relations)
@@ -215,10 +246,16 @@ class RelationGrapher(object):
                     original_roles=original_roles,
                     relation=relation,
                     )
+
+        ###
+
         if verbose:
             message = '    Collected: {} / {}'
             message = message.format(len(nodes), len(links))
             print(message)
+
+        ###
+
         self.query_node_names(nodes)
         self.prune_nameless(nodes, links, verbose=verbose)
         self.prune_not_on_label(nodes, links, verbose=verbose)
@@ -227,7 +264,11 @@ class RelationGrapher(object):
         pages = self.partition_trellis(trellis, nodes, links)
         self.page_entities(nodes, links, pages, trellis)
         self.prune_unpaged_links(nodes, links, verbose=verbose)
-        if verbose: print('Finally: {} / {}'.format(len(nodes), len(links)))
+
+        ###
+
+        if verbose:
+            print('Finally: {} / {}'.format(len(nodes), len(links)))
         return nodes, links
 
     def entity_key_to_node(self, entity_key, distance):
@@ -674,6 +715,8 @@ class RelationGrapher(object):
     def prune_unvisited(self, entity_keys_to_visit, nodes, links, verbose=True):
         for key in entity_keys_to_visit:
             node = nodes.get(key)
+            if node is not None and node.get('distance') < 2:
+                continue
             self.prune_node(node, nodes, links)
         if verbose:
             message = '    Pruned unvisited: {} / {}'
@@ -683,7 +726,10 @@ class RelationGrapher(object):
     def query_node_names(self, nodes):
         artist_ids = []
         label_ids = []
-        for entity_type, entity_id in nodes.keys():
+        for entity_key, entity in nodes.items():
+            if entity.get('name'):
+                continue
+            entity_type, entity_id = entity_key
             if entity_type == 1:
                 artist_ids.append(entity_id)
             else:
@@ -705,7 +751,7 @@ class RelationGrapher(object):
         for entity in entities:
             nodes[(entity.entity_type, entity.entity_id)]['name'] = entity.name
 
-    def query_relations_new(
+    def query_relations(
         self,
         entity_keys,
         distance=None,
@@ -715,83 +761,84 @@ class RelationGrapher(object):
         year=None,
         verbose=True,
         ):
-        # TODO: Cache each entity's local neighborhood, BUT
-        #       only cache it for Alias, Member Of, Released On and Sublabel Of.
-        #       then, you can pull that collection out of the cache,
-        #       and add in the remaining (generally sparser) exotic roles on top.
-        #       that will likely balance speed and storage space.
-        # TODO: Group links by key and check for existence in link mapping,
-        #       in order to provide a truly accurate accounting of how many
-        #       links are actually being introduced by a search.
-        noncore_roles = list(set(roles) - set(self.core_roles))
+        exotic_roles = list(set(roles) - set(self.core_roles))
         print('        All Roles:', roles)
-        print('        Noncore Roles:', noncore_roles)
+        print('        Exotic Roles:', exotic_roles)
         max_links = (self.max_nodes or 100) * self.link_ratio
         relations = []
-        for entity_key in entity_keys:
-            entity_type, entity_id = entity_key
-            entity_query = SqliteEntity.select().where(
-                SqliteEntity.entity_id == entity_id,
-                SqliteEntity.entity_type == entity_type,
-                )
-            if not entity_query.count():
-                continue
-            entity = entity_query.get()
-            if 'Not On Label' in entity.name:
-                print('             Skipping: "Not On Label"')
-                continue
-            data = []
-            core_cache_key = self.make_cache_key(
-                'discograph:/api/{entity_type}/neighborhood/{entity_id}',
-                entity_type,
-                entity_id,
-                roles=self.core_roles,
-                )
-            core_data = self.cache_get(core_cache_key)
-            if core_data is None:
-                core_query = SqliteRelation.search(
-                    entity_id=entity_id,
-                    entity_type=entity_type,
+        with systemtools.ProgressIndicator(
+            message='             Searching:',
+            total=len(entity_keys),
+            ) as progress_indicator:
+            for entity_key in entity_keys:
+                data = []
+                entity_type, entity_id = entity_key
+                neighborhood_cache_key = self.make_cache_key(
+                    'discograph:/api/{entity_type}/neighborhood/{entity_id}',
+                    entity_type,
+                    entity_id,
                     roles=self.core_roles,
-                    query_only=True,
                     )
-                core_data = list(core_query)
-                self.cache_set(core_cache_key, core_data)
-            data.extend(_ for _ in core_data if _.role in roles)
-            if noncore_roles:
-                noncore_query = SqliteRelation.search(
-                    entity_id=entity_id,
-                    entity_type=entity_type,
-                    roles=noncore_roles,
-                    query_only=True,
-                    )
-                data.extend(noncore_query)
-            grouped_data = self.group_relations_for_collection(data)
-            if 0 < distance and max_links < len(grouped_data):
-                nodes[entity_key]['missing'] += len(grouped_data)
-                message = '            Skipping: "{}" w/ {} links'
-                message = message.format(entity.name, len(grouped_data))
-                print(message)
-                continue
-            relations.extend(grouped_data)
-        #pprint.pprint(relations)
+                neighborhood_data = self.cache_get(neighborhood_cache_key)
+                if neighborhood_data is None:
+                    neighborhood_data = {}
+                    entity_query = SqliteEntity.select().where(
+                        SqliteEntity.entity_id == entity_id,
+                        SqliteEntity.entity_type == entity_type,
+                        )
+                    if not entity_query.count():
+                        neighborhood_data = None
+                        self.cache_set(neighborhood_cache_key, neighborhood_data)
+                        continue
+                    entity = entity_query.get()
+                    if 'not on label' in entity.name.lower():
+                        neighborhood_data['name'] = entity.name
+                        neighborhood_data['relations'] = []
+                    else:
+                        neighborhood_query = SqliteRelation.search(
+                            entity_id=entity_id,
+                            entity_type=entity_type,
+                            roles=self.core_roles,
+                            query_only=True,
+                            )
+                        neighborhood_data['name'] = entity.name
+                        neighborhood_data['relations'] = tuple(neighborhood_query)
+                    self.cache_set(neighborhood_cache_key, neighborhood_data)
+                if neighborhood_data is None:
+                    continue
+                if entity_key in nodes:
+                    nodes[entity_key]['name'] = neighborhood_data['name']
+                data.extend(_ for _ in neighborhood_data['relations'] if _.role in roles)
+                #if exotic_roles:
+                #    exotic_query = SqliteRelation.search(
+                #        entity_id=entity_id,
+                #        entity_type=entity_type,
+                #        roles=exotic_roles,
+                #        query_only=True,
+                #        )
+                #    data.extend(exotic_query)
+                grouped_data = self.group_relations_for_collection(data)
+                if 0 < distance and max_links < len(grouped_data):
+                    nodes[entity_key]['missing'] += len(grouped_data)
+                    message = '            Skipping: "{}" w/ {} links'
+                    message = message.format(neighborhood_data['name'], len(grouped_data))
+                    print(message)
+                    continue
+                #print(neighborhood_data['name'], len(grouped_data))
+                relations.extend(grouped_data)
+                #progress_indicator.advance()
         return relations
 
     def cross_reference(self, nodes, roles, verbose=True):
+        relations = []
         if verbose:
             print('    Cross-referencing artists and labels.')
         root_key = (
             self.center_entity.entity_type,
             self.center_entity.entity_id,
             )
-        query_cap = 1000
-        query_cap -= 2
-        query_cap -= len(roles)
-        query_cap //= 2
         artists = []
         labels = []
-        grouped_artists = []
-        grouped_labels = []
         for key in nodes:
             if key == root_key:
                 continue
@@ -799,16 +846,22 @@ class RelationGrapher(object):
                 artists.append(key)
             elif key[0] == 2:
                 labels.append(key)
+        if not artists or not labels:
+            return relations
         artists.sort()
         labels.sort()
+        grouped_artists = []
+        grouped_labels = []
+        query_cap = 1000
+        query_cap -= 2
+        query_cap -= len(roles)
+        query_cap //= 2
         for i in range(0, len(artists), query_cap):
             grouped_artists.append(artists[i:i + query_cap])
         for i in range(0, len(labels), query_cap):
             grouped_labels.append(labels[i:i + query_cap])
         iterator = itertools.product(grouped_artists, grouped_labels)
-        relations = []
         for artists, labels in iterator:
-            #print(len(artists), len(labels))
             found = SqliteRelation.search_bimulti(
                 artists,
                 labels,

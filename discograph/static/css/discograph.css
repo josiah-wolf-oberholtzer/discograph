@@ -126,9 +126,12 @@ form .clear,
     }
 
 .link.member-of .inner,
-.link.released-on .inner,
 .link.sublabel-of .inner {
     marker-end: url(#aggregate);
+    }
+
+.link.released-on .inner {
+    marker-end: url(#arrowhead);
     }
 
 .hull path {

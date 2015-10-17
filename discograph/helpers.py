@@ -32,7 +32,7 @@ def get_entity(entity_type, entity_id):
 
 def get_network(entity_id, entity_type, on_mobile=False, cache=True):
     import discograph
-    cache = False
+    #cache = False
     assert entity_type in ('artist', 'label')
     if cache:
         cache_key = 'discograph:/api/{}/network/{}'
