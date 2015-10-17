@@ -2,7 +2,6 @@
 import collections
 import itertools
 import math
-import pprint
 import re
 import redis
 import six
@@ -137,8 +136,6 @@ class RelationGrapher(object):
         return trellis
 
     def collect_entities(self, verbose=True):
-        max_nodes = self.max_nodes or 100
-        max_links = self.link_ratio * max_nodes
         original_roles = self.roles or ()
         provisional_roles = set(original_roles)
         provisional_roles.update(['Alias', 'Member Of'])
@@ -151,14 +148,34 @@ class RelationGrapher(object):
         links = dict()
         nodes = dict()
         break_on_next_loop = False
-        self.report_search_start(max_links, max_nodes, original_roles, verbose=verbose)
+        max_nodes = self.max_nodes or 100
+        max_links = self.link_ratio * max_nodes
+        self.report_search_start(
+            max_links,
+            max_nodes,
+            original_roles,
+            verbose=verbose,
+            )
+
+        ###
+
         for distance in range(self.degree + 1):
             to_visit = list(entity_keys_to_visit)
             for key in to_visit:
                 nodes.setdefault(key, self.entity_key_to_node(key, distance))
-            self.report_search_loop_start(distance, links, nodes, to_visit, verbose=verbose)
+
+            ###
+
+            self.report_search_loop_start(
+                distance,
+                links,
+                nodes,
+                to_visit,
+                verbose=verbose,
+                )
             if break_on_next_loop:
-                if verbose: print('        Exiting search loop.')
+                if verbose:
+                    print('        Exiting search loop.')
                 break
             if 0 < distance and max_nodes / 4 < len(nodes):
                 for role in self.roles_to_prune:
@@ -169,9 +186,13 @@ class RelationGrapher(object):
                         provisional_roles.remove('Sublabel Of')
             if 0 < distance:
                 if max_nodes <= len(nodes):
-                    if verbose: print('        Max nodes: exiting next search loop.')
+                    if verbose:
+                        print('        Max nodes: exiting next search loop.')
                     break_on_next_loop = True
-            relations = self.query_relations_new(
+
+            ###
+
+            relations = self.query_relations(
                 entity_keys=to_visit,
                 distance=distance,
                 nodes=nodes,
@@ -180,12 +201,15 @@ class RelationGrapher(object):
                 year=None,
                 verbose=verbose,
                 )
+
+            ###
+
             if verbose:
                 message = '            {} new links'
                 message = message.format(len(relations))
                 print(message)
             if not relations:
-                break_on_next_loop = True
+                break
             if 1 < distance:
                 if max_links * 3 <= len(relations):
                     if verbose: print('        Max links: exiting immediately.')
@@ -193,6 +217,9 @@ class RelationGrapher(object):
                 if max_links <= len(relations):
                     if verbose: print('        Max links: exiting next search loop.')
                     break_on_next_loop = True
+
+            ###
+
             entity_keys_to_visit.clear()
             for relation in relations:
                 self.process_relation(
@@ -203,6 +230,9 @@ class RelationGrapher(object):
                     original_roles=original_roles,
                     relation=relation,
                     )
+
+        ###
+
         if 'Released On' in original_roles:
             relations = self.cross_reference(nodes, roles=['Released On'])
             relations = self.group_relations_for_collection(relations)
@@ -215,10 +245,16 @@ class RelationGrapher(object):
                     original_roles=original_roles,
                     relation=relation,
                     )
+
+        ###
+
         if verbose:
             message = '    Collected: {} / {}'
             message = message.format(len(nodes), len(links))
             print(message)
+
+        ###
+
         self.query_node_names(nodes)
         self.prune_nameless(nodes, links, verbose=verbose)
         self.prune_not_on_label(nodes, links, verbose=verbose)
@@ -227,7 +263,11 @@ class RelationGrapher(object):
         pages = self.partition_trellis(trellis, nodes, links)
         self.page_entities(nodes, links, pages, trellis)
         self.prune_unpaged_links(nodes, links, verbose=verbose)
-        if verbose: print('Finally: {} / {}'.format(len(nodes), len(links)))
+
+        ###
+
+        if verbose:
+            print('Finally: {} / {}'.format(len(nodes), len(links)))
         return nodes, links
 
     def entity_key_to_node(self, entity_key, distance):
@@ -705,7 +745,7 @@ class RelationGrapher(object):
         for entity in entities:
             nodes[(entity.entity_type, entity.entity_id)]['name'] = entity.name
 
-    def query_relations_new(
+    def query_relations(
         self,
         entity_keys,
         distance=None,
@@ -715,14 +755,6 @@ class RelationGrapher(object):
         year=None,
         verbose=True,
         ):
-        # TODO: Cache each entity's local neighborhood, BUT
-        #       only cache it for Alias, Member Of, Released On and Sublabel Of.
-        #       then, you can pull that collection out of the cache,
-        #       and add in the remaining (generally sparser) exotic roles on top.
-        #       that will likely balance speed and storage space.
-        # TODO: Group links by key and check for existence in link mapping,
-        #       in order to provide a truly accurate accounting of how many
-        #       links are actually being introduced by a search.
         noncore_roles = list(set(roles) - set(self.core_roles))
         print('        All Roles:', roles)
         print('        Noncore Roles:', noncore_roles)
