@@ -110,7 +110,6 @@ def parse_request_args(args):
 
 def search_entities(search_string, cache=True):
     import discograph
-    cache = False
     if cache:
         cache_key = 'discograph:/api/search/{}'.format(
             urlify_pattern.sub('+', search_string))

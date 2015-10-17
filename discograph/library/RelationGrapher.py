@@ -2,6 +2,7 @@
 import collections
 import itertools
 import math
+import pprint
 import re
 import redis
 import six
@@ -14,6 +15,13 @@ from discograph.library.sqlite.SqliteRelation import SqliteRelation
 class RelationGrapher(object):
 
     ### CLASS VARIABLES ###
+
+    core_roles = [
+        'Alias',
+        'Member Of',
+        'Released On',
+        'Sublabel Of',
+        ]
 
     entity_type_names = {
         1: 'artist',
@@ -88,7 +96,7 @@ class RelationGrapher(object):
         def recurse_trellis(node):
             subgraph_size = 1
             for child in node.children:
-                if child.subgraph_size == -1:
+                if child.subgraph_size is None:
                     recurse_trellis(child)
                 subgraph_size += child.subgraph_size
             node.subgraph_size = subgraph_size
@@ -156,8 +164,10 @@ class RelationGrapher(object):
                 for role in self.roles_to_prune:
                     if role in provisional_roles:
                         provisional_roles.remove(role)
+                if self.center_entity.entity_type == 1:
+                    if 'Sublabel Of' in provisional_roles:
+                        provisional_roles.remove('Sublabel Of')
             if 0 < distance:
-                #if max_nodes <= (len(nodes) + len(to_visit)):
                 if max_nodes <= len(nodes):
                     if verbose: print('        Max nodes: exiting next search loop.')
                     break_on_next_loop = True
@@ -165,6 +175,7 @@ class RelationGrapher(object):
                 entity_keys=to_visit,
                 distance=distance,
                 nodes=nodes,
+                links=links,
                 roles=provisional_roles,
                 year=None,
                 verbose=verbose,
@@ -192,8 +203,9 @@ class RelationGrapher(object):
                     original_roles=original_roles,
                     relation=relation,
                     )
-        if 'Released On' in original_roles and len(links) < max_links:
+        if 'Released On' in original_roles:
             relations = self.cross_reference(nodes, roles=['Released On'])
+            relations = self.group_relations_for_collection(relations)
             for relation in relations:
                 self.process_relation(
                     distance=distance,
@@ -388,7 +400,26 @@ class RelationGrapher(object):
             }
         return network
 
-    def group_links(self, links):
+    def group_relations_for_collection(self, relations):
+        grouped_links = {}
+        for relation in relations:
+            e1k = (relation.entity_one_type, relation.entity_one_id)
+            e2k = (relation.entity_two_type, relation.entity_two_id)
+            link = dict(
+                role=relation.role,
+                source=e1k,
+                target=e2k,
+                )
+            key = link['key'] = self.get_link_key(link)
+            if key not in grouped_links:
+                grouped_links[key] = link
+            if relation.release_id != -1:
+                if 'releases' not in grouped_links[key]:
+                    grouped_links[key]['releases'] = {}
+                grouped_links[key]['releases'][relation.release_id] = relation.year
+        return list(grouped_links.values())
+
+    def group_links_for_paging(self, links):
         grouped_links = {}
         for link in links.values():
             key = tuple(sorted([link['source'], link['target']]))
@@ -412,7 +443,7 @@ class RelationGrapher(object):
                 node.setdefault('pages', set())
                 node['pages'].add(page_number)
         # links whose nodes do not share any pages should be pruned
-        for (e1k, e2k), grouped_links in self.group_links(links).items():
+        for (e1k, e2k), grouped_links in self.group_links_for_paging(links).items():
             entity_one_pages = nodes[e1k]['pages']
             entity_two_pages = nodes[e2k]['pages']
             intersection = entity_one_pages.intersection(entity_two_pages)
@@ -517,38 +548,35 @@ class RelationGrapher(object):
         original_roles,
         relation,
         ):
-        e1k = (relation.entity_one_type, relation.entity_one_id)
-        e2k = (relation.entity_two_type, relation.entity_two_id)
-        if e1k not in nodes:
-            entity_keys_to_visit.add(e1k)
-            nodes[e1k] = self.entity_key_to_node(e1k, distance + 1)
-        if e2k not in nodes:
-            entity_keys_to_visit.add(e2k)
-            nodes[e2k] = self.entity_key_to_node(e2k, distance + 1)
-        if relation.role == 'Alias':
-            nodes[e1k]['aliases'].add(e2k[1])
-            nodes[e2k]['aliases'].add(e1k[1])
-        elif relation.role in ('Member Of', 'Sublabel Of'):
-            nodes[e2k]['members'].add(e1k[1])
-        if relation.role not in original_roles:
+        source = relation['source']
+        target = relation['target']
+        if source not in nodes:
+            entity_keys_to_visit.add(source)
+            nodes[source] = self.entity_key_to_node(source, distance + 1)
+        if target not in nodes:
+            entity_keys_to_visit.add(target)
+            nodes[target] = self.entity_key_to_node(target, distance + 1)
+        if relation['role'] == 'Alias':
+            nodes[source]['aliases'].add(target[1])
+            nodes[target]['aliases'].add(source[1])
+        elif relation['role'] in ('Member Of', 'Sublabel Of'):
+            nodes[target]['members'].add(source[1])
+        if relation['role'] not in original_roles:
             return
-        link = dict(
-            role=relation.role,
-            source=e1k,
-            target=e2k,
-            )
-        #if relation.release_id:
-        #    link['release_id'] = relation.release_id
-        #if relation.year:
-        #    link['year'] = relation.year
+        link = relation
         link['distance'] = min(
-            nodes[e1k]['distance'],
-            nodes[e2k]['distance'],
+            nodes[source]['distance'],
+            nodes[target]['distance'],
             )
-        link['key'] = self.get_link_key(link)
-        links[link['key']] = link
-        nodes[e1k]['links'].add(link['key'])
-        nodes[e2k]['links'].add(link['key'])
+        if link['key'] in links and 'releases' in link:
+            if 'releases' not in links[link['key']]:
+                links[link['key']]['releases'] = link['releases']
+            else:
+                links[link['key']]['releases'].update(link['releases'])
+        else:
+            links[link['key']] = link
+        nodes[source]['links'].add(link['key'])
+        nodes[target]['links'].add(link['key'])
 
     def prune_excess_links(self, nodes, links, verbose=True):
         max_nodes = self.max_nodes or 100
@@ -677,52 +705,27 @@ class RelationGrapher(object):
         for entity in entities:
             nodes[(entity.entity_type, entity.entity_id)]['name'] = entity.name
 
-    def query_relations(
-        self,
-        entity_keys,
-        distance=None,
-        nodes=None,
-        roles=None,
-        year=None,
-        verbose=True,
-        ):
-        print('        Roles:', roles)
-        entity_query_cap = 999
-        entity_query_cap -= (1 + len(roles)) * 2
-        if isinstance(year, int):
-            entity_query_cap -= 2
-        elif year:
-            entity_query_cap -= 4
-        entity_query_cap //= 2
-        range_stop = len(entity_keys)
-        relations = []
-        for start in range(0, range_stop, entity_query_cap):
-            stop = start + entity_query_cap
-            entity_key_slice = entity_keys[start:stop]
-            found = SqliteRelation.search_multi(
-                entity_key_slice,
-                roles=roles,
-                verbose=verbose,
-                year=year,
-                )
-            relations.extend(found)
-        return relations
-
     def query_relations_new(
         self,
         entity_keys,
         distance=None,
         nodes=None,
+        links=None,
         roles=None,
         year=None,
         verbose=True,
         ):
         # TODO: Cache each entity's local neighborhood, BUT
-        #       Only cache it for Alias, Member Of, Released On and Sublabel Of.
-        #       Then, you can pull that collection out of the cache,
-        #       And add in the remaining (generally sparser) exotic roles on top.
-        #       That will likely balance speed and storage space.
-        print('        Roles:', roles)
+        #       only cache it for Alias, Member Of, Released On and Sublabel Of.
+        #       then, you can pull that collection out of the cache,
+        #       and add in the remaining (generally sparser) exotic roles on top.
+        #       that will likely balance speed and storage space.
+        # TODO: Group links by key and check for existence in link mapping,
+        #       in order to provide a truly accurate accounting of how many
+        #       links are actually being introduced by a search.
+        noncore_roles = list(set(roles) - set(self.core_roles))
+        print('        All Roles:', roles)
+        print('        Noncore Roles:', noncore_roles)
         max_links = (self.max_nodes or 100) * self.link_ratio
         relations = []
         for entity_key in entity_keys:
@@ -733,25 +736,45 @@ class RelationGrapher(object):
                 )
             if not entity_query.count():
                 continue
-            entity = list(entity_query)[0]
+            entity = entity_query.get()
             if 'Not On Label' in entity.name:
                 print('             Skipping: "Not On Label"')
                 continue
-            query = SqliteRelation.search(
-                entity_id=entity_id,
-                entity_type=entity_type,
-                roles=roles,
-                year=year,
-                query_only=True,
+            data = []
+            core_cache_key = self.make_cache_key(
+                'discograph:/api/{entity_type}/neighborhood/{entity_id}',
+                entity_type,
+                entity_id,
+                roles=self.core_roles,
                 )
-            count = query.count()
-            if 0 < distance and max_links < count:
-                nodes[entity_key]['missing'] += count
+            core_data = self.cache_get(core_cache_key)
+            if core_data is None:
+                core_query = SqliteRelation.search(
+                    entity_id=entity_id,
+                    entity_type=entity_type,
+                    roles=self.core_roles,
+                    query_only=True,
+                    )
+                core_data = list(core_query)
+                self.cache_set(core_cache_key, core_data)
+            data.extend(_ for _ in core_data if _.role in roles)
+            if noncore_roles:
+                noncore_query = SqliteRelation.search(
+                    entity_id=entity_id,
+                    entity_type=entity_type,
+                    roles=noncore_roles,
+                    query_only=True,
+                    )
+                data.extend(noncore_query)
+            grouped_data = self.group_relations_for_collection(data)
+            if 0 < distance and max_links < len(grouped_data):
+                nodes[entity_key]['missing'] += len(grouped_data)
                 message = '            Skipping: "{}" w/ {} links'
-                message = message.format(entity.name, count)
+                message = message.format(entity.name, len(grouped_data))
                 print(message)
                 continue
-            relations.extend(list(query))
+            relations.extend(grouped_data)
+        #pprint.pprint(relations)
         return relations
 
     def cross_reference(self, nodes, roles, verbose=True):
@@ -785,7 +808,7 @@ class RelationGrapher(object):
         iterator = itertools.product(grouped_artists, grouped_labels)
         relations = []
         for artists, labels in iterator:
-            print(len(artists), len(labels))
+            #print(len(artists), len(labels))
             found = SqliteRelation.search_bimulti(
                 artists,
                 labels,
@@ -866,7 +889,9 @@ class RelationGrapher(object):
             cache = app.rcache
         else:
             cache = app.fcache
-        return cache.get(key)
+        data = cache.get(key)
+        #print('CACHE GET: {} [{}]'.format(data is not None, key))
+        return data
 
     @classmethod
     def cache_set(cls, key, value, timeout=None, use_redis=False):
