@@ -767,7 +767,7 @@ class RelationGrapher(object):
         max_links = (self.max_nodes or 100) * self.link_ratio
         relations = []
         with systemtools.ProgressIndicator(
-            message='             Searching:',
+            message='            Searching',
             total=len(entity_keys),
             ) as progress_indicator:
             for entity_key in entity_keys:
@@ -824,9 +824,8 @@ class RelationGrapher(object):
                     message = message.format(neighborhood_data['name'], len(grouped_data))
                     print(message)
                     continue
-                #print(neighborhood_data['name'], len(grouped_data))
                 relations.extend(grouped_data)
-                #progress_indicator.advance()
+                progress_indicator.advance()
         return relations
 
     def cross_reference(self, nodes, roles, verbose=True):
