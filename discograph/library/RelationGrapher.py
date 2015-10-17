@@ -160,7 +160,7 @@ class RelationGrapher(object):
             if break_on_next_loop:
                 if verbose: print('        Exiting search loop.')
                 break
-            if 0 < distance:
+            if 0 < distance and max_nodes / 4 < len(nodes):
                 for role in self.roles_to_prune:
                     if role in provisional_roles:
                         provisional_roles.remove(role)
