@@ -116,6 +116,48 @@ class PostgresEntity(PostgresModel):
             print(message)
 
     @classmethod
+    def bootstrap_pass_three(cls):
+        cls.bootstrap_pass_three_inner(1)
+        cls.bootstrap_pass_three_inner(2)
+
+    @classmethod
+    def bootstrap_pass_three_inner(cls, entity_type):
+        import discograph
+        id_query = cls.select(peewee.fn.Max(cls.entity_id))
+        id_query = id_query.where(cls.entity_type == entity_type)
+        max_id = id_query.scalar()
+        for i in range(1, max_id + 1):
+            query = cls.select().where(cls.entity_id == i, cls.entity_type == entity_type)
+            if not query.count():
+                continue
+            document = query.get()
+            entity_id = document.entity_id
+            where_clause = (
+                (discograph.PostgresRelation.entity_one_id == entity_id) &
+                (discograph.PostgresRelation.entity_one_type == entity_type)
+                )
+            where_clause |= (
+                (discograph.PostgresRelation.entity_two_id == entity_id) &
+                (discograph.PostgresRelation.entity_two_type == entity_type)
+                )
+            query = discograph.PostgresRelation.select().where(where_clause)
+            relation_counts = {}
+            for relation in query:
+                if relation.role not in relation_counts:
+                    relation_counts[relation.role] = set
+                key = (
+                    relation.entity_one_type,
+                    relation.entity_one_id,
+                    relation.entity_two_type,
+                    relation.entity_two_id,
+                    )
+                relation_counts[relation.role].add(key)
+            for role, keys in relation_counts.items():
+                relation_counts[role] = len(keys)
+            document.relation_counts = relation_counts
+            document.save()
+
+    @classmethod
     def element_to_names(cls, names):
         result = {}
         if names is None or not len(names):
