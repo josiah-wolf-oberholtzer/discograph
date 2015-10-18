@@ -4,6 +4,7 @@ import itertools
 import math
 import re
 import redis
+import pprint
 import six
 from abjad.tools import systemtools
 from discograph.library.TrellisNode import TrellisNode
@@ -260,6 +261,7 @@ class RelationGrapher(object):
         self.prune_nameless(nodes, links, verbose=verbose)
         self.prune_not_on_label(nodes, links, verbose=verbose)
         self.prune_unvisited(entity_keys_to_visit, nodes, links, verbose=verbose)
+        self.prune_unlinked(nodes, links, verbose=verbose)
         trellis = self.build_trellis(nodes, links, verbose=verbose)
         pages = self.partition_trellis(trellis, nodes, links)
         self.page_entities(nodes, links, pages, trellis)
@@ -709,6 +711,21 @@ class RelationGrapher(object):
                 self.prune_link(link, nodes, links)
         if verbose:
             message = '    Pruned unpaged: {} / {}'
+            message = message.format(len(nodes), len(links))
+            print(message)
+
+    def prune_unlinked(self, nodes, links, verbose=True):
+        root_key = (
+            self.center_entity.entity_type,
+            self.center_entity.entity_id,
+            )
+        for key, node in tuple(nodes.items()):
+            if key == root_key:
+                continue
+            if not node.get('links'):
+                self.prune_node(node, nodes, links, update_missing_count=False)
+        if verbose:
+            message = '    Pruning unlinked: {} / {}'
             message = message.format(len(nodes), len(links))
             print(message)
 
