@@ -154,6 +154,10 @@ class PostgresModel(gfk.Model):
         return cls.select().where(cls.random > n).order_by(cls.random).get()
 
     @classmethod
+    def preprocess_data(cls, data):
+        return data
+
+    @classmethod
     def tags_to_fields(cls, element, ignore_none=None, mapping=None):
         data = {}
         mapping = mapping or cls._tags_to_fields_mapping
@@ -166,4 +170,5 @@ class PostgresModel(gfk.Model):
             if ignore_none and value is None:
                 continue
             data[field_name] = value
+        data = cls.preprocess_data(data, element)
         return data

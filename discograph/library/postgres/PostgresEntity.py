@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import peewee
 from playhouse import postgres_ext
+from discograph.library.Bootstrapper import Bootstrapper
 from discograph.library.postgres.PostgresModel import PostgresModel
 
 
@@ -11,9 +12,10 @@ class PostgresEntity(PostgresModel):
     entity_id = peewee.IntegerField()
     entity_type = peewee.IntegerField()
     name = peewee.TextField(index=True)
-    relation_counts = postgres_ext.BinaryJSONField()
-    metadata = postgres_ext.BinaryJSONField()
-    entities = postgres_ext.BinaryJSONField()
+    relation_counts = postgres_ext.BinaryJSONField(null=True)
+    metadata = postgres_ext.BinaryJSONField(null=True)
+    entities = postgres_ext.BinaryJSONField(null=True)
+    search_content = postgres_ext.TSVectorField()
 
     ### PEEWEE META ###
 
@@ -28,32 +30,151 @@ class PostgresEntity(PostgresModel):
         cls.drop_table(True)
         cls.create_table()
         cls.bootstrap_pass_one()
+        cls.bootstrap_pass_two()
 
     @classmethod
     def bootstrap_pass_one(cls):
-        import discograph
-        for relation in discograph.PostgresRelation.select():
-            cls.upsert_from_relation(relation, lh=True)
-            cls.upsert_from_relation(relation, lh=False)
+        PostgresModel.bootstrap_pass_one(
+            cls,
+            'artist',
+            name_attr='name',
+            skip_without=['name'],
+            )
+        PostgresModel.bootstrap_pass_one(
+            cls,
+            'label',
+            name_attr='name',
+            skip_without=['name'],
+            )
 
     @classmethod
-    def upsert_from_relation(cls, relation, lh=True):
-        import discograph
-        if lh:
-            relation_entity = relation.entity_one
-        else:
-            relation_entity = relation.entity_two
-        clause = cls.entity == relation_entity
-        query = discograph.PostgresEntity.select().where(clause)
-        found = list(query)
-        if found:
-            found = found[0]
-        else:
-            found = cls(
-                entity=relation_entity,
-                name=relation_entity.name,
-                )
-        if relation.role not in found.relation_counts:
-            found.relation_counts[relation.role] = 0
-        found.relation_counts[relation.role] += 1
-        found.save()
+    def element_to_names(cls, names):
+        result = {}
+        if names is None or not len(names):
+            return result
+        for name in names:
+            name = name.text
+            if not name:
+                continue
+            result[name] = None
+        return result
+
+    @classmethod
+    def element_to_names_and_ids(cls, names_and_ids):
+        result = {}
+        if names_and_ids is None or not len(names_and_ids):
+            return result
+        for i in range(0, len(names_and_ids), 2):
+            discogs_id = int(names_and_ids[i].text)
+            name = names_and_ids[i + 1].text
+            result[name] = discogs_id
+        return result
+
+    @classmethod
+    def element_to_parent_label(cls, parent_label):
+        result = {}
+        if parent_label is None or parent_label.text is None:
+            return result
+        name = parent_label.text.strip()
+        if not name:
+            return result
+        result[name] = None
+        return result
+
+    @classmethod
+    def element_to_sublabels(cls, sublabels):
+        result = {}
+        if sublabels is None or not len(sublabels):
+            return result
+        for sublabel in sublabels:
+            name = sublabel.text
+            if name is None:
+                continue
+            name = name.strip()
+            if not name:
+                continue
+            result[name] = None
+        return result
+
+    @classmethod
+    def preprocess_data(cls, data, element):
+        data['metadata'] = {}
+        data['entities'] = {}
+        for key in (
+            'aliases',
+            'groups',
+            'members',
+            'parent_label',
+            'sublabels',
+            ):
+            if key in data:
+                data['entities'][key] = data.pop(key)
+        for key in (
+            'contact_info',
+            'name_variations',
+            'profile',
+            'real_name',
+            'urls',
+            ):
+            if key in data:
+                data['metadata'][key] = data.pop(key)
+        if 'name' in data and data.get('name'):
+            data['search_content'] = peewee.fn.to_tsvector(data['name'])
+        if element.tag == 'artist':
+            data['entity_type'] = 1
+        elif element.tag == 'label':
+            data['entity_type'] = 2
+        return data
+
+    def resolve_references(self, corpus):
+        if self.entity_type == 1:
+            entity_type = 1
+            for section in ('aliases', 'groups', 'members'):
+                if section not in self.entities:
+                    continue
+                for entity_name in self.entities[section].keys():
+                    key = (entity_type, entity_name)
+                    self.update_corpus(corpus, key)
+                    if key in corpus:
+                        self.entities[section][entity_name] = corpus[key]
+                        changed = True
+        elif self.entity_type == 2:
+            entity_type = 2
+            for section in ('parent_label', 'sublabels'):
+                if section not in self.entities:
+                    continue
+                for entity_name in self.entities[section].keys():
+                    key = (entity_type, entity_name)
+                    self.update_corpus(corpus, key)
+                    if key in corpus:
+                        self.entities[section][entity_name] = corpus[key]
+                        changed = True
+        return changed
+
+    @classmethod
+    def update_corpus(cls, corpus, key):
+        if key in corpus:
+            return
+        entity_type, entity_name = key
+        query = cls.select().where(
+            cls.entity_type == entity_type,
+            cls.name == entity_name,
+            )
+        if query.count():
+            corpus[key] = query.get().entity_id
+
+
+PostgresEntity._tags_to_fields_mapping = {
+    'aliases': ('aliases', PostgresEntity.element_to_names),
+    'contact_info': ('contact_info', Bootstrapper.element_to_string),
+    'groups': ('groups', PostgresEntity.element_to_names),
+    'id': ('entity_id', Bootstrapper.element_to_integer),
+    'members': ('members', PostgresEntity.element_to_names_and_ids),
+    'name': ('name', Bootstrapper.element_to_string),
+    'namevariations': ('name_variations', Bootstrapper.element_to_strings),
+    'parentLabel': ('parent_label', PostgresEntity.element_to_parent_label),
+    'profile': ('profile', Bootstrapper.element_to_string),
+    'realname': ('real_name', Bootstrapper.element_to_string),
+    'sublabels': ('sublabels', PostgresEntity.element_to_sublabels),
+    'urls': ('urls', Bootstrapper.element_to_strings),
+    }
