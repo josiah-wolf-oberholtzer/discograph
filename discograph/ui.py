@@ -13,6 +13,14 @@ from discograph import helpers
 blueprint = Blueprint('ui', __name__, template_folder='templates')
 
 
+default_roles = (
+    'Alias',
+    'Member Of',
+    'Sublabel Of',
+    'Released On',
+    )
+
+
 @blueprint.route('/')
 def route__index():
     import discograph
@@ -22,6 +30,8 @@ def route__index():
     on_mobile = request.MOBILE
     parsed_args = helpers.parse_request_args(request.args)
     original_roles, original_year = parsed_args
+    if not original_roles:
+        original_roles = default_roles
     multiselect_mapping = discograph.CreditRole.get_multiselect_mapping()
     rendered_template = render_template(
         'index.html',
@@ -47,6 +57,8 @@ def route__entity_type__entity_id(entity_type, entity_id):
     app = current_app._get_current_object()
     parsed_args = helpers.parse_request_args(request.args)
     original_roles, original_year = parsed_args
+    if not original_roles:
+        original_roles = default_roles
     if entity_type not in ('artist', 'label'):
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     on_mobile = request.MOBILE
@@ -55,6 +67,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
         entity_type,
         on_mobile=on_mobile,
         cache=True,
+        roles=original_roles,
         )
     if data is None:
         raise exceptions.APIError(message='No Data', status_code=500)

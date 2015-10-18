@@ -793,14 +793,16 @@ class CreditRole(abctools.AbjadValueObject):
 
     @classmethod
     def get_multiselect_mapping(cls):
-        excluded_roles = [
-            'Alias',
-            'Member Of',
-            ]
+        #excluded_roles = [
+        #    'Alias',
+        #    'Member Of',
+        #    ]
         mapping = collections.OrderedDict()
         for role, categories in cls.all_credit_roles.items():
-            if categories is None or role in excluded_roles:
+            if categories is None:
                 continue
+            #if categories is None or role in excluded_roles:
+            #    continue
             if len(categories) == 1:
                 category_name = cls.category_names[categories[0]]
             else:

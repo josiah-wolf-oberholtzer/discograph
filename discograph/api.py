@@ -16,12 +16,15 @@ blueprint = Blueprint('api', __name__, template_folder='templates')
 def route__api__entity_type__network__entity_id(entity_type, entity_id):
     if entity_type not in ('artist', 'label'):
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
+    parsed_args = helpers.parse_request_args(request.args)
+    original_roles, original_year = parsed_args
     on_mobile = request.MOBILE
     data = helpers.get_network(
         entity_id,
         entity_type,
         on_mobile=on_mobile,
         cache=True,
+        roles=original_roles,
         )
     if data is None:
         raise exceptions.APIError(message='No Data', status_code=400)

@@ -30,15 +30,21 @@ def get_entity(entity_type, entity_id):
     return found[0]
 
 
-def get_network(entity_id, entity_type, on_mobile=False, cache=True):
+def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None):
     import discograph
     #cache = False
     assert entity_type in ('artist', 'label')
     if cache:
-        cache_key = 'discograph:/api/{}/network/{}'
-        cache_key = cache_key.format(entity_type, entity_id)
+        template = 'discograph:/api/{entity_type}/network/{entity_id}'
         if on_mobile:
-            cache_key = '{}/mobile'.format(cache_key)
+            template = '{}/mobile'.format(template)
+        cache_key = discograph.RelationGrapher.make_cache_key(
+            template,
+            entity_type,
+            entity_id,
+            roles=roles,
+            )
+        cache_key = cache_key.format(entity_type, entity_id)
         data = discograph.RelationGrapher.cache_get(cache_key)
         if data is not None:
             return data
@@ -46,12 +52,6 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True):
     entity = get_entity(entity_type, entity_id)
     if entity is None:
         return None
-    roles = [
-        'Alias',
-        'Member Of',
-        'Released On',
-        'Sublabel Of',
-        ]
     if not on_mobile:
         max_nodes = 75
         degree = 12

@@ -809,14 +809,14 @@ class RelationGrapher(object):
                 if entity_key in nodes:
                     nodes[entity_key]['name'] = neighborhood_data['name']
                 data.extend(_ for _ in neighborhood_data['relations'] if _.role in roles)
-                #if exotic_roles:
-                #    exotic_query = SqliteRelation.search(
-                #        entity_id=entity_id,
-                #        entity_type=entity_type,
-                #        roles=exotic_roles,
-                #        query_only=True,
-                #        )
-                #    data.extend(exotic_query)
+                if exotic_roles:
+                    exotic_query = SqliteRelation.search(
+                        entity_id=entity_id,
+                        entity_type=entity_type,
+                        roles=exotic_roles,
+                        query_only=True,
+                        )
+                    data.extend(exotic_query)
                 grouped_data = self.group_relations_for_collection(data)
                 if 0 < distance and max_links < len(grouped_data):
                     nodes[entity_key]['missing'] += len(grouped_data)

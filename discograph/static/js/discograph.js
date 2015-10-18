@@ -176,7 +176,9 @@ function dg_history_pushState(entityKey, params) {
     var entityId = entityKey.split("-")[1];
     var title = document.title;
     var url = "/" + entityType + "/" + entityId;
-    if (params) { url += "?" + $.param(params); }
+    if (params) { 
+        url += "?" + decodeURIComponent($.param(params));
+    }
     var state = {key: entityKey, params: params};
     window.history.pushState(state, title, url);
     ga('send', 'pageview', url);
@@ -188,7 +190,9 @@ function dg_history_replaceState(entityKey, params) {
     var entityId = entityKey.split("-")[1];
     var title = document.title;
     var url = "/" + entityType + "/" + entityId;
-    if (params) { url += "?" + $.param(params); }
+    if (params) {
+        url += "?" + decodeURIComponent($.param(params));
+    }
     var state = {key: entityKey, params: params};
     window.history.replaceState(state, title, url);
     ga('send', 'pageview', url);
@@ -351,12 +355,16 @@ function dg_network_navigate(key, pushHistory) {
     }
     dg_style_loading(true);
     var url = "/api/" + entityType + "/network/" + entityId;
+    var params = {'roles': $('#filter select').val()};
+    if (params.roles) { 
+        url += '?' + decodeURIComponent($.param(params));
+    }
     $.ajax({
         cache: true,
         dataType: 'json',
         error: dg_network_handleAsyncError,
         success: function(data) {
-            dg_network_handleAsyncData(data, pushHistory);
+            dg_network_handleAsyncData(data, pushHistory, params);
             },
         url: url,
     });
@@ -1047,7 +1055,8 @@ $(document).ready(function() {
     dg_network_init();
     dg_typeahead_init();
     if (dgData) {
-        dg_history_replaceState(dgData.center.key);
+        var params = {'roles': $('#filter select').val()};
+        dg_history_replaceState(dgData.center.key, params);
         dg_network_handleAsyncData(dgData, false);
     }
     $('[data-toggle="tooltip"]').tooltip();
@@ -1084,7 +1093,6 @@ $(document).ready(function() {
         $(this).tooltip('hide');
         event.preventDefault();
     });
-    /*
     $('#filter-roles').multiselect({
         buttonWidth: "160px",
         enableFiltering: true,
@@ -1102,8 +1110,11 @@ $(document).ready(function() {
         $('#filter-roles').multiselect('refresh');
         event.preventDefault();
     });
+    $('#filter').submit(function(event) {
+        dg_network_navigate(dg.network.data.json.center.key, true);
+        event.preventDefault();
+    });
     $('#filter').fadeIn(3000);
-    */
     window.addEventListener("popstate", dg_history_onPopState);
     console.log('discograph initialized.');
 });
