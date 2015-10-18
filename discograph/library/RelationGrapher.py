@@ -263,6 +263,7 @@ class RelationGrapher(object):
         self.prune_unvisited(entity_keys_to_visit, nodes, links, verbose=verbose)
         self.prune_unlinked(nodes, links, verbose=verbose)
         trellis = self.build_trellis(nodes, links, verbose=verbose)
+        trellis = self.prune_trellis(trellis, nodes, links)
         pages = self.partition_trellis(trellis, nodes, links)
         self.page_entities(nodes, links, pages, trellis)
         self.prune_unpaged_links(nodes, links, verbose=verbose)
@@ -702,6 +703,15 @@ class RelationGrapher(object):
             link = links.get(link_key)
             self.prune_link(link, nodes, links,
                 update_missing_count=update_missing_count)
+
+    def prune_trellis(self, trellis, nodes, links, verbose=True):
+        purged_trellis = type(trellis)()
+        for entity_key, trellis_node in trellis.items():
+            if trellis_node.subgraph_size is None:
+                self.prune_node(trellis_node.node, nodes, links)
+            else:
+                purged_trellis[entity_key] = trellis_node
+        return purged_trellis
 
     def prune_unpaged_links(self, nodes, links, verbose=True):
         print('    Pruning unpaged links...')
