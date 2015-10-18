@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import peewee
+from abjad.tools import systemtools
 from playhouse import postgres_ext
 from discograph.library.Bootstrapper import Bootstrapper
 from discograph.library.postgres.PostgresModel import PostgresModel
@@ -46,6 +47,73 @@ class PostgresEntity(PostgresModel):
             name_attr='name',
             skip_without=['name'],
             )
+
+    @classmethod
+    def bootstrap_pass_two(cls):
+        skipped_template = u'{} [SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
+        changed_template = u'{}           (Pass 2) (id:{}) [{:.8f}]: {}'
+
+        corpus = {}
+        entity_type = 1
+        id_query = cls.select(peewee.fn.Max(cls.entity_id))
+        id_query = id_query.where(cls.entity_type == entity_type)
+        max_id = id_query.scalar()
+
+        for i in range(1, max_id + 1):
+            query = cls.select().where(cls.entity_id == i, cls.entity_type == entity_type)
+            if not query.count():
+                continue
+            document = query.get()
+            with systemtools.Timer(verbose=False) as timer:
+                changed = document.resolve_references(corpus)
+            if not changed:
+                message = skipped_template.format(
+                    cls.__name__.upper(),
+                    (document.entity_type, document.entity_id),
+                    timer.elapsed_time,
+                    document.name,
+                    )
+                print(message)
+                continue
+            document.save()
+            message = changed_template.format(
+                cls.__name__.upper(),
+                (document.entity_type, document.entity_id),
+                timer.elapsed_time,
+                document.name,
+                )
+            print(message)
+
+        corpus = {}
+        entity_type = 2
+        id_query = cls.select(peewee.fn.Max(cls.entity_id))
+        id_query = id_query.where(cls.entity_type == entity_type)
+        max_id = id_query.scalar()
+
+        for i in range(1, max_id + 1):
+            query = cls.select().where(cls.entity_id == i, cls.entity_type == entity_type)
+            if not query.count():
+                continue
+            document = query.get()
+            with systemtools.Timer(verbose=False) as timer:
+                changed = document.resolve_references(corpus)
+            if not changed:
+                message = skipped_template.format(
+                    cls.__name__.upper(),
+                    (document.entity_type, document.entity_id),
+                    timer.elapsed_time,
+                    document.name,
+                    )
+                print(message)
+                continue
+            document.save()
+            message = changed_template.format(
+                cls.__name__.upper(),
+                (document.entity_type, document.entity_id),
+                timer.elapsed_time,
+                document.name,
+                )
+            print(message)
 
     @classmethod
     def element_to_names(cls, names):
@@ -127,6 +195,7 @@ class PostgresEntity(PostgresModel):
         return data
 
     def resolve_references(self, corpus):
+        changed = False
         if self.entity_type == 1:
             entity_type = 1
             for section in ('aliases', 'groups', 'members'):
