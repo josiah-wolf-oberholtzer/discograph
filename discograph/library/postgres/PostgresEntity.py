@@ -217,6 +217,11 @@ class PostgresEntity(PostgresModel):
         return result
 
     @classmethod
+    def from_element(cls, element):
+        data = cls.tags_to_fields(element)
+        return cls(**data)
+
+    @classmethod
     def preprocess_data(cls, data, element):
         data['metadata'] = {}
         data['entities'] = {}
