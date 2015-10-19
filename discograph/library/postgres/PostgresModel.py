@@ -154,7 +154,7 @@ class PostgresModel(gfk.Model):
         return cls.select().where(cls.random > n).order_by(cls.random).get()
 
     @classmethod
-    def preprocess_data(cls, data):
+    def preprocess_data(cls, data, element):
         return data
 
     @classmethod
