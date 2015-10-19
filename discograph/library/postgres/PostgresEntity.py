@@ -123,6 +123,7 @@ class PostgresEntity(PostgresModel):
     @classmethod
     def bootstrap_pass_three_inner(cls, entity_type):
         import discograph
+        template = u'{} (Pass 3) (id:{}) {}: {}'
         id_query = cls.select(peewee.fn.Max(cls.entity_id))
         id_query = id_query.where(cls.entity_type == entity_type)
         max_id = id_query.scalar()
@@ -144,7 +145,7 @@ class PostgresEntity(PostgresModel):
             relation_counts = {}
             for relation in query:
                 if relation.role not in relation_counts:
-                    relation_counts[relation.role] = set
+                    relation_counts[relation.role] = set()
                 key = (
                     relation.entity_one_type,
                     relation.entity_one_id,
@@ -154,8 +155,17 @@ class PostgresEntity(PostgresModel):
                 relation_counts[relation.role].add(key)
             for role, keys in relation_counts.items():
                 relation_counts[role] = len(keys)
+            if not relation_counts:
+                continue
             document.relation_counts = relation_counts
             document.save()
+            message = template.format(
+                cls.__name__.upper(),
+                (document.entity_type, document.entity_id),
+                document.name,
+                len(relation_counts),
+                )
+            print(message)
 
     @classmethod
     def element_to_names(cls, names):
