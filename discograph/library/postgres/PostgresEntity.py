@@ -284,6 +284,15 @@ class PostgresEntity(PostgresModel):
         if query.count():
             corpus[key] = query.get().entity_id
 
+    ### PUBLIC PROPERTIES ###
+
+    @property
+    def size(self):
+        if self.entity_type == 1:
+            members = self.entities.get('members', ())
+        elif self.entity_type == 2:
+            members = self.entities.get('sublabels', ())
+        return len(members)
 
 PostgresEntity._tags_to_fields_mapping = {
     'aliases': ('aliases', PostgresEntity.element_to_names),
