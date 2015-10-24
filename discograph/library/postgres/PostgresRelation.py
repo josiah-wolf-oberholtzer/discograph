@@ -326,6 +326,21 @@ class PostgresRelation(PostgresModel):
         return triples
 
     @classmethod
+    def get_random(cls, roles=None):
+        n = random.random()
+        where_clause = (cls.random > n)
+        if roles:
+            where_clause &= (cls.role.in_(roles))
+        query = cls.select().where(where_clause).order_by(cls.random).limit(1)
+        while not query.count():
+            n = random.random()
+            where_clause = (cls.random > n)
+            if roles:
+                where_clause &= (cls.role.in_(roles))
+            query = cls.select().where(where_clause).order_by(cls.random).limit(1)
+        return query.get()
+
+    @classmethod
     def get_release_setup(cls, release):
         is_compilation = False
         artists = set(
