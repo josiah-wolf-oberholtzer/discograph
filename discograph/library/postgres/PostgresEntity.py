@@ -278,6 +278,36 @@ class PostgresEntity(PostgresModel):
         return changed
 
     @classmethod
+    def search_multi(cls, entity_keys):
+        artist_ids, label_ids = [], []
+        for entity_type, entity_id in entity_keys:
+            if entity_type == 1:
+                artist_ids.append(entity_id)
+            elif entity_type == 2:
+                label_ids.append(entity_id)
+        if artist_ids and label_ids:
+            where_clause = (
+                (
+                    (cls.entity_type == 1) &
+                    (cls.entity_id.in_(artist_ids))
+                    ) | (
+                    (cls.entity_type == 2) &
+                    (cls.entity_id.in_(label_ids))
+                    )
+                )
+        elif artist_ids:
+            where_clause = (
+                (cls.entity_type == 1) &
+                (cls.entity_id.in_(artist_ids))
+                )
+        else:
+            where_clause = (
+                (cls.entity_type == 2) &
+                (cls.entity_id.in_(label_ids))
+                )
+        return cls.select().where(where_clause)
+
+    @classmethod
     def update_corpus(cls, corpus, key):
         if key in corpus:
             return
