@@ -343,6 +343,7 @@ class PostgresEntity(PostgresModel):
             if role in roles:
                 if 'groups' in self.entities:
                     for entity_id in self.entities['groups'].values():
+                        print(entity_id)
                         relation = PostgresRelation(
                             entity_one_type=entity_type,
                             entity_one_id=self.entity_id,

@@ -491,7 +491,7 @@ class PostgresRelation(PostgresModel):
             target_type = 'artist'
         else:
             target_type = 'label'
-        role = self.word_pattern.sub('-', self.role).lower(),
+        role = self.word_pattern.sub('-', self.role).lower()
         pieces = [
             source_type,
             source_id,
