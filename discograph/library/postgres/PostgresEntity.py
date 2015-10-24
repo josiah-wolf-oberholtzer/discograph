@@ -319,6 +319,39 @@ class PostgresEntity(PostgresModel):
         if query.count():
             corpus[key] = query.get().entity_id
 
+    def structural_roles_to_entity_keys(self, roles):
+        entity_keys = set()
+        if self.entity_type == 1:
+            entity_type = 1
+            if 'Alias' in roles:
+                for section in ('aliases',):
+                    if section not in self.entities:
+                        continue
+                    for entity_id in self.entities[section].values():
+                        if not entity_id:
+                            continue
+                        entity_keys.add((entity_type, entity_id))
+            if 'Member Of' in roles:
+                for section in ('groups', 'members'):
+                    if section not in self.entities:
+                        continue
+                    for entity_id in self.entities[section].values():
+                        if not entity_id:
+                            continue
+                        entity_keys.add((entity_type, entity_id))
+        elif self.entity_type == 2:
+            entity_type = 2
+            if 'Sublabel Of' in roles:
+                for section in ('parent_label', 'sublabels'):
+                    if section not in self.entities:
+                        continue
+                    for entity_id in self.entities[section].values():
+                        if not entity_id:
+                            continue
+                        entity_keys.add((entity_type, entity_id))
+        entity_keys = sorted(entity_keys)
+        return entity_keys
+
     ### PUBLIC PROPERTIES ###
 
     @property
