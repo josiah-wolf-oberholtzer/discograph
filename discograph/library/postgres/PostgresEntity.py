@@ -322,6 +322,10 @@ class PostgresEntity(PostgresModel):
     ### PUBLIC PROPERTIES ###
 
     @property
+    def entity_key(self):
+        return (self.entity_type, self.entity_id)
+
+    @property
     def size(self):
         if self.entity_type == 1:
             members = self.entities.get('members', ())

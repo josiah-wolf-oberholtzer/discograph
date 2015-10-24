@@ -3,6 +3,7 @@ import itertools
 import peewee
 import random
 import multiprocessing
+import re
 import time
 from abjad.tools import datastructuretools
 from discograph.library.postgres.PostgresModel import PostgresModel
@@ -45,6 +46,8 @@ class PostgresRelation(PostgresModel):
         'Hosted By',
         'Presenter',
         )
+
+    word_pattern = re.compile('\s+')
 
     ### PEEWEE FIELDS ###
 
@@ -465,3 +468,35 @@ class PostgresRelation(PostgresModel):
                 query = build_query(lh_type, lh_ids, rh_type, rh_ids)
                 relations.extend(list(query))
         return relations
+
+    ### PUBLIC PROPERTIES ###
+
+    @property
+    def entity_one_key(self):
+        return (self.entity_one_type, self.entity_one_id)
+
+    @property
+    def entity_two_key(self):
+        return (self.entity_two_type, self.entity_two_id)
+
+    @property
+    def link_key(self):
+        source_type, source_id = self.entity_one_key
+        target_type, target_id = self.entity_two_key
+        if source_type == 1:
+            source_type = 'artist'
+        else:
+            source_type = 'label'
+        if target_type == 1:
+            target_type = 'artist'
+        else:
+            target_type = 'label'
+        role = self.word_pattern.sub('-', self.role).lower(),
+        pieces = [
+            source_type,
+            source_id,
+            role,
+            target_type,
+            target_id,
+            ]
+        return '-'.join(str(_) for _ in pieces)
