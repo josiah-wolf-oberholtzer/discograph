@@ -319,6 +319,73 @@ class PostgresEntity(PostgresModel):
         if query.count():
             corpus[key] = query.get().entity_id
 
+    def roles_to_relation_count(self, roles):
+        pass
+
+    def structural_roles_to_relations(self, roles):
+        from discograph import PostgresRelation
+        relations = {}
+        if self.entity_type == 1:
+            entity_type = 1
+            role = 'Alias'
+            if role in roles and 'aliases' in self.entities:
+                for entity_id in self.entities['aliases'].values():
+                    ids = sorted((entity_id, self.entity_id))
+                    relation = PostgresRelation(
+                        entity_one_type=entity_type,
+                        entity_one_id=ids[0],
+                        entity_two_type=entity_type,
+                        entity_two_id=ids[1],
+                        role=role,
+                        )
+                    relations[relation.link_key] = relation
+            role = 'Member Of'
+            if role in roles:
+                if 'groups' in self.entities:
+                    for entity_id in self.entities['groups'].values():
+                        relation = PostgresRelation(
+                            entity_one_type=entity_type,
+                            entity_one_id=self.entity_id,
+                            entity_two_type=entity_type,
+                            entity_two_id=entity_id,
+                            role=role,
+                            )
+                        relations[relation.link_key] = relation
+                if 'members' in self.entities:
+                    for entity_id in self.entities['members'].values():
+                        relation = PostgresRelation(
+                            entity_one_type=entity_type,
+                            entity_one_id=entity_id,
+                            entity_two_type=entity_type,
+                            entity_two_id=self.entity_id,
+                            role=role,
+                            )
+                        relations[relation.link_key] = relation
+        elif self.entity_type == 2 and 'Sublabel Of' in roles:
+            entity_type = 2
+            role = 'Sublabel Of'
+            if 'parent_label' in self.entities:
+                for entity_id in self.entities['parent_label'].values():
+                    relation = PostgresRelation(
+                        entity_one_type=entity_type,
+                        entity_one_id=self.entity_id,
+                        entity_two_type=entity_type,
+                        entity_two_id=entity_id,
+                        role=role,
+                        )
+                    relations[relation.link_key] = relation
+            if 'sublabels' in self.entities:
+                for entity_id in self.entities['sublabels'].values():
+                    relation = PostgresRelation(
+                        entity_one_type=entity_type,
+                        entity_one_id=entity_id,
+                        entity_two_type=entity_type,
+                        entity_two_id=self.entity_id,
+                        role=role,
+                        )
+                    relations[relation.link_key] = relation
+        return relations
+
     def structural_roles_to_entity_keys(self, roles):
         entity_keys = set()
         if self.entity_type == 1:
@@ -349,7 +416,6 @@ class PostgresEntity(PostgresModel):
                         if not entity_id:
                             continue
                         entity_keys.add((entity_type, entity_id))
-        entity_keys = sorted(entity_keys)
         return entity_keys
 
     ### PUBLIC PROPERTIES ###
