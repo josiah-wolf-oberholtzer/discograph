@@ -371,3 +371,11 @@ class PostgresRelation(PostgresModel):
                     relation['year'] = release.release_date.year
             relations.append(relation)
         return relations
+
+    @classmethod
+    def search(cls, entity_id, entity_type=1, roles=None, year=None, query_only=False):
+        pass
+
+    @classmethod
+    def search_bimulti(cls, lh_entities, rh_entities, roles=None, year=None, verbose=True):
+        pass

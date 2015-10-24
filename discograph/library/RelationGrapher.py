@@ -4,7 +4,6 @@ import itertools
 import math
 import re
 import redis
-import pprint
 import six
 from abjad.tools import systemtools
 from discograph.library.TrellisNode import TrellisNode

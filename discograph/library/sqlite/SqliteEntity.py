@@ -88,9 +88,3 @@ class SqliteEntity(SqliteModel):
         where_clause = cls.entity_id == id
         where_clause &= cls.entity_type == 2
         return cls.select().where(where_clause).get()
-
-    ### PUBLIC PROPERTIES ###
-
-    @property
-    def discogs_id(self):
-        return self.id
