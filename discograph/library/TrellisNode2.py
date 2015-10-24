@@ -9,7 +9,7 @@ class TrellisNode2(object):
         '_links',
         '_missing',
         '_missing_by_page',
-        '_node',
+        '_entity',
         '_pages',
         '_parents',
         '_parentage',
@@ -19,14 +19,14 @@ class TrellisNode2(object):
         '_links',
         )
 
-    def __init__(self, node, distance=0):
+    def __init__(self, entity, distance=0):
         self._children = set()
         self._cluster = 0
         self._distance = distance
         self._links = set()
         self._missing = 0
         self._missing_by_page = {}
-        self._node = node
+        self._entity = entity
         self._pages = set()
         self._parentage = None
         self._parents = set()
@@ -88,8 +88,12 @@ class TrellisNode2(object):
         return self._distance
 
     @property
+    def entity(self):
+        return self._entity
+
+    @property
     def entity_key(self):
-        return self._node.entity_key
+        return self._entity.entity_key
 
     @property
     def links(self):
@@ -108,10 +112,6 @@ class TrellisNode2(object):
         return self._missing_by_page
 
     @property
-    def node(self):
-        return self._node
-
-    @property
     def pages(self):
         return self._pages
 
@@ -122,6 +122,10 @@ class TrellisNode2(object):
     @property
     def siblings(self):
         return self._siblings
+
+    @property
+    def size(self):
+        return self._entity.size
 
     @property
     def subgraph_size(self):

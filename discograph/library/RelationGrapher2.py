@@ -77,8 +77,16 @@ class RelationGrapher2(object):
     ### SPECIAL METHODS ###
 
     def __call__(self):
-        self.nodes[self.center_entity.entity_key] = TrellisNode2(self.center_entity)
         self.entity_keys_to_visit.add(self.center_entity.entity_key)
+        for distance in range(self.degree + 1):
+            # entity_keys_to_visit = self.entity_keys_to_visit.copy()
+            # self.entity_keys_to_visit.clear()
+            # entities = PostgresEntity.search_multi()
+            # make a trellis node for each
+            # sort by relation counts
+            # search from smallest to largest
+            # skip large ones, but set their "missing" value
+            pass
 
     ### PUBLIC METHODS ###
 
