@@ -15,7 +15,7 @@ class Test(unittest.TestCase):
     """
 
     def test_collect_entities_01(self):
-        artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
+        artist = discograph.PostgresEntity.get(entity_type=1, name='Morris Day')
         roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -120,7 +120,7 @@ class Test(unittest.TestCase):
             }
 
     def test_collect_entities_02(self):
-        artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
+        artist = discograph.PostgresEntity.get(entity_type=1, name='Morris Day')
         roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -483,7 +483,7 @@ class Test(unittest.TestCase):
             }
 
     def test_collect_entities_03(self):
-        artist = discograph.SqliteEntity.get(entity_type=1, entity_id=910459)
+        artist = discograph.PostgresEntity.get(entity_type=1, entity_id=910459)
         roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -688,7 +688,7 @@ class Test(unittest.TestCase):
             }
 
     def test_collect_entities_04(self):
-        artist = discograph.SqliteEntity.get(entity_type=1, entity_id=882758)
+        artist = discograph.PostgresEntity.get(entity_type=1, entity_id=882758)
         roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -706,7 +706,7 @@ class Test(unittest.TestCase):
         assert pages == {1, 2}
 
     def test_get_network_01(self):
-        artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
+        artist = discograph.PostgresEntity.get(entity_type=1, name='Morris Day')
         roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -1055,7 +1055,7 @@ class Test(unittest.TestCase):
             }
 
     def test_get_network_02(self):
-        artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
+        artist = discograph.PostgresEntity.get(entity_type=1, name='Morris Day')
         roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,
@@ -1333,7 +1333,7 @@ class Test(unittest.TestCase):
             'pages': 1}
 
     def test_get_network_03(self):
-        artist = discograph.SqliteEntity.get(entity_type=1, name='Morris Day')
+        artist = discograph.PostgresEntity.get(entity_type=1, name='Morris Day')
         roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,

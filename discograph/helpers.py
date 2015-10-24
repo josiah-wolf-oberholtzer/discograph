@@ -21,9 +21,9 @@ entity_name_types = {
 
 def get_entity(entity_type, entity_id):
     import discograph
-    where_clause = discograph.SqliteEntity.entity_id == entity_id
-    where_clause &= discograph.SqliteEntity.entity_type == entity_type
-    query = discograph.SqliteEntity.select().where(where_clause)
+    where_clause = discograph.PostgresEntity.entity_id == entity_id
+    where_clause &= discograph.PostgresEntity.entity_type == entity_type
+    query = discograph.PostgresEntity.select().where(where_clause)
     found = list(query)
     if not found:
         return None
@@ -73,7 +73,7 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None)
 
 def get_random_entity(roles=None):
     import discograph
-    relation = discograph.SqliteRelation.get_random(roles=roles)
+    relation = discograph.PostgresRelation.get_random(roles=roles)
     entity_choice = random.randint(1, 2)
     if entity_choice == 1:
         entity_type = relation.entity_one_type

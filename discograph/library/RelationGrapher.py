@@ -8,8 +8,8 @@ import six
 from abjad.tools import systemtools
 from discograph.library.TrellisNode import TrellisNode
 from discograph.library.CreditRole import CreditRole
-from discograph.library.sqlite.SqliteEntity import SqliteEntity
-from discograph.library.sqlite.SqliteRelation import SqliteRelation
+from discograph.library.postgres.PostgresEntity import PostgresEntity
+from discograph.library.postgres.PostgresRelation import PostgresRelation
 
 
 class RelationGrapher(object):
@@ -57,7 +57,7 @@ class RelationGrapher(object):
         roles=None,
         year=None,
         ):
-        assert isinstance(center_entity, SqliteEntity)
+        assert isinstance(center_entity, PostgresEntity)
         self.center_entity = center_entity
         degree = int(degree)
         assert 0 < degree
@@ -764,15 +764,15 @@ class RelationGrapher(object):
         entities = []
         for i in range(0, len(artist_ids), entity_query_cap):
             artist_id_slice = artist_ids[i:i + entity_query_cap]
-            where_clause = SqliteEntity.entity_type == 1
-            where_clause &= SqliteEntity.entity_id.in_(artist_id_slice)
-            query = SqliteEntity.select().where(where_clause)
+            where_clause = PostgresEntity.entity_type == 1
+            where_clause &= PostgresEntity.entity_id.in_(artist_id_slice)
+            query = PostgresEntity.select().where(where_clause)
             entities.extend(query)
         for i in range(0, len(label_ids), entity_query_cap):
             label_id_slice = label_ids[i:i + entity_query_cap]
-            where_clause = SqliteEntity.entity_type == 2
-            where_clause &= SqliteEntity.entity_id.in_(label_id_slice)
-            query = SqliteEntity.select().where(where_clause)
+            where_clause = PostgresEntity.entity_type == 2
+            where_clause &= PostgresEntity.entity_id.in_(label_id_slice)
+            query = PostgresEntity.select().where(where_clause)
             entities.extend(query)
         for entity in entities:
             nodes[(entity.entity_type, entity.entity_id)]['name'] = entity.name
@@ -808,9 +808,9 @@ class RelationGrapher(object):
                 neighborhood_data = self.cache_get(neighborhood_cache_key)
                 if neighborhood_data is None:
                     neighborhood_data = {}
-                    entity_query = SqliteEntity.select().where(
-                        SqliteEntity.entity_id == entity_id,
-                        SqliteEntity.entity_type == entity_type,
+                    entity_query = PostgresEntity.select().where(
+                        PostgresEntity.entity_id == entity_id,
+                        PostgresEntity.entity_type == entity_type,
                         )
                     if not entity_query.count():
                         neighborhood_data = None
@@ -821,7 +821,7 @@ class RelationGrapher(object):
                         neighborhood_data['name'] = entity.name
                         neighborhood_data['relations'] = []
                     else:
-                        neighborhood_query = SqliteRelation.search(
+                        neighborhood_query = PostgresRelation.search(
                             entity_id=entity_id,
                             entity_type=entity_type,
                             roles=self.core_roles,
@@ -836,7 +836,7 @@ class RelationGrapher(object):
                     nodes[entity_key]['name'] = neighborhood_data['name']
                 data.extend(_ for _ in neighborhood_data['relations'] if _.role in roles)
                 if exotic_roles:
-                    exotic_query = SqliteRelation.search(
+                    exotic_query = PostgresRelation.search(
                         entity_id=entity_id,
                         entity_type=entity_type,
                         roles=exotic_roles,
@@ -887,7 +887,7 @@ class RelationGrapher(object):
             grouped_labels.append(labels[i:i + query_cap])
         iterator = itertools.product(grouped_artists, grouped_labels)
         for artists, labels in iterator:
-            found = SqliteRelation.search_bimulti(
+            found = PostgresRelation.search_bimulti(
                 artists,
                 labels,
                 roles=roles,
