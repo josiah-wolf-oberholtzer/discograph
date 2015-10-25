@@ -34,6 +34,7 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None)
     import discograph
     #cache = False
     assert entity_type in ('artist', 'label')
+    cache = False
     if cache:
         template = 'discograph:/api/{entity_type}/network/{entity_id}'
         if on_mobile:
@@ -58,14 +59,16 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None)
     else:
         max_nodes = 25
         degree = 6
-    relation_grapher = discograph.RelationGrapher(
+    #relation_grapher = discograph.RelationGrapher(
+    relation_grapher = discograph.RelationGrapher2(
         center_entity=entity,
         degree=degree,
         max_nodes=max_nodes,
         roles=roles,
         )
     with systemtools.Timer(exit_message='Network query time:'):
-        data = relation_grapher.get_network()
+        #data = relation_grapher.get_network()
+        data = relation_grapher()
     if cache:
         discograph.RelationGrapher.cache_set(cache_key, data)
     return data

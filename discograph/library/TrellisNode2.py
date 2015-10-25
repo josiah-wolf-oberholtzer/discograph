@@ -54,6 +54,7 @@ class TrellisNode2(object):
             'missing': self.missing,
             'name': self.entity.name,
             'pages': tuple(sorted(self.pages)),
+            'size': self.entity.size,
             'type': self.entity.json_entity_key.split('-')[0],
             }
         if self.cluster:

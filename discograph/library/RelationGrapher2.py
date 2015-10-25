@@ -96,13 +96,15 @@ class RelationGrapher2(object):
         for distance in range(self.degree + 1):
             self._report_search_loop_start(distance)
             print('        Retrieving entities')
+            if not self.entity_keys_to_visit:
+                break
             entities = PostgresEntity.search_multi(self.entity_keys_to_visit)
             relations = {}
             self._process_entities(distance, entities)
+            self._test_loop_one(distance)
             if self.break_on_next_loop:
                 print('        Exiting search loop.')
                 break
-            self._test_loop_one(distance)
             self._prune_roles(distance, provisional_roles)
             self._search_via_structural_roles(distance, provisional_roles, relations)
             self._search_via_relational_roles(distance, provisional_roles, relations)
@@ -110,6 +112,7 @@ class RelationGrapher2(object):
             self.entity_keys_to_visit.clear()
             self._process_relations(relations)
         self._cross_reference()
+        self._find_clusters()
         self._build_trellis()
         pages = self._partition_trellis()
         self._page_entities(pages)
@@ -132,6 +135,30 @@ class RelationGrapher2(object):
         return network
 
     ### PRIVATE METHODS ###
+
+    def _find_clusters(self):
+        cluster_count = 0
+        cluster_map = {}
+        for node in sorted(
+            self.nodes.values(),
+            key=lambda x: len(x.entity.entities.get('aliases', {})),
+            reverse=True,
+            ):
+            cluster = None
+            entity = node.entity
+            aliases = entity.entities.get('aliases', {})
+            if not aliases:
+                continue
+            if entity.entity_id not in cluster_map:
+                cluster_count += 1
+                cluster_map[entity.entity_id] = cluster_count
+                for _, alias_id in aliases.items():
+                    cluster_map[alias_id] = cluster_count
+            cluster = cluster_map[entity.entity_id]
+            if cluster is not None:
+                node.cluster = cluster
+        import pprint
+        pprint.pprint(cluster_map)
 
     def _page_entities(self, pages):
         for page_number, page in enumerate(pages, 1):
@@ -354,7 +381,7 @@ class RelationGrapher2(object):
                     provisional_roles.remove('Sublabel Of')
 
     def _process_entities(self, distance, entities):
-        for entity in entities:
+        for entity in sorted(entities, key=lambda x: x.entity_key):
             if not all([
                 entity.entity_id,
                 entity.name,
@@ -366,7 +393,7 @@ class RelationGrapher2(object):
                 self.nodes[entity_key] = TrellisNode2(entity, distance)
 
     def _process_relations(self, relations):
-        for link_key, relation in relations.items():
+        for link_key, relation in sorted(relations.items()):
             if not relation.entity_one_id or not relation.entity_two_id:
                 continue
             entity_one_key = relation.entity_one_key
