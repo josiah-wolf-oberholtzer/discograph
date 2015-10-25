@@ -13,7 +13,8 @@ from discograph.library.Bootstrapper import Bootstrapper
 database = pool.PooledPostgresqlExtDatabase(
     'discograph',
     max_connections=16,
-    user=None,
+    host='127.0.0.1',
+    user='postgres',
     )
 
 
