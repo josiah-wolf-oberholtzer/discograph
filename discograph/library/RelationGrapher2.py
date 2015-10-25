@@ -320,6 +320,8 @@ class RelationGrapher2(object):
         self._break_on_next_loop = False
 
     def _cross_reference(self):
+        if not self.relational_roles:
+            return
         relations = {}
         entity_keys = sorted(self.nodes)
         entity_keys.remove(self.center_entity.entity_key)
