@@ -157,8 +157,8 @@ class RelationGrapher2(object):
             cluster = cluster_map[entity.entity_id]
             if cluster is not None:
                 node.cluster = cluster
-        import pprint
-        pprint.pprint(cluster_map)
+        #import pprint
+        #pprint.pprint(cluster_map)
 
     def _page_entities(self, pages):
         for page_number, page in enumerate(pages, 1):
