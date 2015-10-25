@@ -45,6 +45,23 @@ class TrellisNode2(object):
 
     ### PUBLIC METHODS ###
 
+    def as_json(self):
+        data = {
+            'distance': self.distance,
+            'id': self.entity.entity_id,
+            'key': self.entity.json_entity_key,
+            'links': tuple(sorted(self.links)),
+            'missing': self.missing,
+            'name': self.entity.name,
+            'pages': tuple(sorted(self.pages)),
+            'type': self.entity.json_entity_key.split('-')[0],
+            }
+        if self.cluster:
+            data['cluster'] = self.cluster
+        if self.missing_by_page:
+            data['missingByPage'] = self.missing_by_page
+        return data
+
     def get_neighbors(self):
         neighbors = set()
         neighbors.update(self.parents)

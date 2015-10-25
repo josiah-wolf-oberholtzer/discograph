@@ -621,32 +621,6 @@ class RelationGrapher(object):
         nodes[source]['links'].add(link['key'])
         nodes[target]['links'].add(link['key'])
 
-    def prune_excess_links(self, nodes, links, verbose=True):
-        max_nodes = self.max_nodes or 100
-        max_links = self.link_ratio * max_nodes
-        if max_links:
-            links_to_prune = sorted(links.values(),
-                key=self.link_sorter,
-                )[max_links:]
-            for link in links_to_prune:
-                self.prune_link(link, nodes, links)
-        if verbose:
-            message = '    Pruned by max links: {} / {}'
-            message = message.format(len(nodes), len(links))
-            print(message)
-
-    def prune_excess_nodes(self, nodes, links, verbose=True):
-        if self.max_nodes:
-            nodes_to_prune = sorted(nodes.values(),
-                key=lambda x: (x['distance'], x['id']),
-                )[self.max_nodes:]
-            for node in nodes_to_prune:
-                self.prune_node(node, nodes, links)
-        if verbose:
-            message = '    Pruned by max nodes: {} / {}'
-            message = message.format(len(nodes), len(links))
-            print(message)
-
     def prune_link(self, link, nodes, links, update_missing_count=True):
         if link is None:
             return

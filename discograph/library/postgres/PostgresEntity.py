@@ -320,7 +320,10 @@ class PostgresEntity(PostgresModel):
             corpus[key] = query.get().entity_id
 
     def roles_to_relation_count(self, roles):
-        pass
+        relation_count = 0
+        for role in roles:
+            relation_count += self.relation_counts.get(role, 0)
+        return relation_count
 
     def structural_roles_to_relations(self, roles):
         from discograph import PostgresRelation
@@ -330,6 +333,8 @@ class PostgresEntity(PostgresModel):
             role = 'Alias'
             if role in roles and 'aliases' in self.entities:
                 for entity_id in self.entities['aliases'].values():
+                    if not entity_id:
+                        continue
                     ids = sorted((entity_id, self.entity_id))
                     relation = PostgresRelation(
                         entity_one_type=entity_type,
@@ -343,7 +348,8 @@ class PostgresEntity(PostgresModel):
             if role in roles:
                 if 'groups' in self.entities:
                     for entity_id in self.entities['groups'].values():
-                        print(entity_id)
+                        if not entity_id:
+                            continue
                         relation = PostgresRelation(
                             entity_one_type=entity_type,
                             entity_one_id=self.entity_id,
@@ -354,6 +360,8 @@ class PostgresEntity(PostgresModel):
                         relations[relation.link_key] = relation
                 if 'members' in self.entities:
                     for entity_id in self.entities['members'].values():
+                        if not entity_id:
+                            continue
                         relation = PostgresRelation(
                             entity_one_type=entity_type,
                             entity_one_id=entity_id,
@@ -367,6 +375,8 @@ class PostgresEntity(PostgresModel):
             role = 'Sublabel Of'
             if 'parent_label' in self.entities:
                 for entity_id in self.entities['parent_label'].values():
+                    if not entity_id:
+                        continue
                     relation = PostgresRelation(
                         entity_one_type=entity_type,
                         entity_one_id=self.entity_id,
@@ -377,6 +387,8 @@ class PostgresEntity(PostgresModel):
                     relations[relation.link_key] = relation
             if 'sublabels' in self.entities:
                 for entity_id in self.entities['sublabels'].values():
+                    if not entity_id:
+                        continue
                     relation = PostgresRelation(
                         entity_one_type=entity_type,
                         entity_one_id=entity_id,
@@ -424,6 +436,15 @@ class PostgresEntity(PostgresModel):
     @property
     def entity_key(self):
         return (self.entity_type, self.entity_id)
+
+    @property
+    def json_entity_key(self):
+        entity_type, entity_id = self.entity_key
+        if entity_type == 1:
+            return 'artist-{}'.format(self.entity_id)
+        elif entity_type == 2:
+            return 'label-{}'.format(self.entity_id)
+        raise ValueError(self.entity_key)
 
     @property
     def size(self):

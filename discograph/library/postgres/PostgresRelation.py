@@ -81,6 +81,19 @@ class PostgresRelation(PostgresModel):
 
     ### PUBLIC METHODS ###
 
+    def as_json(self):
+        data = {
+            'key': self.link_key,
+            'role': self.role,
+            'source': self.json_entity_one_key,
+            'target': self.json_entity_two_key,
+            }
+        if hasattr(self, 'distance'):
+            data['distance'] = self.distance
+        if hasattr(self, 'pages'):
+            data['pages'] = tuple(sorted(self.pages))
+        return data
+
     @classmethod
     def bootstrap(cls):
         cls.drop_table(True)
@@ -415,6 +428,39 @@ class PostgresRelation(PostgresModel):
         return list(query)
 
     @classmethod
+    def search_multi(cls, entity_keys, roles=None):
+        assert entity_keys
+        artist_ids, label_ids = [], []
+        for entity_type, entity_id in entity_keys:
+            if entity_type == 1:
+                artist_ids.append(entity_id)
+            elif entity_type == 2:
+                label_ids.append(entity_id)
+        if artist_ids:
+            artist_where_clause = (
+                ((cls.entity_one_type == 1) & (cls.entity_one_id.in_(artist_ids))) |
+                ((cls.entity_two_type == 1) & (cls.entity_two_id.in_(artist_ids)))
+                )
+        if label_ids:
+            label_where_clause = (
+                ((cls.entity_one_type == 2) & (cls.entity_one_id.in_(label_ids))) |
+                ((cls.entity_two_type == 2) & (cls.entity_two_id.in_(label_ids)))
+                )
+        if artist_ids and label_ids:
+            where_clause = artist_where_clause | label_where_clause
+        elif artist_ids:
+            where_clause = artist_where_clause
+        elif label_ids:
+            where_clause = label_where_clause
+        if roles:
+            where_clause &= (cls.role.in_(roles))
+        query = cls.select().where(where_clause)
+        relations = {}
+        for relation in query:
+            relations[relation.link_key] = relation
+        return relations
+
+    @classmethod
     def search_bimulti(cls, lh_entities, rh_entities, roles=None, year=None, verbose=True):
         def build_query(lh_type, lh_ids, rh_type, rh_ids):
             where_clause = cls.entity_one_type == lh_type
@@ -467,6 +513,10 @@ class PostgresRelation(PostgresModel):
                 rh_type, rh_ids = 2, rh_label_ids
                 query = build_query(lh_type, lh_ids, rh_type, rh_ids)
                 relations.extend(list(query))
+        relations = {
+            relation.link_key: relation
+            for relation in relations
+            }
         return relations
 
     ### PUBLIC PROPERTIES ###
@@ -480,23 +530,29 @@ class PostgresRelation(PostgresModel):
         return (self.entity_two_type, self.entity_two_id)
 
     @property
+    def json_entity_one_key(self):
+        if self.entity_one_type == 1:
+            return 'artist-{}'.format(self.entity_one_id)
+        elif self.entity_one_type == 2:
+            return 'label-{}'.format(self.entity_one_id)
+        raise ValueError(self.entity_one_key)
+
+    @property
+    def json_entity_two_key(self):
+        if self.entity_two_type == 1:
+            return 'artist-{}'.format(self.entity_two_id)
+        elif self.entity_two_type == 2:
+            return 'label-{}'.format(self.entity_two_id)
+        raise ValueError(self.entity_two_key)
+
+    @property
     def link_key(self):
-        source_type, source_id = self.entity_one_key
-        target_type, target_id = self.entity_two_key
-        if source_type == 1:
-            source_type = 'artist'
-        else:
-            source_type = 'label'
-        if target_type == 1:
-            target_type = 'artist'
-        else:
-            target_type = 'label'
+        source = self.json_entity_one_key
+        target = self.json_entity_two_key
         role = self.word_pattern.sub('-', self.role).lower()
         pieces = [
-            source_type,
-            source_id,
+            source,
             role,
-            target_type,
-            target_id,
+            target,
             ]
         return '-'.join(str(_) for _ in pieces)
