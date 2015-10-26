@@ -100,7 +100,7 @@ form .clear,
     pointer-events: none;
     dominant-baseline: middle;
     text-anchor: middle;
-    font: 10px sans-serif;
+    font: 8px sans-serif;
     }
 
 .link.selected {
@@ -119,7 +119,7 @@ form .clear,
     }
 
 .link.selected text {
-    font-size: 12px;
+    font-size: 10px;
     }
 
 .link path.inner {

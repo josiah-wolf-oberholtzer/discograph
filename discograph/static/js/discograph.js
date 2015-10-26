@@ -487,7 +487,7 @@ function dg_network_onLinkEnterElementConstruction(linkEnter) {
             } else {
                 return d.role.split(' ').map(function(x) { 
                     return x[0]; 
-                }).join('').toLowerCase();
+                }).join('');
             }
         });
     linkEnter.append("text")
@@ -498,7 +498,7 @@ function dg_network_onLinkEnterElementConstruction(linkEnter) {
             } else {
                 return d.role.split(' ').map(function(x) { 
                     return x[0]; 
-                }).join('').toLowerCase();
+                }).join('');
             }
         });
 }
