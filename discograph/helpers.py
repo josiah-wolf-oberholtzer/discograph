@@ -98,13 +98,14 @@ def parse_request_args(args):
                     year = int(year)
             except:
                 pass
-        elif key == 'roles[]':
+        elif key in ('roles[]', 'roles'):
             value = args.getlist(key)
             for role in value:
                 if role in CreditRole.all_credit_roles:
                     roles.add(role)
     roles = list(sorted(roles))
     return roles, year
+
 
 def search_entities(search_string, cache=True):
     import discograph
