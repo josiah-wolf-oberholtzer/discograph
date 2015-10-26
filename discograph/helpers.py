@@ -27,10 +27,9 @@ def get_entity(entity_type, entity_id):
     where_clause = discograph.PostgresEntity.entity_id == entity_id
     where_clause &= discograph.PostgresEntity.entity_type == entity_type
     query = discograph.PostgresEntity.select().where(where_clause)
-    found = list(query)
-    if not found:
+    if not query.count():
         return None
-    return found[0]
+    return query.get()
 
 
 def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None):
@@ -88,33 +87,36 @@ def get_random_entity(roles=None):
 
 def get_timeline(entity_id, entity_type):
     import discograph
-    entity = get_entity(entity_id, entity_type)
-    query = discograph.SqliteRelation.search(
+    if isinstance(entity_type, str):
+        entity_type = entity_name_types[entity_type]
+    entity = get_entity(entity_type, entity_id)
+    if entity is None:
+        return None
+    query = discograph.PostgresRelation.search(
         entity_id=entity.entity_id,
         entity_type=entity.entity_type,
         query_only=True
         )
-    query = query.where(discograph.SqliteRelation.year.is_null(False))
+    query = query.where(discograph.PostgresRelation.year != -1)
     query = query.order_by(
-        discograph.SqliteRelation.year,
-        discograph.SqliteRelation.release_id,
-        discograph.SqliteRelation.role_name,
-        discograph.SqliteRelation.entity_one_id,
-        discograph.SqliteRelation.entity_one_type,
-        discograph.SqliteRelation.entity_two_id,
-        discograph.SqliteRelation.entity_two_type,
+        discograph.PostgresRelation.year,
+        discograph.PostgresRelation.release_id,
+        discograph.PostgresRelation.role,
+        discograph.PostgresRelation.entity_one_id,
+        discograph.PostgresRelation.entity_one_type,
+        discograph.PostgresRelation.entity_two_id,
+        discograph.PostgresRelation.entity_two_type,
         )
     data = []
     for relation in query:
-        role = relation.role_name
-        category = discograph.mongo.CreditRole.all_credit_roles[role]
+        category = discograph.CreditRole.all_credit_roles[relation.role]
         if category is None:
             continue
         category = category[0]
         datum = {
             'year': relation.year,
             'release_id': relation.release_id,
-            'role': role,
+            'role': relation.role,
             'category': category,
             }
         data.append(datum)

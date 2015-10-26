@@ -92,37 +92,37 @@ form .clear,
 
 /* NETWORK */
 
-.link {
+#networkLayer .link {
     opacity: 0.25;
     }
 
-.link text {
+#networkLayer .link text {
     pointer-events: none;
     dominant-baseline: middle;
     text-anchor: middle;
     font: 8px sans-serif;
     }
 
-.link.selected {
+#networkLayer .link.selected {
     opacity: 1;
     }
 
-.link text.inner {
+#networkLayer .link text.inner {
     fill: #000;
     stroke: none;
     }
 
-.link text.outer {
+#networkLayer .link text.outer {
     stroke: #fff;
     stroke-width: 3px;
     fill: none;
     }
 
-.link.selected text {
+#networkLayer .link.selected text {
     font-size: 10px;
     }
 
-.link path.inner {
+#networkLayer .link path.inner {
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -130,35 +130,35 @@ form .clear,
     stroke: #000;
     }
 
-.link path.outer {
+#networkLayer .link path.outer {
     fill: none;
     stroke-opacity: 0;
     stroke: #000;
     stroke-width: 10;
     }
 
-.link path.inner {
+#networkLayer .link path.inner {
     marker-end: url(#arrowhead);
     stroke-dasharray: 0.5, 4;
     }
 
-.link.alias path.inner {
+#networkLayer .link.alias path.inner {
     marker-end: none;
     stroke-dasharray: 2, 4;
     }
 
-.link.member-of path.inner,
-.link.sublabel-of path.inner {
+#networkLayer .link.member-of path.inner,
+#networkLayer .link.sublabel-of path.inner {
     marker-end: url(#aggregate);
     stroke-dasharray: 0, 0;
     }
 
-.link.released-on path.inner {
+#networkLayer .link.released-on path.inner {
     marker-end: url(#arrowhead);
     stroke-dasharray: 0, 0;
     }
 
-.hull path {
+#networkLayer .hull path {
     fill: #000;
     opacity: 0.05;
     stroke: #000;
@@ -167,7 +167,7 @@ form .clear,
     stroke-linejoin: round;
     }
 
-.node {
+#networkLayer .node {
     cursor: move;
     fill-opacity: 1;
     stroke-opacity: 1;
@@ -175,19 +175,19 @@ form .clear,
     stroke-width: 1.5px;
     }
 
-.node circle.shadow {
+#networkLayer .node circle.shadow {
     fill: url(#radial-gradient);
     stroke: none;
     }
 
-.node text.inner {
+#networkLayer .node text.inner {
     pointer-events: none;
     font: 10px sans-serif;
     fill: #000;
     stroke: none;
     }
 
-.node text.outer {
+#networkLayer .node text.outer {
     pointer-events: none;
     font: 10px sans-serif;
     stroke: #fff;
@@ -195,7 +195,7 @@ form .clear,
     fill: none;
     }
 
-.node text.icon {
+#networkLayer .node text.icon {
     cursor: pointer;
     fill: #fff;
     font-family: 'Glyphicons Halflings';
@@ -206,35 +206,35 @@ form .clear,
     stroke: #000;
     }
 
-.node .halo {
+#networkLayer .node .halo {
     pointer-events: none;
     fill: #000;
     opacity: 0;
     stroke: none;
     }
 
-.node.selected {
+#networkLayer .node.selected {
     stroke: #000;
     }
 
-.node.label.selected {
+#networkLayer .node.label.selected {
     stroke: #fff;
     }
 
-.node .more {
+#networkLayer .node .more {
     stroke-width: 0;
     fill-opacity: 1;
     fill: #fff;
     }
 
-.node.selected .more {
+#networkLayer .node.selected .more {
     fill: #000;
     }
 
-.node.label.selected .more {
+#networkLayer .node.label.selected .more {
     fill: #fff;
     }
 
-.node.selected .halo {
+#networkLayer .node.selected .halo {
     opacity: 0.1;
     }

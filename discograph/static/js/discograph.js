@@ -1,5 +1,16 @@
 var dg = (function(dg){
 
+dg.timeline = {
+    layers: {
+        root: null,
+        },
+    };
+
+function dg_timeline_init() {
+    dg.timeline.layers.root = d3.select("#svg").append("g")
+        .attr("id", "timelineLayer");
+}
+
 dg.network = {
     dimensions: [0, 0],
     forceLayout: null,
@@ -1077,6 +1088,7 @@ function dg_svg_setupDefs() {
 $(document).ready(function() {
     dg_svg_init();
     dg_network_init();
+    dg_timeline_init();
     dg_typeahead_init();
     if (dgData) {
         var params = {'roles': $('#filter select').val()};
@@ -1170,7 +1182,7 @@ function loadMorris() {
             .scale(scale)
             .ticks(years.length)
             .tickFormat(d3.format('0000'));
-        dg.timeline.rootLayer.append("g")
+        dg.timeline.layers.root.append("g")
             .attr("class", "x axis")
             .attr("transform", 'translate(0, 100)')
             .call(axis)
