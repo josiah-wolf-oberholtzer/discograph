@@ -19,7 +19,7 @@ entity_name_types = {
     }
 
 
-args_roles_pattern = re.compile(r'^roles(\[\d+\])?$')
+args_roles_pattern = re.compile(r'^roles(\[\d*\])?$')
 
 
 def get_entity(entity_type, entity_id):
@@ -91,7 +91,6 @@ def parse_request_args(args):
     year = None
     roles = set()
     for key in args:
-        print('ARGS', key, args[key])
         if key == 'year':
             value = args[key]
             try:
