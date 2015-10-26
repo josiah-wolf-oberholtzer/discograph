@@ -1097,7 +1097,7 @@ $(document).ready(function() {
         buttonWidth: "160px",
         enableFiltering: true,
         enableCaseInsensitiveFiltering: true,
-        includeSelectAllOption: true,
+        //includeSelectAllOption: true,
         inheritClass: true,
         enableClickableOptGroups: true,
         maxHeight: 400,
