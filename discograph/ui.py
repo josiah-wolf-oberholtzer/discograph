@@ -5,6 +5,7 @@ from flask import current_app
 from flask import make_response
 from flask import request
 from flask import render_template
+from flask import url_for
 
 from discograph import exceptions
 from discograph import helpers
@@ -33,6 +34,10 @@ def route__index():
     if not original_roles:
         original_roles = default_roles
     multiselect_mapping = discograph.CreditRole.get_multiselect_mapping()
+    url = url_for(
+        request.endpoint,
+        roles=original_roles,
+        )
     rendered_template = render_template(
         'index.html',
         application_url=app.config['APPLICATION_ROOT'],
@@ -40,7 +45,7 @@ def route__index():
         is_a_return_visitor=is_a_return_visitor,
         multiselect_mapping=multiselect_mapping,
         og_title='Disco/graph: visualizing music as a social graph',
-        og_url='/',
+        og_url=url,
         on_mobile=on_mobile,
         original_roles=original_roles,
         original_year=original_year,
@@ -81,7 +86,13 @@ def route__entity_type__entity_id(entity_type, entity_id):
     entity_name = data['center']['name']
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
     key = '{}-{}'.format(entity_type, entity_id)
-    url = '/{}/{}'.format(entity_type, entity_id)
+    #url = '/{}/{}'.format(entity_type, entity_id)
+    url = url_for(
+        request.endpoint,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        roles=original_roles,
+        )
     title = 'Disco/graph: {}'.format(entity_name)
     multiselect_mapping = discograph.CreditRole.get_multiselect_mapping()
     rendered_template = render_template(

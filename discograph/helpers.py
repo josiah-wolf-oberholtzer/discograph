@@ -106,7 +106,6 @@ def parse_request_args(args):
     roles = list(sorted(roles))
     return roles, year
 
-
 def search_entities(search_string, cache=True):
     import discograph
     if cache:
