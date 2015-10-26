@@ -1,12 +1,11 @@
 # -*- encoding: utf-8 -*-
-from abjad.tools import datastructuretools
 import collections
-import mongoengine
 import re
-from discograph.library.mongo.MongoModel import MongoModel
+from abjad.tools import abctools
+from abjad.tools import datastructuretools
 
 
-class CreditRole(MongoModel, mongoengine.EmbeddedDocument):
+class CreditRole(abctools.AbjadValueObject):
 
     ### CLASS VARIABLES ###
 
@@ -728,10 +727,11 @@ class CreditRole(MongoModel, mongoengine.EmbeddedDocument):
         ("Wobble Board", (Category.INSTRUMENTS, Subcategory.OTHER_MUSICAL)),
         ])
 
-    ### MONGOENGINE FIELDS ###
+    ### INITIALIZER ###
 
-    name = mongoengine.StringField()
-    detail = mongoengine.StringField()
+    def __init__(self, name=None, detail=None):
+        self._name = name
+        self._detail = detail
 
     ### PUBLIC METHODS ###
 
@@ -793,19 +793,31 @@ class CreditRole(MongoModel, mongoengine.EmbeddedDocument):
 
     @classmethod
     def get_multiselect_mapping(cls):
-        excluded_role_names = [
-            'Alias',
-            'Member Of',
-            ]
+        #excluded_roles = [
+        #    'Alias',
+        #    'Member Of',
+        #    ]
         mapping = collections.OrderedDict()
-        for role_name, categories in cls.all_credit_roles.items():
-            if categories is None or role_name in excluded_role_names:
+        for role, categories in cls.all_credit_roles.items():
+            if categories is None:
                 continue
+            #if categories is None or role in excluded_roles:
+            #    continue
             if len(categories) == 1:
                 category_name = cls.category_names[categories[0]]
             else:
                 category_name = cls.subcategory_names[categories[1]]
             if category_name not in mapping:
                 mapping[category_name] = []
-            mapping[category_name].append(role_name)
+            mapping[category_name].append(role)
         return mapping
+
+    ### PUBLIC PROPERTIES ###
+
+    @property
+    def detail(self):
+        return self._detail
+
+    @property
+    def name(self):
+        return self._name

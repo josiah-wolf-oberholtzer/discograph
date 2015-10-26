@@ -123,17 +123,22 @@ function dg_network_setupForceLayout() {
         .friction(0.9)
         .linkDistance(function(d, i) {
             if (d.isSpline) {
+                if (d.role == 'Released On') {
+                    return 100;
+                }
                 return 50;
-            } else if (d.role != 'Alias') {
+            } else if (d.role == 'Alias') {
                 return 100;
+            } else if (d.role == 'Released On') {
+                return 200;
             } else {
-                return 150;
+                return 90 + (Math.random() * 20);
             }
         })
         .charge(-300)
-        .chargeDistance(1000)
+        //.chargeDistance(1000)
         .gravity(0.2)
-        .theta(0.1)
+        .theta(0.8)
         .alpha(0.1);
 }
 
@@ -171,7 +176,9 @@ function dg_history_pushState(entityKey, params) {
     var entityId = entityKey.split("-")[1];
     var title = document.title;
     var url = "/" + entityType + "/" + entityId;
-    if (params) { url += "?" + $.param(params); }
+    if (params) { 
+        url += "?" + decodeURIComponent($.param(params));
+    }
     var state = {key: entityKey, params: params};
     window.history.pushState(state, title, url);
     ga('send', 'pageview', url);
@@ -183,7 +190,9 @@ function dg_history_replaceState(entityKey, params) {
     var entityId = entityKey.split("-")[1];
     var title = document.title;
     var url = "/" + entityType + "/" + entityId;
-    if (params) { url += "?" + $.param(params); }
+    if (params) {
+        url += "?" + decodeURIComponent($.param(params));
+    }
     var state = {key: entityKey, params: params};
     window.history.replaceState(state, title, url);
     ga('send', 'pageview', url);
@@ -282,7 +291,8 @@ function dg_network_handleAsyncError(error) {
     text += '<strong>' + status + '!</strong> ' + message;
     text += '</div>';
     $('#flash').append(text);
-    //window.history.back();
+    setTimeout(function() { dg.network.isUpdating = false; }, 2000);
+    dg_style_loading(false);
 }
 
 function dg_network_handleAsyncData(json, pushHistory, params) {
@@ -305,9 +315,26 @@ function dg_network_handleAsyncData(json, pushHistory, params) {
     dg_network_startForceLayout();
     dg_network_selectNode(dg.network.data.json.center.key);
     setTimeout(function() { dg.network.isUpdating = false; }, 2000);
-    $("#page-loading")
-        .removeClass("glyphicon-animate glyphicon-refresh")
-        .addClass("glyphicon-random");
+    dg_style_loading(false);
+}
+
+function dg_style_loading(state) {
+    if (state) {
+        dg.network.layers.root.transition()
+            .duration(250)
+            .style("opacity", 0.333);
+        $("#page-loading")
+            .removeClass("glyphicon-random")
+            .addClass("glyphicon-animate glyphicon-refresh");
+    } else {
+        dg.network.layers.root.transition()
+            .delay(250)
+            .duration(1000)
+            .style("opacity", 1);
+        $("#page-loading")
+            .removeClass("glyphicon-animate glyphicon-refresh")
+            .addClass("glyphicon-random");
+    }
 }
 
 function dg_network_navigate(key, pushHistory) {
@@ -326,20 +353,18 @@ function dg_network_navigate(key, pushHistory) {
             dg.network.dimensions[1] / 2,
         ];
     }
-    dg.network.layers.root.transition()
-        .duration(250)
-        .style("opacity", 0.333);
-    $("#page-loading")
-        .removeClass("glyphicon-random")
-        .addClass("glyphicon-animate glyphicon-refresh")
-        ;
+    dg_style_loading(true);
     var url = "/api/" + entityType + "/network/" + entityId;
+    var params = {'roles': $('#filter select').val()};
+    if (params.roles) { 
+        url += '?' + decodeURIComponent($.param(params));
+    }
     $.ajax({
         cache: true,
         dataType: 'json',
         error: dg_network_handleAsyncError,
         success: function(data) {
-            dg_network_handleAsyncData(data, pushHistory);
+            dg_network_handleAsyncData(data, pushHistory, params);
             },
         url: url,
     });
@@ -442,22 +467,6 @@ function dg_network_onLinkEnterElementConstruction(linkEnter) {
         ]
     linkEnter.append("path")
         .attr("class", "inner")
-        .attr("marker-end", function(d) {
-            if (d.role == "Alias") {
-                return "none";
-            } else if (aggregateRoleNames.indexOf(d.role) != -1) {
-                return "url(#aggregate)";
-            } else {
-                return "url(#arrowhead)";
-            }
-        })
-        .style("stroke-dasharray", function(d) {
-            if (d.role == "Alias") {
-                return "2, 4";
-            } else {
-                return "0, 0";
-            }
-        });
     linkEnter.append("path")
         .attr("class", "outer")
         .append("title").text(function(d) {
@@ -470,7 +479,28 @@ function dg_network_onLinkEnterElementConstruction(linkEnter) {
                 return source + " → (" + role + ") → " + target;
             }
         });
-    linkEnter.append("text");
+    linkEnter.append("text")
+        .attr('class', 'outer')
+        .text(function(d) {
+            if (['Alias', 'Member Of', 'Sublabel Of'].indexOf(d.role) != -1) {
+                return null;
+            } else {
+                return d.role.split(' ').map(function(x) { 
+                    return x[0]; 
+                }).join('');
+            }
+        });
+    linkEnter.append("text")
+        .attr('class', 'inner')
+        .text(function(d) {
+            if (['Alias', 'Member Of', 'Sublabel Of'].indexOf(d.role) != -1) {
+                return null;
+            } else {
+                return d.role.split(' ').map(function(x) { 
+                    return x[0]; 
+                }).join('');
+            }
+        });
 }
 
 function dg_network_onLinkEnterEventBindings(linkEnter) {
@@ -716,9 +746,6 @@ function dg_network_startForceLayout() {
     dg_network_onLinkEnter(dg.network.selections.link.enter());
     dg_network_onLinkExit(dg.network.selections.link.exit());
     dg_network_onLinkUpdate(dg.network.selections.link);
-    dg.network.layers.root.transition()
-        .duration(1000)
-        .style("opacity", 1);
     dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
     dg.network.forceLayout.start();
 }
@@ -776,9 +803,12 @@ function dg_network_tick_link(d, i) {
         .attr("y2", y2);
     var path = group.select('path').node();
     var point = path.getPointAtLength(path.getTotalLength() / 2);
-    var text = group.select('text')
+    var x = point.x, y = point.y;
+    var angle = Math.atan2((y2 - y1), (x2 - x1)) * (180 / Math.PI);
+    var text = group.selectAll('text')
         .attr('dx', point.x)
-        .attr('dy', point.y);
+        .attr('dy', point.y)
+        .attr('transform', 'rotate(' + angle + ' ' + x + ' ' + y + ')');
 }
 
 function dg_network_tick(e) {
@@ -1049,7 +1079,8 @@ $(document).ready(function() {
     dg_network_init();
     dg_typeahead_init();
     if (dgData) {
-        dg_history_replaceState(dgData.center.key);
+        var params = {'roles': $('#filter select').val()};
+        dg_history_replaceState(dgData.center.key, params);
         dg_network_handleAsyncData(dgData, false);
     }
     $('[data-toggle="tooltip"]').tooltip();
@@ -1063,7 +1094,7 @@ $(document).ready(function() {
                     .removeClass("glyphicon-random")
                     .addClass("glyphicon-animate glyphicon-refresh");
                 d3.json(url, function(error, json) {
-                    if (error) { console.warn(error); return; }
+                    if (error) { dg_network_handleAsyncError(error); return; }
                     dg_network_navigate(json.center, true);
                 });
             } else {
@@ -1086,12 +1117,11 @@ $(document).ready(function() {
         $(this).tooltip('hide');
         event.preventDefault();
     });
-    /*
     $('#filter-roles').multiselect({
         buttonWidth: "160px",
         enableFiltering: true,
         enableCaseInsensitiveFiltering: true,
-        includeSelectAllOption: true,
+        //includeSelectAllOption: true,
         inheritClass: true,
         enableClickableOptGroups: true,
         maxHeight: 400,
@@ -1104,8 +1134,11 @@ $(document).ready(function() {
         $('#filter-roles').multiselect('refresh');
         event.preventDefault();
     });
+    $('#filter').submit(function(event) {
+        dg_network_navigate(dg.network.data.json.center.key, true);
+        event.preventDefault();
+    });
     $('#filter').fadeIn(3000);
-    */
     window.addEventListener("popstate", dg_history_onPopState);
     console.log('discograph initialized.');
 });

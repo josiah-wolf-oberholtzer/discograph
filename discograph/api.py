@@ -30,12 +30,15 @@ def route__api__entity_type__timeline__entity_id(entity_type, entity_id):
 def route__api__entity_type__network__entity_id(entity_type, entity_id):
     if entity_type not in ('artist', 'label'):
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
+    parsed_args = helpers.parse_request_args(request.args)
+    original_roles, original_year = parsed_args
     on_mobile = request.MOBILE
     data = helpers.get_network(
         entity_id,
         entity_type,
         on_mobile=on_mobile,
         cache=True,
+        roles=original_roles,
         )
     if data is None:
         raise exceptions.APIError(message='No Data', status_code=400)
@@ -52,9 +55,9 @@ def route__api__search(search_string):
 @blueprint.route('/random')
 @decorators.limit(max_requests=60, period=60)
 def route__api__random():
-    role_names = ['Alias', 'Member Of']
+    roles = ['Alias', 'Member Of']
     entity_type, entity_id = helpers.get_random_entity(
-        role_names=role_names,
+        roles=roles,
         )
     entity_type = {
         1: 'artist',

@@ -1,4 +1,4 @@
-from discograph import library
+import discograph
 import unittest
 try:
     from xml.etree import cElementTree as ElementTree
@@ -14,14 +14,14 @@ class Test(unittest.TestCase):
             'Shekere [Xequere, Original Musician], Guiro [Original Musician], '
             'Claves [Original Musician]'
             )
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(
+            discograph.CreditRole(
                 name='Shekere',
                 detail='Xequere, Original Musician',
                 ),
-            library.CreditRole(name='Guiro', detail='Original Musician'),
-            library.CreditRole(name='Claves', detail='Original Musician'),
+            discograph.CreditRole(name='Guiro', detail='Original Musician'),
+            discograph.CreditRole(name='Claves', detail='Original Musician'),
             ]
 
     def test_2(self):
@@ -30,13 +30,13 @@ class Test(unittest.TestCase):
             'Co-producer, Arranged By, Directed By, Other [Guided By], '
             'Other [Created By]'
             )
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(name='Co-producer'),
-            library.CreditRole(name='Arranged By'),
-            library.CreditRole(name='Directed By'),
-            library.CreditRole(name='Other', detail='Guided By'),
-            library.CreditRole(name='Other', detail='Created By'),
+            discograph.CreditRole(name='Co-producer'),
+            discograph.CreditRole(name='Arranged By'),
+            discograph.CreditRole(name='Directed By'),
+            discograph.CreditRole(name='Other', detail='Guided By'),
+            discograph.CreditRole(name='Other', detail='Created By'),
             ]
 
     def test_3(self):
@@ -45,13 +45,13 @@ class Test(unittest.TestCase):
             'Organ [Original Musician], '
             'Electric Piano [Rhodes, Original Musician]'
             )
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(
+            discograph.CreditRole(
                 name='Organ',
                 detail='Original Musician',
                 ),
-            library.CreditRole(
+            discograph.CreditRole(
                 name='Electric Piano',
                 detail='Rhodes, Original Musician',
                 ),
@@ -60,9 +60,9 @@ class Test(unittest.TestCase):
     def test_4(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = "Photography By ['hats' And 'spray' Photos By]"
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(
+            discograph.CreditRole(
                 name='Photography By',
                 detail="'hats' And 'spray' Photos By",
                 ),
@@ -71,35 +71,35 @@ class Test(unittest.TestCase):
     def test_5(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Strings '
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(name='Strings'),
+            discograph.CreditRole(name='Strings'),
             ]
 
     def test_6(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Piano, Synthesizer [Moog], Programmed By'
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(name='Piano'),
-            library.CreditRole(name='Synthesizer', detail='Moog'),
-            library.CreditRole(name='Programmed By'),
+            discograph.CreditRole(name='Piano'),
+            discograph.CreditRole(name='Synthesizer', detail='Moog'),
+            discograph.CreditRole(name='Programmed By'),
             ]
 
     def test_7(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Percussion [Misc.]'
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(name='Percussion', detail='Misc.'),
+            discograph.CreditRole(name='Percussion', detail='Misc.'),
             ]
 
     def test_8(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Painting [Uncredited; Detail Of <i>"The Transfiguration"</i>]'
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(
+            discograph.CreditRole(
                 name='Painting',
                 detail='Uncredited; Detail Of <i>"The Transfiguration"</i>',
                 ),
@@ -108,27 +108,27 @@ class Test(unittest.TestCase):
     def test_9(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Composed By, Words By [elemented By], Producer'
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(name='Composed By'),
-            library.CreditRole(name='Words By', detail='elemented By'),
-            library.CreditRole(name='Producer'),
+            discograph.CreditRole(name='Composed By'),
+            discograph.CreditRole(name='Words By', detail='elemented By'),
+            discograph.CreditRole(name='Producer'),
             ]
 
     def test_10(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Engineer [Remix] [Assistant], Producer'
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(name='Engineer', detail='Remix, Assistant'),
-            library.CreditRole(name='Producer'),
+            discograph.CreditRole(name='Engineer', detail='Remix, Assistant'),
+            discograph.CreditRole(name='Producer'),
             ]
 
     def test_11(self):
         element = ElementTree.fromstring('<test></test>')
         element.text = 'Performer [Enigmatic [K] Voice, Moog, Korg Vocoder], Lyrics By'
-        roles = library.CreditRole.from_element(element)
+        roles = discograph.CreditRole.from_element(element)
         assert roles == [
-            library.CreditRole(name='Performer', detail='Enigmatic [K] Voice, Moog, Korg Vocoder'),
-            library.CreditRole(name='Lyrics By'),
+            discograph.CreditRole(name='Performer', detail='Enigmatic [K] Voice, Moog, Korg Vocoder'),
+            discograph.CreditRole(name='Lyrics By'),
             ]

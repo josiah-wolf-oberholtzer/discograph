@@ -5,12 +5,21 @@ from flask import current_app
 from flask import make_response
 from flask import request
 from flask import render_template
+from flask import url_for
 
 from discograph import exceptions
 from discograph import helpers
 
 
 blueprint = Blueprint('ui', __name__, template_folder='templates')
+
+
+default_roles = (
+    'Alias',
+    'Member Of',
+    'Sublabel Of',
+    'Released On',
+    )
 
 
 @blueprint.route('/')
@@ -21,8 +30,14 @@ def route__index():
     initial_json = 'var dgData = null;'
     on_mobile = request.MOBILE
     parsed_args = helpers.parse_request_args(request.args)
-    original_role_names, original_year = parsed_args
+    original_roles, original_year = parsed_args
+    if not original_roles:
+        original_roles = default_roles
     multiselect_mapping = discograph.CreditRole.get_multiselect_mapping()
+    url = url_for(
+        request.endpoint,
+        roles=original_roles,
+        )
     rendered_template = render_template(
         'index.html',
         application_url=app.config['APPLICATION_ROOT'],
@@ -30,9 +45,9 @@ def route__index():
         is_a_return_visitor=is_a_return_visitor,
         multiselect_mapping=multiselect_mapping,
         og_title='Disco/graph: visualizing music as a social graph',
-        og_url='/',
+        og_url=url,
         on_mobile=on_mobile,
-        original_role_names=original_role_names,
+        original_roles=original_roles,
         original_year=original_year,
         title='Disco/graph: Visualizing music as a social graph',
         )
@@ -46,7 +61,9 @@ def route__entity_type__entity_id(entity_type, entity_id):
     import discograph
     app = current_app._get_current_object()
     parsed_args = helpers.parse_request_args(request.args)
-    original_role_names, original_year = parsed_args
+    original_roles, original_year = parsed_args
+    if not original_roles:
+        original_roles = default_roles
     if entity_type not in ('artist', 'label'):
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     on_mobile = request.MOBILE
@@ -55,6 +72,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
         entity_type,
         on_mobile=on_mobile,
         cache=True,
+        roles=original_roles,
         )
     if data is None:
         raise exceptions.APIError(message='No Data', status_code=500)
@@ -68,7 +86,13 @@ def route__entity_type__entity_id(entity_type, entity_id):
     entity_name = data['center']['name']
     is_a_return_visitor = request.cookies.get('is_a_return_visitor')
     key = '{}-{}'.format(entity_type, entity_id)
-    url = '/{}/{}'.format(entity_type, entity_id)
+    #url = '/{}/{}'.format(entity_type, entity_id)
+    url = url_for(
+        request.endpoint,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        roles=original_roles,
+        )
     title = 'Disco/graph: {}'.format(entity_name)
     multiselect_mapping = discograph.CreditRole.get_multiselect_mapping()
     rendered_template = render_template(
@@ -81,7 +105,7 @@ def route__entity_type__entity_id(entity_type, entity_id):
         og_title='Disco/graph: The "{}" network'.format(entity_name),
         og_url=url,
         on_mobile=on_mobile,
-        original_role_names=original_role_names,
+        original_roles=original_roles,
         original_year=original_year,
         title=title,
         )

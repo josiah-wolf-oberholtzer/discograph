@@ -92,7 +92,37 @@ form .clear,
 
 /* NETWORK */
 
-.link .inner {
+.link {
+    opacity: 0.25;
+    }
+
+.link text {
+    pointer-events: none;
+    dominant-baseline: middle;
+    text-anchor: middle;
+    font: 8px sans-serif;
+    }
+
+.link.selected {
+    opacity: 1;
+    }
+
+.link text.inner {
+    fill: #000;
+    stroke: none;
+    }
+
+.link text.outer {
+    stroke: #fff;
+    stroke-width: 3px;
+    fill: none;
+    }
+
+.link.selected text {
+    font-size: 10px;
+    }
+
+.link path.inner {
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -100,15 +130,32 @@ form .clear,
     stroke: #000;
     }
 
-.link .outer {
+.link path.outer {
     fill: none;
     stroke-opacity: 0;
     stroke: #000;
     stroke-width: 10;
     }
 
-.link {
-    opacity: 0.25;
+.link path.inner {
+    marker-end: url(#arrowhead);
+    stroke-dasharray: 0.5, 4;
+    }
+
+.link.alias path.inner {
+    marker-end: none;
+    stroke-dasharray: 2, 4;
+    }
+
+.link.member-of path.inner,
+.link.sublabel-of path.inner {
+    marker-end: url(#aggregate);
+    stroke-dasharray: 0, 0;
+    }
+
+.link.released-on path.inner {
+    marker-end: url(#arrowhead);
+    stroke-dasharray: 0, 0;
     }
 
 .hull path {
@@ -164,10 +211,6 @@ form .clear,
     fill: #000;
     opacity: 0;
     stroke: none;
-    }
-
-.link.selected {
-    opacity: 1;
     }
 
 .node.selected {

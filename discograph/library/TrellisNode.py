@@ -18,7 +18,7 @@ class TrellisNode(object):
         self._parents = set()
         self._siblings = set()
         self._children = set()
-        self._subgraph_size = -1
+        self._subgraph_size = None
         self._pages = set()
         self._parentage = None
 

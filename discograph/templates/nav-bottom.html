@@ -22,7 +22,7 @@
                     {% for category, roles in multiselect_mapping.items() %}
                         <optgroup label="{{ category }}">
                         {% for role in roles %}
-                            {% if role in original_role_names %}
+                            {% if role in original_roles %}
                             <option value="{{ role }}" selected>{{ role }}</option>
                             {% else %}
                             <option value="{{ role }}">{{ role }}</option>

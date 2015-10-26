@@ -1,10 +1,12 @@
 # -*- encoding: utf-8 -*-
 import datetime
+import glob
 import gzip
 import os
 import re
 import traceback
 from xml.dom import minidom
+from abjad.tools import systemtools
 try:
     from xml.etree import cElementTree as ElementTree
 except ImportError:
@@ -19,33 +21,19 @@ class Bootstrapper(object):
     date_no_dashes_regex = re.compile('^(\d{4})(\d{2})(\d{2})$')
     year_regex = re.compile('^\d\d\d\d$')
 
-    data_directory = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)),
-        '..',
-        'data',
-        )
-
-    artists_xml_path = os.path.join(
-        data_directory,
-        'discogs_20150810_artists.xml.gz',
-        )
-
-    labels_xml_path = os.path.join(
-        data_directory,
-        'discogs_20150810_labels.xml.gz',
-        )
-
-    masters_xml_path = os.path.join(
-        data_directory,
-        'discogs_20150810_masters.xml.gz',
-        )
-
-    releases_xml_path = os.path.join(
-        data_directory,
-        'discogs_20150810_releases.xml.gz',
-        )
-
     ### PUBLIC METHODS ###
+
+    @staticmethod
+    def get_xml_path(tag):
+        data_directory = os.path.join(
+            os.path.abspath(os.path.dirname(__file__)),
+            '..',
+            'data',
+            )
+        glob_pattern = 'discogs_*_{}s.xml.gz'.format(tag)
+        with systemtools.TemporaryDirectoryChange(data_directory):
+            files = sorted(glob.glob(glob_pattern))
+        return os.path.join(data_directory, files[-1])
 
     @staticmethod
     def clean_elements(elements):
@@ -53,16 +41,13 @@ class Bootstrapper(object):
             image_tags = element.findall('images')
             if image_tags:
                 element.remove(*image_tags)
-            url_tags = element.findall('urls')
-            if url_tags:
-                element.remove(*url_tags)
+            #url_tags = element.findall('urls')
+            #if url_tags:
+            #    element.remove(*url_tags)
             yield element
 
     @staticmethod
-    def element_to_datetime(element):
-        if element is None:
-            return None
-        date_string = element.text.strip()
+    def parse_release_date(date_string):
         # empty string
         if not date_string:
             return None
@@ -85,6 +70,13 @@ class Bootstrapper(object):
         return None
 
     @staticmethod
+    def element_to_datetime(element):
+        if element is None:
+            return None
+        date_string = element.text.strip()
+        return Bootstrapper.parse_release_date(date_string)
+
+    @staticmethod
     def element_to_integer(element):
         if element is not None:
             return int(element.text)
@@ -104,13 +96,8 @@ class Bootstrapper(object):
 
     @staticmethod
     def get_iterator(tag):
-        choices = {
-            'artist': Bootstrapper.artists_xml_path,
-            'label': Bootstrapper.labels_xml_path,
-            'master': Bootstrapper.masters_xml_path,
-            'release': Bootstrapper.releases_xml_path,
-            }
-        file_pointer = gzip.GzipFile(choices[tag], 'r')
+        file_path = Bootstrapper.get_xml_path(tag)
+        file_pointer = gzip.GzipFile(file_path, 'r')
         iterator = Bootstrapper.iterparse(file_pointer, tag)
         iterator = Bootstrapper.clean_elements(iterator)
         return iterator
@@ -152,6 +139,8 @@ class Bootstrapper(object):
                 day = int(day)
             if day < 1:
                 day = 1
+            if 12 < month:
+                day, month = month, day
             date = datetime.datetime(year, month, 1, 0, 0)
             day_offset = day - 1
             date = date + datetime.timedelta(days=day_offset)
