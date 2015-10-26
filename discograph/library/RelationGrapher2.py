@@ -96,18 +96,16 @@ class RelationGrapher2(object):
         for distance in range(self.degree + 1):
             self._report_search_loop_start(distance)
             print('        Retrieving entities')
-            if not self.entity_keys_to_visit:
+            if not self.entity_keys_to_visit or self.break_on_next_loop:
                 break
             entities = PostgresEntity.search_multi(self.entity_keys_to_visit)
             relations = {}
             self._process_entities(distance, entities)
             self._test_loop_one(distance)
-            if self.break_on_next_loop:
-                print('        Exiting search loop.')
-                break
             self._prune_roles(distance, provisional_roles)
             self._search_via_structural_roles(distance, provisional_roles, relations)
-            self._search_via_relational_roles(distance, provisional_roles, relations)
+            if not self.break_on_next_loop:
+                self._search_via_relational_roles(distance, provisional_roles, relations)
             self._test_loop_two(distance, relations)
             self.entity_keys_to_visit.clear()
             self._process_relations(relations)
