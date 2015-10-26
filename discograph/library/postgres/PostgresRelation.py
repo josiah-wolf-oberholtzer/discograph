@@ -376,11 +376,11 @@ class PostgresRelation(PostgresModel):
                     (cls.EntityType.ARTIST, _['id'])
                     for _ in track.get('artists', ())
                     )
-        for format_ in release.formats:
-            for description in format_.get('descriptions', ()):
-                if description == 'Compilation':
-                    is_compilation = True
-                    break
+        #for format_ in release.formats:
+        #    for description in format_.get('descriptions', ()):
+        #        if description == 'Compilation':
+        #            is_compilation = True
+        #            break
         return artists, labels, is_compilation
 
     @classmethod
