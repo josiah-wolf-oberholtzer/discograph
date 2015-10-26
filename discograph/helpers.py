@@ -19,6 +19,9 @@ entity_name_types = {
     }
 
 
+args_roles_pattern = re.compile(r'^roles(\[\d+\])?$')
+
+
 def get_entity(entity_type, entity_id):
     import discograph
     where_clause = discograph.PostgresEntity.entity_id == entity_id
@@ -88,6 +91,7 @@ def parse_request_args(args):
     year = None
     roles = set()
     for key in args:
+        print('ARGS', key, args[key])
         if key == 'year':
             value = args[key]
             try:
@@ -98,7 +102,7 @@ def parse_request_args(args):
                     year = int(year)
             except:
                 pass
-        elif key in ('roles[]', 'roles'):
+        elif args_roles_pattern.match(key):
             value = args.getlist(key)
             for role in value:
                 if role in CreditRole.all_credit_roles:
