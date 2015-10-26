@@ -479,7 +479,28 @@ function dg_network_onLinkEnterElementConstruction(linkEnter) {
                 return source + " → (" + role + ") → " + target;
             }
         });
-    linkEnter.append("text");
+    linkEnter.append("text")
+        .attr('class', 'outer')
+        .text(function(d) {
+            if (['Alias', 'Member Of', 'Sublabel Of'].indexOf(d.role) != -1) {
+                return null;
+            } else {
+                return d.role.split(' ').map(function(x) { 
+                    return x[0]; 
+                }).join('').toLowerCase();
+            }
+        });
+    linkEnter.append("text")
+        .attr('class', 'inner')
+        .text(function(d) {
+            if (['Alias', 'Member Of', 'Sublabel Of'].indexOf(d.role) != -1) {
+                return null;
+            } else {
+                return d.role.split(' ').map(function(x) { 
+                    return x[0]; 
+                }).join('').toLowerCase();
+            }
+        });
 }
 
 function dg_network_onLinkEnterEventBindings(linkEnter) {
@@ -782,9 +803,12 @@ function dg_network_tick_link(d, i) {
         .attr("y2", y2);
     var path = group.select('path').node();
     var point = path.getPointAtLength(path.getTotalLength() / 2);
-    var text = group.select('text')
+    var x = point.x, y = point.y;
+    var angle = Math.atan2((y2 - y1), (x2 - x1)) * (180 / Math.PI);
+    var text = group.selectAll('text')
         .attr('dx', point.x)
-        .attr('dy', point.y);
+        .attr('dy', point.y)
+        .attr('transform', 'rotate(' + angle + ' ' + x + ' ' + y + ')');
 }
 
 function dg_network_tick(e) {
