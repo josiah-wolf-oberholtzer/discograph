@@ -238,3 +238,13 @@ form .clear,
 #networkLayer .node.selected .halo {
     opacity: 0.1;
     }
+
+#timelineLayer path.arc {
+    fill: #000;
+    stroke: #fff;
+    stroke-width: 1px;
+    }
+
+#timelineLayer path.arc:hover {
+    fill: #f00;
+    }
