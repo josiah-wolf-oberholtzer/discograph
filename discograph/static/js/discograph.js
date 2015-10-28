@@ -113,7 +113,7 @@ function dg_network_selectPage(page) {
     dg.network.forceLayout.links(filteredLinks);
 }
 
-function dg_warn() { 
+function dg_warn() {
 }
 
 function dg_network_setupForceLayout() {
@@ -179,7 +179,7 @@ function dg_history_pushState(entityKey, params) {
     var entityId = entityKey.split("-")[1];
     var title = document.title;
     var url = "/" + entityType + "/" + entityId;
-    if (params) { 
+    if (params) {
         url += "?" + decodeURIComponent($.param(params));
     }
     var state = {key: entityKey, params: params};
@@ -359,7 +359,7 @@ function dg_network_navigate(key, pushHistory) {
     dg_style_loading(true);
     var url = "/api/" + entityType + "/network/" + entityId;
     var params = {'roles': $('#filter select').val()};
-    if (params.roles) { 
+    if (params.roles) {
         url += '?' + decodeURIComponent($.param(params));
     }
     $.ajax({
@@ -379,10 +379,10 @@ function dg_network_selectNode(key) {
         var nodeOn = dg.network.layers.root.selectAll('.' + key);
         var nodeOff = dg.network.layers.root.selectAll('*:not(.' + key + ')');
         var linkKeys = nodeOn.datum().links;
-        var linkOn = dg.network.selections.link.filter(function(d) { 
+        var linkOn = dg.network.selections.link.filter(function(d) {
             return 0 <= linkKeys.indexOf(d.key);
         });
-        var linkOff = dg.network.selections.link.filter(function(d) { 
+        var linkOff = dg.network.selections.link.filter(function(d) {
             return linkKeys.indexOf(d.key) == -1;
         });
         nodeOn.classed('selected', true);
@@ -420,7 +420,7 @@ function dg_network_getInnerRadius(d) {
 
 function dg_network_onHaloEnter(haloEnter) {
     var haloEnter = haloEnter.append("g")
-        .attr("class", function(d) { 
+        .attr("class", function(d) {
             var classes = [
                 "node",
                 d.key,
@@ -449,7 +449,7 @@ function dg_network_onHullExit(hullExit) {
 
 function dg_network_onLinkEnter(linkEnter) {
     var linkEnter = linkEnter.append("g")
-        .attr("class", function(d) { 
+        .attr("class", function(d) {
             var parts = d.key.split('-');
             var role = parts.slice(2, 2 + parts.length - 4).join('-')
             var classes = [
@@ -488,8 +488,8 @@ function dg_network_onLinkEnterElementConstruction(linkEnter) {
             if (['Alias', 'Member Of', 'Sublabel Of'].indexOf(d.role) != -1) {
                 return null;
             } else {
-                return d.role.split(' ').map(function(x) { 
-                    return x[0]; 
+                return d.role.split(' ').map(function(x) {
+                    return x[0];
                 }).join('');
             }
         });
@@ -499,8 +499,8 @@ function dg_network_onLinkEnterElementConstruction(linkEnter) {
             if (['Alias', 'Member Of', 'Sublabel Of'].indexOf(d.role) != -1) {
                 return null;
             } else {
-                return d.role.split(' ').map(function(x) { 
-                    return x[0]; 
+                return d.role.split(' ').map(function(x) {
+                    return x[0];
                 }).join('');
             }
         });
@@ -534,7 +534,7 @@ function dg_network_onLinkUpdate(linkSelection) {
 
 function dg_network_onNodeEnter(nodeEnter) {
     var nodeEnter = nodeEnter.append("g")
-        .attr("class", function(d) { 
+        .attr("class", function(d) {
             var classes = [
                 "node",
                 d.key,
@@ -647,7 +647,7 @@ function dg_network_onNodeUpdate(nodeUpdate) {
     nodeUpdate.selectAll(".more").each(function(d, i) {
         var prevMissing = Boolean(d.hasMissing);
         var prevMissingByPage = Boolean(d.hasMissingByPage);
-        var currMissing = Boolean(d.missing); 
+        var currMissing = Boolean(d.missing);
         if (!d.missingByPage) {
             var currMissingByPage = false;
         } else {
@@ -677,12 +677,12 @@ function dg_network_onTextUpdate(textUpdate) {
     textUpdate.select('.inner').text(dg_network_getNodeText);
 }
 
-function dg_network_getNodeText(d) { 
+function dg_network_getNodeText(d) {
     var name = d.name;
     if (50 < name.length) {
         name = name.slice(0, 50) + "...";
     }
-    if (dg.debug) { 
+    if (dg.debug) {
         var pages = '[' + d.pages + ']';
         return pages + ' ' + name;
     }
@@ -691,7 +691,7 @@ function dg_network_getNodeText(d) {
 
 function dg_network_onTextEnter(textEnter) {
     var textEnter = textEnter.append("g")
-        .attr("class", function(d) { 
+        .attr("class", function(d) {
             var classes = [
                 "node",
                 d.key,
@@ -717,11 +717,11 @@ function dg_network_onTextExit(textExit) {
 
 function dg_network_startForceLayout() {
     var keyFunc = function(d) { return d.key }
-    var nodes = dg.network.pageData.nodes.filter(function(d) { 
-        return (!d.isIntermediate) && 
+    var nodes = dg.network.pageData.nodes.filter(function(d) {
+        return (!d.isIntermediate) &&
             (-1 != d.pages.indexOf(dg.network.pageData.currentPage));
     })
-    var links = dg.network.pageData.links.filter(function(d) { 
+    var links = dg.network.pageData.links.filter(function(d) {
         return (!d.isSpline) &&
             (-1 != d.pages.indexOf(dg.network.pageData.currentPage));
     })
@@ -924,7 +924,7 @@ function dg_network_processJson(json) {
         var newLink = entry.value;
         if (dg.network.data.linkMap.has(key)) {
             var oldLink = dg.network.data.linkMap.get(key);
-            oldLink.pages = newLink.pages; 
+            oldLink.pages = newLink.pages;
         } else {
             newLink.source = dg.network.data.nodeMap.get(newLink.source);
             newLink.target = dg.network.data.nodeMap.get(newLink.target);
@@ -988,10 +988,10 @@ function dg_svg_init() {
             .attr("width", dg.network.dimensions[0])
             .attr("height", dg.network.dimensions[1]);
         dg.timeline.layers.root.select('g')
-            .attr('transform', "translate(" + 
-                dg.network.dimensions[0] / 2 + 
-                "," + 
-                dg.network.dimensions[1] / 2 + 
+            .attr('transform', "translate(" +
+                dg.network.dimensions[0] / 2 +
+                "," +
+                dg.network.dimensions[1] / 2 +
                 ")"
                 );
         dg.network.forceLayout.size(dg.network.dimensions).start();
@@ -1109,7 +1109,7 @@ $(document).ready(function() {
                     dg_network_navigate(json.center, true);
                 });
             } else {
-                dg_warn();                 
+                dg_warn();
             }
         });
         $('#brand').on("click touchstart", function(event) {
@@ -1219,10 +1219,10 @@ function chartRadial() {
         .innerRadius(0);
     var group = dg.timeline.layers.root.append('g')
         .attr('class', 'radial')
-        .attr('transform', "translate(" + 
-            dg.network.dimensions[0] / 2 + 
-            "," + 
-            dg.network.dimensions[1] / 2 + 
+        .attr('transform', "translate(" +
+            dg.network.dimensions[0] / 2 +
+            "," +
+            dg.network.dimensions[1] / 2 +
             ")"
             );
     var segments = group.selectAll('path')
@@ -1237,13 +1237,76 @@ function chartRadial() {
         .delay(function(d, i) { return (numBars - i) * 25; })
         .attrTween("d", function(d, index) {
             var i = d3.interpolate(d.outerRadius, barScale(+ d.values));
-            return function(t) { 
-                d.outerRadius = i(t); 
-                return arc(d, index); 
+            return function(t) {
+                d.outerRadius = i(t);
+                return arc(d, index);
             };
         });
     var labels = group.selectAll('text')
         .data(data)
         .enter().append('text')
         .text(function(d) { return d.key; });
+}
+
+function makeArcs() {
+    var start = Date.now();
+    var data = [
+        {value: 1}, {value: 2}, {value: 3}, {value: 4},
+        {value: 5}, {value: 6}, {value: 7}, {value: 8},
+        ];
+    dg.timeline.layers.root.selectAll('g').remove();
+    var group = dg.timeline.layers.root.append('g')
+        .attr('class', 'radial')
+        .attr('transform', 'translate(' +
+            dg.network.dimensions[0] / 2 +
+            ',' +
+            dg.network.dimensions[1] / 2 +
+            ')'
+            );
+    var arc = d3.svg.arc()
+        .startAngle(function(d) { return d.startAngle; })
+        .endAngle(function(d) { return d.endAngle; })
+        .innerRadius(function(d) { return d.innerRadius; })
+        .outerRadius(function(d) { return d.outerRadius; });
+    var barHeight = 200;
+    var barScale = d3.scale.linear()
+        .domain([1, 8])
+        .range([barHeight / 4, barHeight]);
+    var segments = group.selectAll('path')
+        .data(data)
+        .enter().append('path')
+        .attr('class', 'arc')
+        .each(function(d, i) { 
+            d.startAngle = 2 * Math.PI * Math.random();
+            d.endAngle = 2 * Math.PI * Math.random();
+            d.rotationRate = Math.random() * 10;
+            d.innerRadius = 0;
+            d.outerRadius = 0;
+        })
+        .attr('d', arc);
+    segments.transition()
+        .ease("elastic")
+        .duration(500)
+        .delay(function(d, i) { return (data.length - i) * 50; })
+        .attrTween('d', function(d, i) {
+            var inner = d3.interpolate(d.innerRadius, barScale(d.value - 1));
+            var outer = d3.interpolate(d.outerRadius, barScale(d.value));
+            return function(t) {
+                d.innerRadius = inner(t);
+                d.outerRadius = outer(t);
+                return arc(d, i);
+            };
+        });
+    d3.timer(function() {
+        if (dg.network.isUpdating) {
+            return true;
+        }
+        segments.attr('transform', function(d) {
+            var angle = (Date.now() - start) * d.rotationRate;
+            if (0 < d.outerRadius) {
+                angle = angle / d.outerRadius;
+            }
+            return 'rotate(' + angle + ')';
+        });
+    });
 }
