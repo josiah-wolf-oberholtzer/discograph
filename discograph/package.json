@@ -5,24 +5,21 @@
         "name": "Josiah Wolf Oberholtzer",
         "url": "http://josiahwolfoberholtzer.com"
         },
-    "homepage": "discograph.mbrsi.org",
+    "homepage": "http://discograph.mbrsi.org",
+    "license": "MIT",
+    "readme": "../README.md",
     "repository": {
         "type": "git",
         "url": "https://github.com/josiah-wolf-oberholtzer/discograph.git"
         },
     "dependencies": {
         "grunt": "0.x.x",
-        "grunt-autoprefixer": "0.2.x",
-        "grunt-contrib-clean": "0.5.x",
-        "grunt-contrib-coffee": "0.7.x",
-        "grunt-contrib-connect": "0.4.x",
-        "grunt-contrib-copy": "0.4.x",
-        "grunt-contrib-cssmin": "0.6.x",
-        "grunt-contrib-jade": "0.8.x",
-        "grunt-contrib-jshint": "0.6.x",
-        "grunt-contrib-stylus": "0.8.x",
-        "grunt-contrib-uglify": "0.2.x",
-        "grunt-contrib-watch": "0.5.x"
+        "grunt-smash": "0.x.x",
+        "grunt-contrib-copy": "0.x.x",
+        "grunt-contrib-cssmin": "0.x.x",
+        "grunt-contrib-jshint": "0.x.x",
+        "grunt-contrib-uglify": "0.x.x",
+        "grunt-contrib-watch": "0.x.x"
         },
     "engine": "node >= 0.1"
     }
