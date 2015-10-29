@@ -71,6 +71,5 @@ $(document).ready(function() {
         event.preventDefault();
     });
     $('#filter').fadeIn(3000);
-    $(window).on('popstate', dg_history_onPopState);
     console.log('discograph initialized.');
 });

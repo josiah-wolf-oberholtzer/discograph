@@ -19,10 +19,33 @@ module.exports = function(grunt) {
                 dest: 'static/js/discograph.js',
             },
         },
+        jsbeautifier: {
+            files: ['static/js/discograph.js'],
+            options: {
+                braceStyle: 'collapse',
+                breakChainedMethods: true,
+                e4x: false,
+                evalCode: false,
+                indentChar: ' ',
+                indentLevel: 4,
+                indentSize: 2,
+                indentWithTabs: false,
+                jslintHappy: true,
+                keepArrayIndentation: false,
+                keepFunctionIndentation: false,
+                maxPreserveNewlines: 0,
+                preserveNewLines: false,
+                spaceBeforeConditional: true,
+                spaceInParen: true,
+                unescapeStrings: false,
+                wrapLineLength: 79,
+                endWithNewline: true
+            }
+        },
         watch: {
             js: {
                 files: ['source/js/**'],
-                tasks: ['smash'],
+                tasks: ['smash', 'jsbeautifier'],
                 },
             css: {
                 files: ['source/css/**'],
@@ -30,8 +53,9 @@ module.exports = function(grunt) {
                 }
         }
     });
+    grunt.loadNpmTasks("grunt-jsbeautifier");
     grunt.loadNpmTasks('grunt-smash');
     grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.registerTask('default', ['smash', 'less', 'watch']);
+    grunt.registerTask('default', ['smash', 'jsbeautifier', 'less', 'watch']);
 };
