@@ -1,6 +1,5 @@
 !function(){
     var dg = {version: "0.1"};
-
 function dg_color_greyscale(d) {
     var hue = 0;
     var saturation = 0;
@@ -56,6 +55,68 @@ function dg_history_replaceState(entityKey, params) {
     window.history.replaceState(state, title, url);
     ga('send', 'pageview', url);
     ga('set', 'page', url);
+}
+function loadingAnimation() {
+    var start = Date.now();
+    var data = [
+        {value: 1}, {value: 2}, {value: 3}, {value: 4},
+        {value: 5}, {value: 6}, {value: 7}, {value: 8},
+        ];
+    dg.timeline.layers.root.selectAll('g').remove();
+    var group = dg.timeline.layers.root.append('g')
+        .attr('class', 'radial')
+        .attr('transform', 'translate(' +
+            dg.network.dimensions[0] / 2 +
+            ',' +
+            dg.network.dimensions[1] / 2 +
+            ')'
+            );
+    var arc = d3.svg.arc()
+        .startAngle(function(d) { return d.startAngle; })
+        .endAngle(function(d) { return d.endAngle; })
+        .innerRadius(function(d) { return d.innerRadius; })
+        .outerRadius(function(d) { return d.outerRadius; });
+    var barHeight = 200;
+    var barScale = d3.scale.linear()
+        .domain([1, 8])
+        .range([barHeight / 4, barHeight]);
+    var segments = group.selectAll('path')
+        .data(data)
+        .enter().append('path')
+        .attr('class', 'arc')
+        .each(function(d, i) { 
+            d.startAngle = 2 * Math.PI * Math.random();
+            d.endAngle = 2 * Math.PI * Math.random();
+            d.rotationRate = Math.random() * 10;
+            d.innerRadius = 0;
+            d.outerRadius = 0;
+        })
+        .attr('d', arc);
+    segments.transition()
+        .ease("elastic")
+        .duration(500)
+        .delay(function(d, i) { return (data.length - i) * 50; })
+        .attrTween('d', function(d, i) {
+            var inner = d3.interpolate(d.innerRadius, barScale(d.value - 1));
+            var outer = d3.interpolate(d.outerRadius, barScale(d.value));
+            return function(t) {
+                d.innerRadius = inner(t);
+                d.outerRadius = outer(t);
+                return arc(d, i);
+            };
+        });
+    d3.timer(function() {
+        if (dg.network.isUpdating) {
+            return true;
+        }
+        segments.attr('transform', function(d) {
+            var angle = (Date.now() - start) * d.rotationRate;
+            if (0 < d.outerRadius) {
+                angle = angle / d.outerRadius;
+            }
+            return 'rotate(' + angle + ')';
+        });
+    });
 }
 function dg_network_navigate(key, pushHistory) {
     var entityType = key.split("-")[0];
@@ -844,183 +905,6 @@ function dg_network_getHullVertices(nodes) {
     });
     return vertices;
 }
-dg.timeline = {
-    layers: {
-        root: null,
-        },
-    };
-
-function dg_timeline_init() {
-    dg.timeline.layers.root = d3.select("#svg").append("g")
-        .attr("id", "timelineLayer");
-}
-
-function dg_timeline_fetch(id) {
-    var url = '/api/artist/timeline/' + id;
-    d3.json(url, function(error, json) {
-        if (error) { console.warn(error); return; }
-        dg.timeline.json = json;
-        dg.timeline.byYear = d3.nest()
-            .key(function(d) { return d.year; })
-            .key(function(d) { return d.category; })
-            .entries(json.results);
-        dg.timeline.byRole = d3.nest()
-            .key(function(d) { return d.role; })
-            .rollup(function(leaves) { return leaves.length; })
-            .entries(dg.timeline.json.results);
-    })
-}
-
-function dg_timeline_chartTimeline() {
-    var years = dg.timeline.nested.map(function(d) { return parseInt(d.key); })
-    var extent = d3.extent(years);
-    console.log(extent);
-    var scale = d3.scale.linear()
-        .domain(extent)
-        .range([100, dg.network.dimensions[0] - 100]);
-    var axis = d3.svg.axis()
-        .orient("bottom")
-        .scale(scale)
-        .ticks(years.length)
-        .tickFormat(d3.format('0000'));
-    dg.timeline.layers.root.append("g")
-        .attr("class", "x axis")
-        .attr("transform", 'translate(0, 100)')
-        .call(axis)
-        .selectAll("text")
-        .attr("y", 0)
-        .attr("x", 9)
-        .attr("dy", ".35em")
-        .attr("transform", "rotate(45)")
-        .style("text-anchor", "start");
-}
-
-function dg_timeline_chartRadial() {
-    var barHeight = d3.min(dg.network.dimensions) / 2;
-    var data = dg.timeline.byRole;
-    var extent = d3.extent(data, function(d) { return d.values; });
-    var barScale = d3.scale.sqrt()
-        .exponent(0.25)
-        .domain(extent)
-        .range([barHeight / 4, barHeight]);
-    var keys = data.map(function(d, i) { return d.key; });
-    var numBars = keys.length;
-    var arc = d3.svg.arc()
-        .startAngle(function(d,i) { return (i * 2 * Math.PI) / numBars; })
-        .endAngle(function(d,i) { return ((i + 1) * 2 * Math.PI) / numBars; })
-        .innerRadius(0);
-    var group = dg.timeline.layers.root.append('g')
-        .attr('class', 'radial')
-        .attr('transform', "translate(" +
-            dg.network.dimensions[0] / 2 +
-            "," +
-            dg.network.dimensions[1] / 2 +
-            ")"
-            );
-    var segments = group.selectAll('path')
-        .data(data)
-        .enter().append("path")
-        .attr('class', 'arc')
-        .each(function(d) { d.outerRadius = 0; })
-        .attr("d", arc);
-    segments.transition()
-        .ease("elastic")
-        .duration(500)
-        .delay(function(d, i) { return (numBars - i) * 25; })
-        .attrTween("d", function(d, index) {
-            var i = d3.interpolate(d.outerRadius, barScale(+ d.values));
-            return function(t) {
-                d.outerRadius = i(t);
-                return arc(d, index);
-            };
-        });
-    var labels = group.selectAll('text')
-        .data(data)
-        .enter().append('text')
-        .text(function(d) { return d.key; });
-}
-var dg_typeahead_bloodhound = new Bloodhound({
-    datumTokenizer: Bloodhound.tokenizers.whitespace,
-    queryTokenizer: Bloodhound.tokenizers.whitespace,
-    remote: {
-        url: "/api/search/%QUERY",
-        wildcard: "%QUERY",
-        filter: function(response) {
-            return response.results;
-        },
-        rateLimitBy: 'debounce',
-        rateLimitWait: 300,
-    },
-});
-
-function dg_typeahead_init() {
-    var inputElement = $("#typeahead");
-    var loadingElement = $("#search .loading");
-    inputElement.typeahead(
-        {
-            hint: true,
-            highlight: true,
-            minLength: 2,
-        }, {
-            name: "results",
-            display: "name",
-            limit: 20,
-            source: dg_typeahead_bloodhound,
-            templates: {
-                suggestion: function(data) {
-                    return '<div>' +
-                        '<span>' + data.name + '</span>' +
-                        ' <em>(' + data.key.split('-')[0] + ')</em></div>';
-                },
-            },
-        })
-    .keydown(function(event){
-        if (event.keyCode == 13) {
-            event.preventDefault();
-            dg_typeahead_navigate();
-        } else if (event.keyCode == 27) {
-            inputElement.typeahead("close");
-        }
-    })
-    .on("typeahead:asynccancel typeahead:asyncreceive", function(obj, datum) {
-        loadingElement.addClass("invisible");
-    })
-    .on("typeahead:asyncrequest", function(obj, datum) {
-        loadingElement.removeClass("invisible");
-    })
-    .on("typeahead:autocomplete", function(obj, datum) {
-        $(this).data("selectedKey", datum.key);
-    })
-    .on("typeahead:render", function(event, suggestion, async, name) {
-        if (suggestion !== undefined) {
-            $(this).data("selectedKey", suggestion.key);
-        } else {
-            $(this).data("selectedKey", null);
-        }
-    })
-    .on("typeahead:selected", function(obj, datum) {
-        $(this).data("selectedKey", datum.key);
-        dg_typeahead_navigate();
-    });
-    $('#search .clear').click(function() {
-        $('#typeahead').typeahead('val', '');
-    });
-}
-
-function dg_typeahead_navigate() {
-    var datum = $("#typeahead").data("selectedKey");
-    if (datum) {
-        dg_network_navigate(datum, true);
-        $("#typeahead").typeahead("close");
-        $("#typeahead").blur();
-        $('.navbar-toggle').click();
-    };
-}
-
-
-function dg_warn() {
-}
-
 function dg_style_loading(state) {
     if (state) {
         dg.network.layers.root.transition()
@@ -1161,6 +1045,177 @@ function dg_svg_setupDefs() {
         .attr('stop-opacity', '0%');
 }
 
+dg.timeline = {
+    layers: {
+        root: null,
+        },
+    };
+
+function dg_timeline_init() {
+    dg.timeline.layers.root = d3.select("#svg").append("g")
+        .attr("id", "timelineLayer");
+}
+
+function dg_timeline_fetch(id) {
+    var url = '/api/artist/timeline/' + id;
+    d3.json(url, function(error, json) {
+        if (error) { console.warn(error); return; }
+        dg.timeline.json = json;
+        dg.timeline.byYear = d3.nest()
+            .key(function(d) { return d.year; })
+            .key(function(d) { return d.category; })
+            .entries(json.results);
+        dg.timeline.byRole = d3.nest()
+            .key(function(d) { return d.role; })
+            .rollup(function(leaves) { return leaves.length; })
+            .entries(dg.timeline.json.results);
+    })
+}
+
+function dg_timeline_chartTimeline() {
+    var years = dg.timeline.nested.map(function(d) { return parseInt(d.key); })
+    var extent = d3.extent(years);
+    console.log(extent);
+    var scale = d3.scale.linear()
+        .domain(extent)
+        .range([100, dg.network.dimensions[0] - 100]);
+    var axis = d3.svg.axis()
+        .orient("bottom")
+        .scale(scale)
+        .ticks(years.length)
+        .tickFormat(d3.format('0000'));
+    dg.timeline.layers.root.append("g")
+        .attr("class", "x axis")
+        .attr("transform", 'translate(0, 100)')
+        .call(axis)
+        .selectAll("text")
+        .attr("y", 0)
+        .attr("x", 9)
+        .attr("dy", ".35em")
+        .attr("transform", "rotate(45)")
+        .style("text-anchor", "start");
+}
+
+function dg_timeline_chartRadial() {
+    var barHeight = d3.min(dg.network.dimensions) / 2;
+    var data = dg.timeline.byRole;
+    var extent = d3.extent(data, function(d) { return d.values; });
+    var barScale = d3.scale.sqrt()
+        .exponent(0.25)
+        .domain(extent)
+        .range([barHeight / 4, barHeight]);
+    var keys = data.map(function(d, i) { return d.key; });
+    var numBars = keys.length;
+    var arc = d3.svg.arc()
+        .startAngle(function(d,i) { return (i * 2 * Math.PI) / numBars; })
+        .endAngle(function(d,i) { return ((i + 1) * 2 * Math.PI) / numBars; })
+        .innerRadius(0);
+    var group = dg.timeline.layers.root.append('g')
+        .attr('class', 'radial')
+        .attr('transform', "translate(" +
+            dg.network.dimensions[0] / 2 +
+            "," +
+            dg.network.dimensions[1] / 2 +
+            ")"
+            );
+    var segments = group.selectAll('path')
+        .data(data)
+        .enter().append("path")
+        .attr('class', 'arc')
+        .each(function(d) { d.outerRadius = 0; })
+        .attr("d", arc);
+    segments.transition()
+        .ease("elastic")
+        .duration(500)
+        .delay(function(d, i) { return (numBars - i) * 25; })
+        .attrTween("d", function(d, index) {
+            var i = d3.interpolate(d.outerRadius, barScale(+ d.values));
+            return function(t) {
+                d.outerRadius = i(t);
+                return arc(d, index);
+            };
+        });
+    var labels = group.selectAll('text')
+        .data(data)
+        .enter().append('text')
+        .text(function(d) { return d.key; });
+}
+function dg_typeahead_init() {
+    var dg_typeahead_bloodhound = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.whitespace,
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        remote: {
+            url: "/api/search/%QUERY",
+            wildcard: "%QUERY",
+            filter: function(response) {
+                return response.results;
+            },
+            rateLimitBy: 'debounce',
+            rateLimitWait: 300,
+        },
+    });
+    var inputElement = $("#typeahead");
+    var loadingElement = $("#search .loading");
+    inputElement.typeahead(
+        {
+            hint: true,
+            highlight: true,
+            minLength: 2,
+        }, {
+            name: "results",
+            display: "name",
+            limit: 20,
+            source: dg_typeahead_bloodhound,
+            templates: {
+                suggestion: function(data) {
+                    return '<div>' +
+                        '<span>' + data.name + '</span>' +
+                        ' <em>(' + data.key.split('-')[0] + ')</em></div>';
+                },
+            },
+        })
+    .keydown(function(event){
+        if (event.keyCode == 13) {
+            event.preventDefault();
+            dg_typeahead_navigate();
+        } else if (event.keyCode == 27) {
+            inputElement.typeahead("close");
+        }
+    })
+    .on("typeahead:asynccancel typeahead:asyncreceive", function(obj, datum) {
+        loadingElement.addClass("invisible");
+    })
+    .on("typeahead:asyncrequest", function(obj, datum) {
+        loadingElement.removeClass("invisible");
+    })
+    .on("typeahead:autocomplete", function(obj, datum) {
+        $(this).data("selectedKey", datum.key);
+    })
+    .on("typeahead:render", function(event, suggestion, async, name) {
+        if (suggestion !== undefined) {
+            $(this).data("selectedKey", suggestion.key);
+        } else {
+            $(this).data("selectedKey", null);
+        }
+    })
+    .on("typeahead:selected", function(obj, datum) {
+        $(this).data("selectedKey", datum.key);
+        dg_typeahead_navigate();
+    });
+    $('#search .clear').click(function() {
+        $('#typeahead').typeahead('val', '');
+    });
+}
+
+function dg_typeahead_navigate() {
+    var datum = $("#typeahead").data("selectedKey");
+    if (datum) {
+        dg_network_navigate(datum, true);
+        $("#typeahead").typeahead("close");
+        $("#typeahead").blur();
+        $('.navbar-toggle').click();
+    };
+}
 $(document).ready(function() {
     dg_svg_init();
     dg_network_init();
@@ -1230,75 +1285,6 @@ $(document).ready(function() {
     window.addEventListener("popstate", dg_history_onPopState);
     console.log('discograph initialized.');
 });
-
-dg.selectPage = function(page) {
-    dg_network_selectPage(page);
-    dg_network_startForceLayout();
-}
-
-function makeArcs() {
-    var start = Date.now();
-    var data = [
-        {value: 1}, {value: 2}, {value: 3}, {value: 4},
-        {value: 5}, {value: 6}, {value: 7}, {value: 8},
-        ];
-    dg.timeline.layers.root.selectAll('g').remove();
-    var group = dg.timeline.layers.root.append('g')
-        .attr('class', 'radial')
-        .attr('transform', 'translate(' +
-            dg.network.dimensions[0] / 2 +
-            ',' +
-            dg.network.dimensions[1] / 2 +
-            ')'
-            );
-    var arc = d3.svg.arc()
-        .startAngle(function(d) { return d.startAngle; })
-        .endAngle(function(d) { return d.endAngle; })
-        .innerRadius(function(d) { return d.innerRadius; })
-        .outerRadius(function(d) { return d.outerRadius; });
-    var barHeight = 200;
-    var barScale = d3.scale.linear()
-        .domain([1, 8])
-        .range([barHeight / 4, barHeight]);
-    var segments = group.selectAll('path')
-        .data(data)
-        .enter().append('path')
-        .attr('class', 'arc')
-        .each(function(d, i) { 
-            d.startAngle = 2 * Math.PI * Math.random();
-            d.endAngle = 2 * Math.PI * Math.random();
-            d.rotationRate = Math.random() * 10;
-            d.innerRadius = 0;
-            d.outerRadius = 0;
-        })
-        .attr('d', arc);
-    segments.transition()
-        .ease("elastic")
-        .duration(500)
-        .delay(function(d, i) { return (data.length - i) * 50; })
-        .attrTween('d', function(d, i) {
-            var inner = d3.interpolate(d.innerRadius, barScale(d.value - 1));
-            var outer = d3.interpolate(d.outerRadius, barScale(d.value));
-            return function(t) {
-                d.innerRadius = inner(t);
-                d.outerRadius = outer(t);
-                return arc(d, i);
-            };
-        });
-    d3.timer(function() {
-        if (dg.network.isUpdating) {
-            return true;
-        }
-        segments.attr('transform', function(d) {
-            var angle = (Date.now() - start) * d.rotationRate;
-            if (0 < d.outerRadius) {
-                angle = angle / d.outerRadius;
-            }
-            return 'rotate(' + angle + ')';
-        });
-    });
-}
-
     if (typeof define === "function" && define.amd) define(dg);
     else if (typeof module === "object" && module.exports) module.exports = dg;
     this.dg = dg;

@@ -1,18 +1,17 @@
-var dg_typeahead_bloodhound = new Bloodhound({
-    datumTokenizer: Bloodhound.tokenizers.whitespace,
-    queryTokenizer: Bloodhound.tokenizers.whitespace,
-    remote: {
-        url: "/api/search/%QUERY",
-        wildcard: "%QUERY",
-        filter: function(response) {
-            return response.results;
-        },
-        rateLimitBy: 'debounce',
-        rateLimitWait: 300,
-    },
-});
-
 function dg_typeahead_init() {
+    var dg_typeahead_bloodhound = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.whitespace,
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        remote: {
+            url: "/api/search/%QUERY",
+            wildcard: "%QUERY",
+            filter: function(response) {
+                return response.results;
+            },
+            rateLimitBy: 'debounce',
+            rateLimitWait: 300,
+        },
+    });
     var inputElement = $("#typeahead");
     var loadingElement = $("#search .loading");
     inputElement.typeahead(
@@ -75,4 +74,3 @@ function dg_typeahead_navigate() {
         $('.navbar-toggle').click();
     };
 }
-

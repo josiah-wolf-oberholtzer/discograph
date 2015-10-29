@@ -1,11 +1,10 @@
 import "start";
-
 import "color/";
 import "history/";
+import "loading/";
 import "network/";
+import "svg/";
 import "timeline/";
 import "typeahead/";
-
-import "source";
-
+import "init";
 import "end";
