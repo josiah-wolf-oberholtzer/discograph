@@ -4,9 +4,9 @@ module.exports = function(grunt) {
         less: {
             build: {
                 options: {
-                    compress: true,
-                    yuicompress: true,
-                    optimization: 2
+                    //compress: true,
+                    //yuicompress: true,
+                    //optimization: 2
                 },
                 files: {
                     'static/css/discograph.css': 'source/css/discograph.less'

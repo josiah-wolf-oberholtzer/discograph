@@ -14,29 +14,28 @@ body {
     padding-top: 70px;
 }
 
-a:hover {
-    color: #cc8548;
-    }
-
 #svg {
     background-color: #fff;
     pointer-events: visible;
     }
 
+a {
+    &:hover {
+        color: #cc8548;
+        }
+    .input-group-addon {
+        color: #337ab7;
+        &:active {
+            background-color: #ccc;
+            }
+        }
+    }
+
 #paging {
     pointer-events: none;
-    }
-
-#paging a {
-    pointer-events: visible;
-    }
-
-a.input-group-addon {
-    color: #337ab7;
-    }
-
-a.input-group-addon:active {
-    background-color: #ccc;
+    a {
+        pointer-events: visible;
+        }
     }
 
 .navbar-collapse.in {
@@ -48,6 +47,156 @@ form .clear,
 .navbar-nav a {
     cursor: pointer;
     }
+
+/* NETWORK */
+
+#networkLayer {
+    .link {
+        opacity: 0.25;
+        path {
+            &.inner {
+                fill: none;
+                marker-end: url(#arrowhead);
+                stroke-dasharray: 0.5, 4;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                stroke-width: 1;
+                stroke: #000;
+                }
+            &.outer {
+                fill: none;
+                stroke-opacity: 0;
+                stroke: #000;
+                stroke-width: 10;
+                }
+            }
+        text {
+            pointer-events: none;
+            dominant-baseline: middle;
+            text-anchor: middle;
+            font: 8px sans-serif;
+            &.inner {
+                fill: #000;
+                stroke: none;
+                }
+            &.outer {
+                stroke: #fff;
+                stroke-width: 3px;
+                fill: none;
+                }
+            }
+        &.alias path.inner {
+            marker-end: none;
+            stroke-dasharray: 2, 4;
+            }
+        &.member-of path.inner,
+        &.sublabel-of path.inner {
+            marker-end: url(#aggregate);
+            stroke-dasharray: 0, 0;
+            }
+        &.released-on path.inner {
+            marker-end: url(#arrowhead);
+            stroke-dasharray: 0, 0;
+            }
+        &.selected {
+            opacity: 1;
+            text {
+                font-size: 10px;
+                }
+            }
+        }
+
+    .hull {
+        path {
+            fill: #000;
+            opacity: 0.05;
+            stroke: #000;
+            stroke-width: 32;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            }
+        }
+
+    .node {
+        cursor: move;
+        fill-opacity: 1;
+        stroke-opacity: 1;
+        stroke: #fff;
+        stroke-width: 1.5px;
+        circle.shadow {
+            fill: url(#radial-gradient);
+            stroke: none;
+            }
+        text {
+            &.inner {
+                pointer-events: none;
+                font: 10px sans-serif;
+                fill: #000;
+                stroke: none;
+                }
+            &.outer {
+                pointer-events: none;
+                font: 10px sans-serif;
+                stroke: #fff;
+                stroke-width: 3px;
+                fill: none;
+                }
+            &.icon {
+                cursor: pointer;
+                fill: #fff;
+                font-family: 'Glyphicons Halflings';
+                font-style: normal;
+                font-weight: 200;
+                font-size: 20px;
+                opacity: 0.5;
+                stroke: #000;
+                }
+            }
+        .halo {
+            pointer-events: none;
+            fill: #000;
+            opacity: 0;
+            stroke: none;
+            }
+        .more {
+            stroke-width: 0;
+            fill-opacity: 1;
+            fill: #fff;
+            }
+        &.selected {
+            stroke: #000;
+            .halo {
+                opacity: 0.1;
+                }
+            .more {
+                fill: #000;
+                }
+            &.label {
+                stroke: #fff;
+                .more {
+                    fill: #fff;
+                    }
+                }
+            }
+        }
+    }
+
+/* TIMELINE */
+
+#timelineLayer {
+    path {
+        .arc {
+            fill: #000;
+            stroke: #fff;
+            stroke-width: 1px;
+            &:hover {
+                fill: #f00;
+                }
+            }
+        }
+    } 
+
+/* MIXINS */
 
 .invisible {
     visibility: hidden;
@@ -88,163 +237,4 @@ form .clear,
 
 .box-shadow {
     box-shadow: 0px 0px 10px #ddd;
-    }
-
-/* NETWORK */
-
-#networkLayer .link {
-    opacity: 0.25;
-    }
-
-#networkLayer .link text {
-    pointer-events: none;
-    dominant-baseline: middle;
-    text-anchor: middle;
-    font: 8px sans-serif;
-    }
-
-#networkLayer .link.selected {
-    opacity: 1;
-    }
-
-#networkLayer .link text.inner {
-    fill: #000;
-    stroke: none;
-    }
-
-#networkLayer .link text.outer {
-    stroke: #fff;
-    stroke-width: 3px;
-    fill: none;
-    }
-
-#networkLayer .link.selected text {
-    font-size: 10px;
-    }
-
-#networkLayer .link path.inner {
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1;
-    stroke: #000;
-    }
-
-#networkLayer .link path.outer {
-    fill: none;
-    stroke-opacity: 0;
-    stroke: #000;
-    stroke-width: 10;
-    }
-
-#networkLayer .link path.inner {
-    marker-end: url(#arrowhead);
-    stroke-dasharray: 0.5, 4;
-    }
-
-#networkLayer .link.alias path.inner {
-    marker-end: none;
-    stroke-dasharray: 2, 4;
-    }
-
-#networkLayer .link.member-of path.inner,
-#networkLayer .link.sublabel-of path.inner {
-    marker-end: url(#aggregate);
-    stroke-dasharray: 0, 0;
-    }
-
-#networkLayer .link.released-on path.inner {
-    marker-end: url(#arrowhead);
-    stroke-dasharray: 0, 0;
-    }
-
-#networkLayer .hull path {
-    fill: #000;
-    opacity: 0.05;
-    stroke: #000;
-    stroke-width: 32;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    }
-
-#networkLayer .node {
-    cursor: move;
-    fill-opacity: 1;
-    stroke-opacity: 1;
-    stroke: #fff;
-    stroke-width: 1.5px;
-    }
-
-#networkLayer .node circle.shadow {
-    fill: url(#radial-gradient);
-    stroke: none;
-    }
-
-#networkLayer .node text.inner {
-    pointer-events: none;
-    font: 10px sans-serif;
-    fill: #000;
-    stroke: none;
-    }
-
-#networkLayer .node text.outer {
-    pointer-events: none;
-    font: 10px sans-serif;
-    stroke: #fff;
-    stroke-width: 3px;
-    fill: none;
-    }
-
-#networkLayer .node text.icon {
-    cursor: pointer;
-    fill: #fff;
-    font-family: 'Glyphicons Halflings';
-    font-style: normal;
-    font-weight: 200;
-    font-size: 20px;
-    opacity: 0.5;
-    stroke: #000;
-    }
-
-#networkLayer .node .halo {
-    pointer-events: none;
-    fill: #000;
-    opacity: 0;
-    stroke: none;
-    }
-
-#networkLayer .node.selected {
-    stroke: #000;
-    }
-
-#networkLayer .node.label.selected {
-    stroke: #fff;
-    }
-
-#networkLayer .node .more {
-    stroke-width: 0;
-    fill-opacity: 1;
-    fill: #fff;
-    }
-
-#networkLayer .node.selected .more {
-    fill: #000;
-    }
-
-#networkLayer .node.label.selected .more {
-    fill: #fff;
-    }
-
-#networkLayer .node.selected .halo {
-    opacity: 0.1;
-    }
-
-#timelineLayer path.arc {
-    fill: #000;
-    stroke: #fff;
-    stroke-width: 1px;
-    }
-
-#timelineLayer path.arc:hover {
-    fill: #f00;
     }
