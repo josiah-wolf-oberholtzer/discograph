@@ -3,6 +3,7 @@ $(document).ready(function() {
     dg_network_init();
     dg_timeline_init();
     dg_typeahead_init();
+    dg_events_init();
     if (dgData) {
         var params = {'roles': $('#filter select').val()};
         dg_history_replaceState(dgData.center.key, params);
@@ -32,15 +33,21 @@ $(document).ready(function() {
             event.preventDefault();
         });
     }());
-    $('#paging .previous a').click(function(event) {
-        dg_network_prevPage();
-        $(this).tooltip('hide');
-        event.preventDefault();
-    });
     $('#paging .next a').click(function(event) {
-        dg_network_nextPage();
-        $(this).tooltip('hide');
-        event.preventDefault();
+        $(this).trigger({
+            type: 'discograph:network-select-page', 
+            payload: {
+                page: dg_network_getNextPage()
+            },
+        });
+    });
+    $('#paging .previous a').click(function(event) {
+        $(this).trigger({
+            type: 'discograph:network-select-page',
+            payload: {
+                page: dg_network_getPrevPage()
+            },
+        });
     });
     $('#filter-roles').multiselect({
         buttonWidth: "160px",
@@ -64,6 +71,6 @@ $(document).ready(function() {
         event.preventDefault();
     });
     $('#filter').fadeIn(3000);
-    window.addEventListener("popstate", dg_history_onPopState);
+    $(window).on('popstate', dg_history_onPopState);
     console.log('discograph initialized.');
 });

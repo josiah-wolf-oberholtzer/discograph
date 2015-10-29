@@ -6,5 +6,6 @@ import "network/";
 import "svg/";
 import "timeline/";
 import "typeahead/";
+import "events";
 import "init";
 import "end";

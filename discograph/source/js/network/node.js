@@ -137,4 +137,3 @@ function dg_network_onNodeUpdate(nodeUpdate) {
         d.hasMissingByPage = currMissingByPage;
     });
 }
-

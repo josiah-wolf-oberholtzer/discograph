@@ -668,7 +668,6 @@ function dg_network_onNodeUpdate(nodeUpdate) {
         d.hasMissingByPage = currMissingByPage;
     });
 }
-
 dg.network = {
     dimensions: [0, 0],
     forceLayout: null,
@@ -703,23 +702,33 @@ dg.network = {
         },
     };
 function dg_network_nextPage() {
-    var page = dg.network.pageData.currentPage + 1;
-    if (dg.network.data.pageCount < page) {
-        page = 1;
-    }
+    var page = dg_network_getNextPage();
     dg_network_selectPage(page);
     dg_network_startForceLayout();
     dg_network_reselectNode();
 }
 
 function dg_network_prevPage() {
+    var page = dg_network_getPrevPage();
+    dg_network_selectPage(page);
+    dg_network_startForceLayout();
+    dg_network_reselectNode();
+}
+
+function dg_network_getNextPage() {
+    var page = dg.network.pageData.currentPage + 1;
+    if (dg.network.data.pageCount < page) {
+        page = 1;
+    }
+    return page;
+}
+
+function dg_network_getPrevPage() {
     var page = dg.network.pageData.currentPage - 1;
     if (page == 0) {
         page = dg.network.data.pageCount;
     }
-    dg_network_selectPage(page);
-    dg_network_startForceLayout();
-    dg_network_reselectNode();
+    return page;
 }
 
 function dg_network_selectPage(page) {
@@ -1216,11 +1225,57 @@ function dg_typeahead_navigate() {
         $('.navbar-toggle').click();
     };
 }
+function dg_events_update_start(event) {
+
+}
+
+function dg_events_update_stop(event) {
+
+}
+
+function dg_events_network_fetch_start(event) {
+
+}
+
+function dg_events_network_fetch_stop(event) {
+
+}
+
+function dg_events_network_fetch_random(event) {
+
+}
+
+function dg_events_network_select_node(event) {
+
+}
+
+function dg_events_network_select_page(event) {
+    $(event.target).tooltip('hide');
+    dg_network_selectPage(event.payload.page);
+    dg_network_startForceLayout();
+    dg_network_reselectNode();
+}
+
+function dg_events_errored(event) {
+
+}
+
+function dg_events_init() {
+    $(window).on('discograph:errored', dg_events_errored);
+    $(window).on('discograph:network-fetch-start', dg_events_network_fetch_start);
+    $(window).on('discograph:network-fetch-stop', dg_events_network_fetch_stop);
+    $(window).on('discograph:network-fetch-random', dg_events_network_fetch_random);
+    $(window).on('discograph:network-select-node', dg_events_network_select_node);
+    $(window).on('discograph:network-select-page', dg_events_network_select_page);
+    $(window).on('discograph:update-start', dg_events_update_start);
+    $(window).on('discograph:update-stop', dg_events_update_stop);
+}
 $(document).ready(function() {
     dg_svg_init();
     dg_network_init();
     dg_timeline_init();
     dg_typeahead_init();
+    dg_events_init();
     if (dgData) {
         var params = {'roles': $('#filter select').val()};
         dg_history_replaceState(dgData.center.key, params);
@@ -1250,15 +1305,21 @@ $(document).ready(function() {
             event.preventDefault();
         });
     }());
-    $('#paging .previous a').click(function(event) {
-        dg_network_prevPage();
-        $(this).tooltip('hide');
-        event.preventDefault();
-    });
     $('#paging .next a').click(function(event) {
-        dg_network_nextPage();
-        $(this).tooltip('hide');
-        event.preventDefault();
+        $(this).trigger({
+            type: 'discograph:network-select-page', 
+            payload: {
+                page: dg_network_getNextPage()
+            },
+        });
+    });
+    $('#paging .previous a').click(function(event) {
+        $(this).trigger({
+            type: 'discograph:network-select-page',
+            payload: {
+                page: dg_network_getPrevPage()
+            },
+        });
     });
     $('#filter-roles').multiselect({
         buttonWidth: "160px",
@@ -1282,7 +1343,7 @@ $(document).ready(function() {
         event.preventDefault();
     });
     $('#filter').fadeIn(3000);
-    window.addEventListener("popstate", dg_history_onPopState);
+    $(window).on('popstate', dg_history_onPopState);
     console.log('discograph initialized.');
 });
     if (typeof define === "function" && define.amd) define(dg);
