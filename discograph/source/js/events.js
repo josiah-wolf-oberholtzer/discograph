@@ -1,8 +1,8 @@
-function dg_events_update_start(event) {
-
+function dg_events_loading_toggle(event) {
+    dg_loading_toggle(event.payload.isLoading);
 }
 
-function dg_events_update_stop(event) {
+function dg_events_network_toggle(event) {
 
 }
 
@@ -38,13 +38,13 @@ function dg_events_network_select_page(event) {
 }
 
 function dg_events_init() {
+    $(window).on('discograph:loading-toggle', dg_events_loading_toggle);
+    $(window).on('discograph:network-toggle', dg_events_network_toggle);
     $(window).on('discograph:network-request', dg_events_network_request);
     $(window).on('discograph:network-response', dg_events_network_response);
     $(window).on('discograph:random-request', dg_events_random_request);
     $(window).on('discograph:random-response', dg_events_random_response);
     $(window).on('discograph:network-select-node', dg_events_network_select_node);
     $(window).on('discograph:network-select-page', dg_events_network_select_page);
-    $(window).on('discograph:update-start', dg_events_update_start);
-    $(window).on('discograph:update-stop', dg_events_update_stop);
     $(window).on('popstate', dg_history_onPopState);
 }

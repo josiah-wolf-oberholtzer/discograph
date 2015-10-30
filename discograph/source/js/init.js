@@ -2,6 +2,7 @@ $(document).ready(function() {
     dg_svg_init();
     dg_network_init();
     dg_timeline_init();
+    dg_loading_init();
     dg_typeahead_init();
     dg_events_init();
     if (dgData) {

@@ -161,12 +161,12 @@ form .clear,
   fill: #fff;
 }
 /* TIMELINE */
-#timelineLayer path .arc {
+#loadingLayer path.arc {
   fill: #000;
   stroke: #fff;
-  stroke-width: 1px;
+  stroke-width: 2px;
 }
-#timelineLayer path .arc:hover {
+#loadingLayer path.arc:hover {
   fill: #f00;
 }
 /* MIXINS */
