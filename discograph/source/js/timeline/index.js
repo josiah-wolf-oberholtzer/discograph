@@ -31,7 +31,7 @@ function dg_timeline_chartTimeline() {
     console.log(extent);
     var scale = d3.scale.linear()
         .domain(extent)
-        .range([100, dg.network.dimensions[0] - 100]);
+        .range([100, dg.dimensions[0] - 100]);
     var axis = d3.svg.axis()
         .orient("bottom")
         .scale(scale)
@@ -50,7 +50,7 @@ function dg_timeline_chartTimeline() {
 }
 
 function dg_timeline_chartRadial() {
-    var barHeight = d3.min(dg.network.dimensions) / 2;
+    var barHeight = d3.min(dg.dimensions) / 2;
     var data = dg.timeline.byRole;
     var extent = d3.extent(data, function(d) { return d.values; });
     var barScale = d3.scale.sqrt()
@@ -66,9 +66,9 @@ function dg_timeline_chartRadial() {
     var group = dg.timeline.layers.root.append('g')
         .attr('class', 'radial')
         .attr('transform', "translate(" +
-            dg.network.dimensions[0] / 2 +
+            dg.dimensions[0] / 2 +
             "," +
-            dg.network.dimensions[1] / 2 +
+            dg.dimensions[1] / 2 +
             ")"
             );
     var segments = group.selectAll('path')

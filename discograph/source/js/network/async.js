@@ -10,8 +10,8 @@ function dg_network_navigate(key, pushHistory) {
         });
     } else {
         dg.network.newNodeCoords = [
-            dg.network.dimensions[0] / 2,
-            dg.network.dimensions[1] / 2,
+            dg.dimensions[0] / 2,
+            dg.dimensions[1] / 2,
         ];
     }
     dg_style_loading(true);

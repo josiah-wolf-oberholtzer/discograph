@@ -162,9 +162,9 @@ form .clear,
 }
 /* TIMELINE */
 #loadingLayer path.arc {
-  fill: #000;
+  opacity: 0.75;
   stroke: #fff;
-  stroke-width: 2px;
+  stroke-width: 1px;
 }
 #loadingLayer path.arc:hover {
   fill: #f00;

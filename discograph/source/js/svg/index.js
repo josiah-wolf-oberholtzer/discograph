@@ -25,34 +25,17 @@ function dg_svg_init() {
         d = document,
         e = d.documentElement,
         g = d.getElementsByTagName('body')[0];
-    dg.network.dimensions = [
+    dg.dimensions = [
         w.innerWidth || e.clientWidth || g.clientWidth,
         w.innerHeight|| e.clientHeight|| g.clientHeight,
     ];
     dg.network.newNodeCoords = [
-        dg.network.dimensions[0] / 2,
-        dg.network.dimensions[1] / 2,
+        dg.dimensions[0] / 2,
+        dg.dimensions[1] / 2,
     ];
-    window.addEventListener("resize", function() {
-        dg.network.dimensions = [
-            w.innerWidth || e.clientWidth || g.clientWidth,
-            w.innerHeight|| e.clientHeight|| g.clientHeight,
-        ];
-        d3.select("#svg")
-            .attr("width", dg.network.dimensions[0])
-            .attr("height", dg.network.dimensions[1]);
-        dg.timeline.layers.root.select('g')
-            .attr('transform', "translate(" +
-                dg.network.dimensions[0] / 2 +
-                "," +
-                dg.network.dimensions[1] / 2 +
-                ")"
-                );
-        dg.network.forceLayout.size(dg.network.dimensions).start();
-    });
     d3.select("#svg")
-        .attr("width", dg.network.dimensions[0])
-        .attr("height", dg.network.dimensions[1]);
+        .attr("width", dg.dimensions[0])
+        .attr("height", dg.dimensions[1]);
     dg_svg_setupDefs();
 }
 
@@ -137,4 +120,3 @@ function dg_svg_setupDefs() {
         .attr('stop-color', '#333')
         .attr('stop-opacity', '0%');
 }
-

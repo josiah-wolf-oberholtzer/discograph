@@ -72,9 +72,9 @@
             .attr('id', 'loadingLayer')
             .attr('class', 'centered')
             .attr('transform', 'translate(' +
-                dg.network.dimensions[0] / 2 +
+                dg.dimensions[0] / 2 +
                 ',' +
-                dg.network.dimensions[1] / 2 +
+                dg.dimensions[1] / 2 +
                 ')'
             );
         dg.loading.arc = d3.svg.arc()
@@ -111,20 +111,24 @@
     }
 
     function dg_loading_makeArray() {
+        var count = 10;
         var values = [];
-        for (var i = 0; i < 9; i++) {
-            values.push(Math.random());
-        }
-        values.sort();
-        var extent = d3.extent(values);
         var data = [];
-        for (var i = 0; i < values.length - 1; i++) {
+        for (var i = 0; i < count; i++) {
+            var pair = [Math.random(), Math.random()];
+            pair.sort();
+            values.push(pair[0]);
+            values.push(pair[1]);
             data.push({
-                targetInnerRadius: values[i],
-                targetOuterRadius: values[i + 1],
+                active: true,
+                startAngle: 2 * Math.PI * Math.random(),
+                endAngle: 2 * Math.PI * Math.random(),
+                rotationRate: Math.random() * 10,
+                targetInnerRadius: pair[0],
+                targetOuterRadius: pair[1],
             });
         }
-        return [data, extent];
+        return [data, d3.extent(values)];
     }
 
     function dg_loading_update(data, extent) {
@@ -134,17 +138,24 @@
                 dg.loading.barHeight / 4,
                 dg.loading.barHeight
             ]);
-        dg.loading.selection = dg.loading.selection.data(data);
+        dg.loading.selection = dg.loading.selection.data(
+            data,
+            function(d) {
+                return Math.random();
+            });
+        var scale = d3.scale.category10();
         var selectionEnter = dg.loading.selection.enter()
             .append('path')
             .attr('class', 'arc')
             .attr('d', dg.loading.arc)
+            .attr('fill', function(d, i) {
+                console.log('FILL', i, scale(i), scale(i + 1));
+                return scale(i);
+            })
             .each(function(d, i) {
-                d.startAngle = 2 * Math.PI * Math.random();
-                d.endAngle = 2 * Math.PI * Math.random();
-                d.rotationRate = Math.random() * 10;
                 d.innerRadius = 0;
                 d.outerRadius = 0;
+                d.hasTimer = false;
             });
         var selectionExit = dg.loading.selection.exit();
         dg_loading_transition_update(selectionEnter, barScale);
@@ -185,21 +196,34 @@
                     d.outerRadius = outer(t);
                     return dg.loading.arc(d, i);
                 };
+            })
+            .each('end', function(d) {
+                d.active = false;
+                this.remove();
             });
     }
 
     function dg_loading_rotate(selection) {
         var start = Date.now();
-        d3.timer(function() {
-            if (!dg.loading.isLoading) {
-                return true;
+        selection.each(function(d) {
+            if (d.hasTimer) {
+                console.log('SKIPPING', d);
+                return;
             }
-            selection.attr('transform', function(d) {
-                var angle = (Date.now() - start) * d.rotationRate;
-                if (0 < d.outerRadius) {
-                    angle = angle / d.outerRadius;
+            d.hasTimer = true;
+            d3.timer(function() {
+                if (!d.active) {
+                    return true;
                 }
-                return 'rotate(' + angle + ')';
+                selection.attr('transform', function(d) {
+                    var now = Date.now();
+                    var angle = (now - start) * d.rotationRate;
+                    if (0 < d.outerRadius) {
+                        angle = angle / d.outerRadius;
+                    }
+                    //console.log(d, now, start);
+                    return 'rotate(' + angle + ')';
+                });
             });
         });
     }
@@ -218,8 +242,8 @@
             });
         } else {
             dg.network.newNodeCoords = [
-                dg.network.dimensions[0] / 2,
-                dg.network.dimensions[1] / 2,
+                dg.dimensions[0] / 2,
+                dg.dimensions[1] / 2,
             ];
         }
         dg_style_loading(true);
@@ -290,7 +314,7 @@
         return d3.layout.force()
             .nodes(dg.network.pageData.nodes)
             .links(dg.network.pageData.links)
-            .size(dg.network.dimensions)
+            .size(dg.dimensions)
             .on("tick", dg_network_tick)
             .linkStrength(1.5)
             .friction(0.9)
@@ -464,7 +488,7 @@
         dg.network.pageData.nodes.filter(function(d) {
             return d.key == dg.network.data.json.center.key && !d.fixed;
         }).forEach(function(d) {
-            var dims = dg.network.dimensions;
+            var dims = dg.dimensions;
             var dx = ((dims[0] / 2) - d.x) * k;
             var dy = ((dims[1] / 2) - d.y) * k;
             d.x += dx;
@@ -1087,34 +1111,17 @@
             d = document,
             e = d.documentElement,
             g = d.getElementsByTagName('body')[0];
-        dg.network.dimensions = [
+        dg.dimensions = [
             w.innerWidth || e.clientWidth || g.clientWidth,
             w.innerHeight || e.clientHeight || g.clientHeight,
         ];
         dg.network.newNodeCoords = [
-            dg.network.dimensions[0] / 2,
-            dg.network.dimensions[1] / 2,
+            dg.dimensions[0] / 2,
+            dg.dimensions[1] / 2,
         ];
-        window.addEventListener("resize", function() {
-            dg.network.dimensions = [
-                w.innerWidth || e.clientWidth || g.clientWidth,
-                w.innerHeight || e.clientHeight || g.clientHeight,
-            ];
-            d3.select("#svg")
-                .attr("width", dg.network.dimensions[0])
-                .attr("height", dg.network.dimensions[1]);
-            dg.timeline.layers.root.select('g')
-                .attr('transform', "translate(" +
-                    dg.network.dimensions[0] / 2 +
-                    "," +
-                    dg.network.dimensions[1] / 2 +
-                    ")"
-                );
-            dg.network.forceLayout.size(dg.network.dimensions).start();
-        });
         d3.select("#svg")
-            .attr("width", dg.network.dimensions[0])
-            .attr("height", dg.network.dimensions[1]);
+            .attr("width", dg.dimensions[0])
+            .attr("height", dg.dimensions[1]);
         dg_svg_setupDefs();
     }
 
@@ -1199,7 +1206,6 @@
             .attr('stop-color', '#333')
             .attr('stop-opacity', '0%');
     }
-
     dg.timeline = {
         layers: {
             root: null,
@@ -1246,7 +1252,7 @@
         console.log(extent);
         var scale = d3.scale.linear()
             .domain(extent)
-            .range([100, dg.network.dimensions[0] - 100]);
+            .range([100, dg.dimensions[0] - 100]);
         var axis = d3.svg.axis()
             .orient("bottom")
             .scale(scale)
@@ -1265,7 +1271,7 @@
     }
 
     function dg_timeline_chartRadial() {
-        var barHeight = d3.min(dg.network.dimensions) / 2;
+        var barHeight = d3.min(dg.dimensions) / 2;
         var data = dg.timeline.byRole;
         var extent = d3.extent(data, function(d) {
             return d.values;
@@ -1289,9 +1295,9 @@
         var group = dg.timeline.layers.root.append('g')
             .attr('class', 'radial')
             .attr('transform', "translate(" +
-                dg.network.dimensions[0] / 2 +
+                dg.dimensions[0] / 2 +
                 "," +
-                dg.network.dimensions[1] / 2 +
+                dg.dimensions[1] / 2 +
                 ")"
             );
         var segments = group.selectAll('path')
@@ -1400,7 +1406,7 @@
     }
 
     function dg_events_loading_toggle(event) {
-        dg_loading_toggle(event.payload.isLoading);
+        dg_loading_toggle(event.status);
     }
 
     function dg_events_network_toggle(event) {
@@ -1438,6 +1444,25 @@
         dg_network_reselectNode();
     }
 
+    function dg_events_window_resize(event) {
+        var w = window,
+            d = document,
+            e = d.documentElement,
+            g = d.getElementsByTagName('body')[0];
+        dg.dimensions = [
+            w.innerWidth || e.clientWidth || g.clientWidth,
+            w.innerHeight || e.clientHeight || g.clientHeight,
+        ];
+        d3.select("#svg")
+            .attr("width", dg.dimensions[0])
+            .attr("height", dg.dimensions[1]);
+        d3.selectAll('.centered')
+            .attr('transform', "translate(" +
+                dg.dimensions[0] / 2 + "," +
+                dg.dimensions[1] / 2 + ")");
+        dg.network.forceLayout.size(dg.dimensions).start();
+    }
+
     function dg_events_init() {
         $(window).on('discograph:loading-toggle', dg_events_loading_toggle);
         $(window).on('discograph:network-toggle', dg_events_network_toggle);
@@ -1448,6 +1473,10 @@
         $(window).on('discograph:network-select-node', dg_events_network_select_node);
         $(window).on('discograph:network-select-page', dg_events_network_select_page);
         $(window).on('popstate', dg_history_onPopState);
+        $(window).on('resize', $.debounce(100, function(event) {
+            console.log(event);
+            dg_events_window_resize(event);
+        }));
     }
     $(document).ready(function() {
         dg_svg_init();

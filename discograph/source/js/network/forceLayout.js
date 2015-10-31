@@ -2,7 +2,7 @@ function dg_network_setupForceLayout() {
     return d3.layout.force()
         .nodes(dg.network.pageData.nodes)
         .links(dg.network.pageData.links)
-        .size(dg.network.dimensions)
+        .size(dg.dimensions)
         .on("tick", dg_network_tick)
         .linkStrength(1.5)
         .friction(0.9)
@@ -168,7 +168,7 @@ function dg_network_tick(e) {
     dg.network.pageData.nodes.filter(function(d) {
         return d.key == dg.network.data.json.center.key && !d.fixed;
     }).forEach(function(d) {
-        var dims = dg.network.dimensions;
+        var dims = dg.dimensions;
         var dx = ((dims[0] / 2) - d.x) * k;
         var dy = ((dims[1] / 2) - d.y) * k;
         d.x += dx;

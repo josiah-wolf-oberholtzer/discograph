@@ -5,9 +5,9 @@ function dg_loading_init() {
         .attr('id', 'loadingLayer')
         .attr('class', 'centered')
         .attr('transform', 'translate(' +
-            dg.network.dimensions[0] / 2 +
+            dg.dimensions[0] / 2 +
             ',' +
-            dg.network.dimensions[1] / 2 +
+            dg.dimensions[1] / 2 +
             ')'
             );
     dg.loading.arc = d3.svg.arc()
@@ -34,20 +34,24 @@ function dg_loading_toggle(status) {
 }
 
 function dg_loading_makeArray() {
+    var count = 10;
     var values = [];
-    for (var i = 0; i < 9; i++) {
-        values.push(Math.random());
-    }
-    values.sort();
-    var extent = d3.extent(values);
     var data = [];
-    for (var i = 0; i < values.length - 1; i++) {
+    for (var i = 0; i < count; i++) {
+        var pair = [Math.random(), Math.random()];
+        pair.sort();
+        values.push(pair[0]);
+        values.push(pair[1]);
         data.push({
-            targetInnerRadius: values[i],
-            targetOuterRadius: values[i + 1],
+            active: true,
+            startAngle: 2 * Math.PI * Math.random(),
+            endAngle: 2 * Math.PI * Math.random(),
+            rotationRate: Math.random() * 10,
+            targetInnerRadius: pair[0],
+            targetOuterRadius: pair[1],
         });
     }
-    return [data, extent];
+    return [data, d3.extent(values)];
 }
 
 function dg_loading_update(data, extent) {
@@ -57,17 +61,22 @@ function dg_loading_update(data, extent) {
             dg.loading.barHeight / 4, 
             dg.loading.barHeight
         ]);
-    dg.loading.selection = dg.loading.selection.data(data);
+    dg.loading.selection = dg.loading.selection.data(
+        data, 
+        function(d) { return Math.random(); });
+    var scale = d3.scale.category10();
     var selectionEnter = dg.loading.selection.enter()
         .append('path')
         .attr('class', 'arc')
         .attr('d', dg.loading.arc)
+        .attr('fill', function(d, i) { 
+            console.log('FILL', i, scale(i), scale(i + 1));
+            return scale(i);
+        })
         .each(function(d, i) { 
-            d.startAngle = 2 * Math.PI * Math.random();
-            d.endAngle = 2 * Math.PI * Math.random();
-            d.rotationRate = Math.random() * 10;
             d.innerRadius = 0;
             d.outerRadius = 0;
+            d.hasTimer = false;
         });
     var selectionExit = dg.loading.selection.exit();
     dg_loading_transition_update(selectionEnter, barScale);
@@ -104,21 +113,34 @@ function dg_loading_transition_exit(selection) {
                 d.outerRadius = outer(t);
                 return dg.loading.arc(d, i);
             };
+        })
+        .each('end', function(d) {
+            d.active = false;
+            this.remove();
         });
 }
 
 function dg_loading_rotate(selection) {
     var start = Date.now();
-    d3.timer(function() {
-        if (!dg.loading.isLoading) {
-            return true;
+    selection.each(function(d) {
+        if (d.hasTimer) {
+            console.log('SKIPPING', d);
+            return;
         }
-        selection.attr('transform', function(d) {
-            var angle = (Date.now() - start) * d.rotationRate;
-            if (0 < d.outerRadius) {
-                angle = angle / d.outerRadius;
+        d.hasTimer = true;
+        d3.timer(function() {
+            if (!d.active) {
+                return true;
             }
-            return 'rotate(' + angle + ')';
+            selection.attr('transform', function(d) {
+                var now = Date.now();
+                var angle = (now - start) * d.rotationRate;
+                if (0 < d.outerRadius) {
+                    angle = angle / d.outerRadius;
+                }
+                //console.log(d, now, start);
+                return 'rotate(' + angle + ')';
+            });
         });
     });
 }
