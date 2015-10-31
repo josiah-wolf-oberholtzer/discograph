@@ -3,7 +3,7 @@ function dg_events_loading_toggle(event) {
 }
 
 function dg_events_network_toggle(event) {
-
+    dg_network_toggle(event.status);
 }
 
 function dg_events_network_request(event) {

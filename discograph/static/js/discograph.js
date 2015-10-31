@@ -102,10 +102,16 @@
             var input = dg_loading_makeArray();
             var data = input[0],
                 extent = input[1];
+            $("#page-loading")
+                .removeClass("glyphicon-random")
+                .addClass("glyphicon-animate glyphicon-refresh");
         } else {
             dg.loading.isLoading = false;
             var data = [],
                 extent = [0, 0];
+            $("#page-loading")
+                .removeClass("glyphicon-animate glyphicon-refresh")
+                .addClass("glyphicon-random");
         }
         dg_loading_update(data, extent);
     }
@@ -1082,6 +1088,33 @@
         return vertices;
     }
 
+    function dg_network_toggle(status) {
+        if (status) {
+            dg.network.forceLayout.stop()
+            dg.network.isUpdating = true;
+            dg.network.layers.root.transition()
+                .duration(250)
+                .style("opacity", 0.333);
+            dg.network.layers.link.selectAll('.link')
+                .classed('noninteractive', true);
+            dg.network.layers.node.selectAll('.node')
+                .classed('noninteractive', true);
+        } else {
+            dg.network.forceLayout.resume();
+            dg.network.layers.root.transition()
+                .delay(250)
+                .duration(1000)
+                .style("opacity", 1)
+                .each('end', function(d, i) {
+                    dg.network.isUpdating = false;
+                    dg.network.layers.link.selectAll('.link')
+                        .classed('noninteractive', false);
+                    dg.network.layers.node.selectAll('.node')
+                        .classed('noninteractive', false);
+                });
+        }
+    }
+
     function dg_style_loading(state) {
         if (state) {
             dg.network.layers.root.transition()
@@ -1410,7 +1443,7 @@
     }
 
     function dg_events_network_toggle(event) {
-
+        dg_network_toggle(event.status);
     }
 
     function dg_events_network_request(event) {

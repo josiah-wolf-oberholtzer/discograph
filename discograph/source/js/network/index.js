@@ -10,3 +10,4 @@ import "paging";
 import "select";
 import "text";
 import "tick";
+import "toggle";

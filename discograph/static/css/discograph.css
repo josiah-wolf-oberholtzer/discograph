@@ -221,3 +221,7 @@ form .clear,
 .box-shadow {
   box-shadow: 0px 0px 10px #ddd;
 }
+.noninteractive {
+  pointer-events: none;
+  cursor: none;
+}
