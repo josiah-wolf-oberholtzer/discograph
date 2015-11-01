@@ -63,7 +63,12 @@ function dg_network_onNodeEnterElementConstruction(nodeEnter) {
 
 function dg_network_onNodeEnterEventBindings(nodeEnter) {
     nodeEnter.on("dblclick", function(d) {
-        if (!dg.network.isUpdating) { dg_network_navigate(d.key, true); }
+        console.log(d);
+        $(window).trigger({
+            type: 'discograph:network-fetch',
+            entityKey: d.key,
+            pushHistory: true,
+        });
     });
     nodeEnter.on("mousedown", function(d) {
         if (!dg.network.isUpdating) {
@@ -90,7 +95,11 @@ function dg_network_onNodeEnterEventBindings(nodeEnter) {
                 dg_network_selectNode(d.key);
             }
         } else if ((thisTime - lastTime) < 500) {
-            if (!dg.network.isUpdating) { dg_network_navigate(d.key, true); }
+            $(window).trigger({
+                type: 'discograph:network-fetch',
+                entityKey: d.key,
+                pushHistory: true,
+            });
         }
         d3.event.stopPropagation(); // Prevents propagation to #svg element.
     });

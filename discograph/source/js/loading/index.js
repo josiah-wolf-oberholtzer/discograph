@@ -76,7 +76,6 @@ function dg_loading_update(data, extent) {
         .attr('class', 'arc')
         .attr('d', dg.loading.arc)
         .attr('fill', function(d, i) { 
-            console.log('FILL', i, scale(i), scale(i + 1));
             return scale(i);
         })
         .each(function(d, i) { 
@@ -130,7 +129,6 @@ function dg_loading_rotate(selection) {
     var start = Date.now();
     selection.each(function(d) {
         if (d.hasTimer) {
-            console.log('SKIPPING', d);
             return;
         }
         d.hasTimer = true;
@@ -144,7 +142,6 @@ function dg_loading_rotate(selection) {
                 if (0 < d.outerRadius) {
                     angle = angle / d.outerRadius;
                 }
-                //console.log(d, now, start);
                 return 'rotate(' + angle + ')';
             });
         });

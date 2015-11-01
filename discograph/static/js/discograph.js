@@ -29,7 +29,11 @@
         var url = "/" + entityType + "/" + entityId;
         ga('send', 'pageview', url);
         ga('set', 'page', url);
-        dg_network_navigate(event.state.key, false);
+        $(window).trigger({
+            type: 'discograph:network-fetch',
+            entityKey: event.state.key,
+            pushHistory: false,
+        });
     }
 
     function dg_history_pushState(entityKey, params) {
@@ -155,7 +159,6 @@
             .attr('class', 'arc')
             .attr('d', dg.loading.arc)
             .attr('fill', function(d, i) {
-                console.log('FILL', i, scale(i), scale(i + 1));
                 return scale(i);
             })
             .each(function(d, i) {
@@ -213,7 +216,6 @@
         var start = Date.now();
         selection.each(function(d) {
             if (d.hasTimer) {
-                console.log('SKIPPING', d);
                 return;
             }
             d.hasTimer = true;
@@ -227,68 +229,10 @@
                     if (0 < d.outerRadius) {
                         angle = angle / d.outerRadius;
                     }
-                    //console.log(d, now, start);
                     return 'rotate(' + angle + ')';
                 });
             });
         });
-    }
-
-    function dg_network_navigate(key, pushHistory) {
-        var entityType = key.split("-")[0];
-        var entityId = key.split("-")[1];
-        dg.network.isUpdating = true;
-        var foundNode = dg.network.selections.node
-            .filter(function(d) {
-                return d.key == key;
-            });
-        if (foundNode.length == 1) {
-            foundNode.each(function(d) {
-                dg.network.newNodeCoords = [d.x, d.y];
-            });
-        } else {
-            dg.network.newNodeCoords = [
-                dg.dimensions[0] / 2,
-                dg.dimensions[1] / 2,
-            ];
-        }
-        dg_style_loading(true);
-        var url = "/api/" + entityType + "/network/" + entityId;
-        var params = {
-            'roles': $('#filter select').val()
-        };
-        if (params.roles) {
-            url += '?' + decodeURIComponent($.param(params));
-        }
-        $.ajax({
-            cache: true,
-            dataType: 'json',
-            error: dg_network_handleAsyncError,
-            success: function(data) {
-                dg_network_handleAsyncData(data, pushHistory, params);
-            },
-            url: url,
-        });
-    }
-
-    function dg_network_handleAsyncError(error) {
-        var message = 'Something went wrong!';
-        var status = error.status;
-        if (status == 0) {
-            status = 404;
-        }
-        if (status == 429) {
-            message = 'Hey, slow down, buddy. Give it a minute.'
-        }
-        var text = '<div class="alert alert-danger alert-dismissible" role="alert">';
-        text += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-        text += '<strong>' + status + '!</strong> ' + message;
-        text += '</div>';
-        $('#flash').append(text);
-        setTimeout(function() {
-            dg.network.isUpdating = false;
-        }, 2000);
-        dg_style_loading(false);
     }
 
     function dg_network_handleAsyncData(json, pushHistory, params) {
@@ -310,10 +254,8 @@
         dg_network_selectPage(1);
         dg_network_startForceLayout();
         dg_network_selectNode(dg.network.data.json.center.key);
-        setTimeout(function() {
-            dg.network.isUpdating = false;
-        }, 2000);
-        dg_style_loading(false);
+        dg_network_toggle(true);
+        dg_loading_toggle(false);
     }
 
     function dg_network_setupForceLayout() {
@@ -339,9 +281,8 @@
                 }
             })
             .charge(-300)
-            //.chargeDistance(1000)
             .gravity(0.2)
-            .theta(0.8)
+            .theta(0.9)
             .alpha(0.1);
     }
 
@@ -489,50 +430,6 @@
         dg.network.data.maxDistance = Math.max.apply(Math, distances);
     }
 
-    function dg_network_tick(e) {
-        var k = e.alpha * 0.5;
-        dg.network.pageData.nodes.filter(function(d) {
-            return d.key == dg.network.data.json.center.key && !d.fixed;
-        }).forEach(function(d) {
-            var dims = dg.dimensions;
-            var dx = ((dims[0] / 2) - d.x) * k;
-            var dy = ((dims[1] / 2) - d.y) * k;
-            d.x += dx;
-            d.y += dy;
-        });
-        dg.network.selections.link.each(dg_network_tick_link);
-        dg.network.selections.halo.attr("transform", dg_network_translate);
-        dg.network.selections.node.attr("transform", dg_network_translate);
-        dg.network.selections.text.attr("transform", dg_network_translate);
-        dg.network.selections.hull.select("path").attr("d", function(d) {
-            return "M" + d3.geom.hull(dg_network_getHullVertices(d.values)).join("L") + "Z";
-        });
-    }
-
-    function dg_network_tick_link(d, i) {
-        var group = d3.select(this);
-        var spline = dg_network_spline(d);
-        var x1 = d.source.x;
-        var y1 = d.source.y;
-        var x2 = d.target.x;
-        var y2 = d.target.y;
-        group.selectAll('path')
-            .attr("d", spline)
-            .attr("x1", x1)
-            .attr("y1", y1)
-            .attr("x2", x2)
-            .attr("y2", y2);
-        var path = group.select('path').node();
-        var point = path.getPointAtLength(path.getTotalLength() / 2);
-        var x = point.x,
-            y = point.y;
-        var angle = Math.atan2((y2 - y1), (x2 - x1)) * (180 / Math.PI);
-        var text = group.selectAll('text')
-            .attr('dx', point.x)
-            .attr('dy', point.y)
-            .attr('transform', 'rotate(' + angle + ' ' + x + ' ' + y + ')');
-    }
-
     function dg_network_onHaloEnter(haloEnter) {
         var haloEnter = haloEnter.append("g")
             .attr("class", function(d) {
@@ -611,8 +508,10 @@
         ]
         linkEnter.append("path")
             .attr("class", "inner")
-        linkEnter.append("path")
-            .attr("class", "outer")
+            /*
+            linkEnter.append("path")
+                .attr("class", "outer")
+            */
             .append("title").text(function(d) {
                 var source = d.source.name,
                     role = d.role,
@@ -752,9 +651,12 @@
 
     function dg_network_onNodeEnterEventBindings(nodeEnter) {
         nodeEnter.on("dblclick", function(d) {
-            if (!dg.network.isUpdating) {
-                dg_network_navigate(d.key, true);
-            }
+            console.log(d);
+            $(window).trigger({
+                type: 'discograph:network-fetch',
+                entityKey: d.key,
+                pushHistory: true,
+            });
         });
         nodeEnter.on("mousedown", function(d) {
             if (!dg.network.isUpdating) {
@@ -785,9 +687,11 @@
                     dg_network_selectNode(d.key);
                 }
             } else if ((thisTime - lastTime) < 500) {
-                if (!dg.network.isUpdating) {
-                    dg_network_navigate(d.key, true);
-                }
+                $(window).trigger({
+                    type: 'discograph:network-fetch',
+                    entityKey: d.key,
+                    pushHistory: true,
+                });
             }
             d3.event.stopPropagation(); // Prevents propagation to #svg element.
         });
@@ -1038,11 +942,7 @@
         return 9 + (Math.sqrt(d.size) * 2);
     }
 
-    function dg_network_translate(d) {
-        return "translate(" + d.x + "," + d.y + ")";
-    }
-
-    function dg_network_splineInner(name, sX, sY, sR, cX, cY) {
+    function dg_network_splineInner(sX, sY, sR, cX, cY) {
         var dX = (sX - cX),
             dY = (sY - cY);
         var angle = Math.atan(dY / dX);
@@ -1064,8 +964,8 @@
         if (d.intermediate) {
             var cX = d.intermediate.x;
             var cY = d.intermediate.y;
-            sXY = dg_network_splineInner("Source", sX, sY, sR, cX, cY);
-            tXY = dg_network_splineInner("Source", tX, tY, tR, cX, cY);
+            sXY = dg_network_splineInner(sX, sY, sR, cX, cY);
+            tXY = dg_network_splineInner(tX, tY, tR, cX, cY);
             return (
                 "M " + sXY[0] + "," + sXY[1] + " " +
                 "S " + cX + "," + cY + " " +
@@ -1088,19 +988,60 @@
         return vertices;
     }
 
+    var unlabeled_roles = [
+        'Alias',
+        'Member Of',
+        'Sublabel Of',
+    ];
+
+    function dg_network_tick_link(d, i) {
+        var group = d3.select(this);
+        var paths = group.selectAll('path');
+        paths.attr('d', dg_network_spline(d));
+        var x1 = d.source.x,
+            y1 = d.source.y,
+            x2 = d.target.x,
+            y2 = d.target.y;
+        //paths.attr("x1", x1).attr("y1", y1).attr("x2", x2).attr("y2", y2);
+        if (unlabeled_roles.indexOf(d.role) == -1) {
+            var path = paths.node();
+            var point = path.getPointAtLength(path.getTotalLength() / 2);
+            var x = point.x,
+                y = point.y;
+            var angle = Math.atan2((y2 - y1), (x2 - x1)) * (180 / Math.PI);
+            var text = group.selectAll('text')
+                .attr('dx', point.x)
+                .attr('dy', point.y)
+                .attr('transform', 'rotate(' + angle + ' ' + x + ' ' + y + ')');
+        }
+    }
+
+    function dg_network_translate(d) {
+        return "translate(" + d.x + "," + d.y + ")";
+    }
+
+    function dg_network_tick(e) {
+        var k = e.alpha * 5;
+        var centerNode = dg.network.data.nodeMap.get(dg.network.data.json.center.key);
+        if (!centerNode.fixed) {
+            var dims = dg.dimensions;
+            var dx = ((dims[0] / 2) - centerNode.x) * k;
+            var dy = ((dims[1] / 2) - centerNode.y) * k;
+            centerNode.x += dx;
+            centerNode.y += dy;
+        }
+        dg.network.selections.link.each(dg_network_tick_link);
+        dg.network.selections.halo.attr("transform", dg_network_translate);
+        dg.network.selections.node.attr("transform", dg_network_translate);
+        dg.network.selections.text.attr("transform", dg_network_translate);
+        dg.network.selections.hull.select("path").attr("d", function(d) {
+            var vertices = d3.geom.hull(dg_network_getHullVertices(d.values));
+            return "M" + vertices.join("L") + "Z";
+        });
+    }
+
     function dg_network_toggle(status) {
         if (status) {
-            dg.network.forceLayout.stop()
-            dg.network.isUpdating = true;
-            dg.network.layers.root.transition()
-                .duration(250)
-                .style("opacity", 0.333);
-            dg.network.layers.link.selectAll('.link')
-                .classed('noninteractive', true);
-            dg.network.layers.node.selectAll('.node')
-                .classed('noninteractive', true);
-        } else {
-            dg.network.forceLayout.resume();
             dg.network.layers.root.transition()
                 .delay(250)
                 .duration(1000)
@@ -1112,25 +1053,16 @@
                     dg.network.layers.node.selectAll('.node')
                         .classed('noninteractive', false);
                 });
-        }
-    }
-
-    function dg_style_loading(state) {
-        if (state) {
+        } else {
+            dg.network.forceLayout.stop()
+            dg.network.isUpdating = true;
             dg.network.layers.root.transition()
                 .duration(250)
                 .style("opacity", 0.333);
-            $("#page-loading")
-                .removeClass("glyphicon-random")
-                .addClass("glyphicon-animate glyphicon-refresh");
-        } else {
-            dg.network.layers.root.transition()
-                .delay(250)
-                .duration(1000)
-                .style("opacity", 1);
-            $("#page-loading")
-                .removeClass("glyphicon-animate glyphicon-refresh")
-                .addClass("glyphicon-random");
+            dg.network.layers.link.selectAll('.link')
+                .classed('noninteractive', true);
+            dg.network.layers.node.selectAll('.node')
+                .classed('noninteractive', true);
         }
     }
 
@@ -1431,10 +1363,14 @@
     function dg_typeahead_navigate() {
         var datum = $("#typeahead").data("selectedKey");
         if (datum) {
-            dg_network_navigate(datum, true);
             $("#typeahead").typeahead("close");
             $("#typeahead").blur();
             $('.navbar-toggle').click();
+            $(window).trigger({
+                type: 'discograph:network-fetch',
+                entityKey: datum,
+                pushHistory: true,
+            });
         };
     }
 
@@ -1446,33 +1382,77 @@
         dg_network_toggle(event.status);
     }
 
-    function dg_events_network_request(event) {
-
+    function dg_events_network_fetch(event) {
+        dg_network_toggle(false);
+        dg_loading_toggle(true);
+        var entityKey = event.entityKey;
+        var entityType = entityKey.split("-")[0];
+        var entityId = entityKey.split("-")[1];
+        var pushHistory = event.pushHistory;
+        var url = "/api/" + entityType + "/network/" + entityId;
+        var params = {
+            'roles': $('#filter select').val()
+        };
+        if (params.roles) {
+            url += '?' + decodeURIComponent($.param(params));
+        }
+        d3.json(url, function(error, json) {
+            if (error) {
+                $(window).trigger({
+                    type: 'discograph:error',
+                    error: error,
+                });
+            } else {
+                dg_network_handleAsyncData(json, pushHistory, params);
+            }
+        });
     }
 
-    function dg_events_network_response(event) {
-
-    }
-
-    function dg_events_random_request(event) {
-
-    }
-
-    function dg_events_random_response(event) {
-
+    function dg_events_random_fetch(event) {
+        dg_network_toggle(false);
+        dg_loading_toggle(true);
+        var url = '/api/random?' + Math.floor(Math.random() * 1000000);
+        d3.json(url, function(error, json) {
+            if (error) {
+                $(window).trigger({
+                    type: 'discograph:error',
+                    error: error,
+                });
+            } else {
+                $(window).trigger({
+                    type: 'discograph:network-fetch',
+                    entityKey: json.center,
+                    pushHistory: true,
+                });
+            }
+        });
     }
 
     function dg_events_error(event) {
-
+        var error = event.error;
+        var message = 'Something went wrong!';
+        var status = error.status;
+        if (status == 0) {
+            status = 404;
+        } else if (status == 429) {
+            message = 'Hey, slow down, buddy. Give it a minute.'
+        }
+        var text = '<div class="alert alert-danger alert-dismissible" role="alert">';
+        text += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+        text += '<strong>' + status + '!</strong> ' + message;
+        text += '</div>';
+        $('#flash').append(text);
+        dg_network_toggle(true);
+        dg_loading_toggle(false);
     }
 
     function dg_events_network_select_node(event) {
-        dg_network_selectNode(event.payload.key);
+        dg_network_selectNode(event.key);
     }
 
     function dg_events_network_select_page(event) {
         $(event.target).tooltip('hide');
-        dg_network_selectPage(event.payload.page);
+        dg_network_selectPage(event.page);
         dg_network_startForceLayout();
         dg_network_reselectNode();
     }
@@ -1497,17 +1477,22 @@
     }
 
     function dg_events_init() {
+        $(window).on('discograph:error', dg_events_error);
         $(window).on('discograph:loading-toggle', dg_events_loading_toggle);
-        $(window).on('discograph:network-toggle', dg_events_network_toggle);
-        $(window).on('discograph:network-request', dg_events_network_request);
-        $(window).on('discograph:network-response', dg_events_network_response);
-        $(window).on('discograph:random-request', dg_events_random_request);
-        $(window).on('discograph:random-response', dg_events_random_response);
+        $(window).on('discograph:network-fetch', $.debounce(500, function(event) {
+            dg_events_network_fetch(event);
+        }));
         $(window).on('discograph:network-select-node', dg_events_network_select_node);
         $(window).on('discograph:network-select-page', dg_events_network_select_page);
-        $(window).on('popstate', dg_history_onPopState);
+        $(window).on('discograph:network-toggle', dg_events_network_toggle);
+        $(window).on('discograph:random-fetch', $.debounce(500, function(event) {
+            dg_events_random_fetch(event);
+        }));
+        $(window).on('popstate', function(event) {
+            //console.log('POP', event);
+            dg_history_onPopState(event.originalEvent);
+        });
         $(window).on('resize', $.debounce(100, function(event) {
-            console.log(event);
             dg_events_window_resize(event);
         }));
     }
@@ -1526,53 +1511,29 @@
             dg_network_handleAsyncData(dgData, false);
         }
         $('[data-toggle="tooltip"]').tooltip();
-        (function() {
-            var click = $.debounce(300, function() {
-                var url = '/api/random?' + Math.floor(Math.random() * 1000000);
-                if (!dg.network.isUpdating) {
-                    dg.network.layers.root.transition()
-                        .style("opacity", 0.333);
-                    $("#page-loading")
-                        .removeClass("glyphicon-random")
-                        .addClass("glyphicon-animate glyphicon-refresh");
-                    d3.json(url, function(error, json) {
-                        if (error) {
-                            dg_network_handleAsyncError(error);
-                            return;
-                        }
-                        dg_network_navigate(json.center, true);
-                    });
-                } else {
-                    dg_warn();
-                }
+        $('#brand').on("click touchstart", function(event) {
+            event.preventDefault();
+            $(this).tooltip('hide');
+            $(this).trigger({
+                type: 'discograph:random-fetch',
             });
-            $('#brand').on("click touchstart", function(event) {
-                click();
-                $(this).tooltip('hide');
-                event.preventDefault();
-            });
-        }());
+        });
         $('#paging .next a').click(function(event) {
             $(this).trigger({
                 type: 'discograph:network-select-page',
-                payload: {
-                    page: dg_network_getNextPage()
-                },
+                page: dg_network_getNextPage(),
             });
         });
         $('#paging .previous a').click(function(event) {
             $(this).trigger({
                 type: 'discograph:network-select-page',
-                payload: {
-                    page: dg_network_getPrevPage()
-                },
+                page: dg_network_getPrevPage(),
             });
         });
         $('#filter-roles').multiselect({
             buttonWidth: "160px",
             enableFiltering: true,
             enableCaseInsensitiveFiltering: true,
-            //includeSelectAllOption: true,
             inheritClass: true,
             enableClickableOptGroups: true,
             maxHeight: 400,
@@ -1586,8 +1547,12 @@
             event.preventDefault();
         });
         $('#filter').submit(function(event) {
-            dg_network_navigate(dg.network.data.json.center.key, true);
             event.preventDefault();
+            $(window).trigger({
+                type: 'discograph:network-fetch',
+                entityKey: dg.network.data.json.center.key,
+                pushHistory: true,
+            });
         });
         $('#filter').fadeIn(3000);
         console.log('discograph initialized.');

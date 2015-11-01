@@ -21,9 +21,8 @@ function dg_network_setupForceLayout() {
             }
         })
         .charge(-300)
-        //.chargeDistance(1000)
         .gravity(0.2)
-        .theta(0.8)
+        .theta(0.9)
         .alpha(0.1);
 }
 
@@ -161,45 +160,4 @@ function dg_network_processJson(json) {
         }
     })
     dg.network.data.maxDistance = Math.max.apply(Math, distances);
-}
-
-function dg_network_tick(e) {
-    var k = e.alpha * 0.5;
-    dg.network.pageData.nodes.filter(function(d) {
-        return d.key == dg.network.data.json.center.key && !d.fixed;
-    }).forEach(function(d) {
-        var dims = dg.dimensions;
-        var dx = ((dims[0] / 2) - d.x) * k;
-        var dy = ((dims[1] / 2) - d.y) * k;
-        d.x += dx;
-        d.y += dy;
-    });
-    dg.network.selections.link.each(dg_network_tick_link);
-    dg.network.selections.halo.attr("transform", dg_network_translate);
-    dg.network.selections.node.attr("transform", dg_network_translate);
-    dg.network.selections.text.attr("transform", dg_network_translate);
-    dg.network.selections.hull.select("path").attr("d", function(d) {
-        return "M" + d3.geom.hull(dg_network_getHullVertices(d.values)).join("L") + "Z"; });
-}
-function dg_network_tick_link(d, i) {
-    var group = d3.select(this);
-    var spline = dg_network_spline(d);
-    var x1 = d.source.x;
-    var y1 = d.source.y;
-    var x2 = d.target.x;
-    var y2 = d.target.y;
-    group.selectAll('path')
-        .attr("d", spline)
-        .attr("x1", x1)
-        .attr("y1", y1)
-        .attr("x2", x2)
-        .attr("y2", y2);
-    var path = group.select('path').node();
-    var point = path.getPointAtLength(path.getTotalLength() / 2);
-    var x = point.x, y = point.y;
-    var angle = Math.atan2((y2 - y1), (x2 - x1)) * (180 / Math.PI);
-    var text = group.selectAll('text')
-        .attr('dx', point.x)
-        .attr('dy', point.y)
-        .attr('transform', 'rotate(' + angle + ' ' + x + ' ' + y + ')');
 }

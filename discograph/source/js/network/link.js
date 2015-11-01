@@ -21,8 +21,10 @@ function dg_network_onLinkEnterElementConstruction(linkEnter) {
         ]
     linkEnter.append("path")
         .attr("class", "inner")
+    /*
     linkEnter.append("path")
         .attr("class", "outer")
+    */
         .append("title").text(function(d) {
             var source = d.source.name,
                 role = d.role,
@@ -82,4 +84,3 @@ function dg_network_onLinkUpdate(linkSelection) {
         });
     }
 }
-

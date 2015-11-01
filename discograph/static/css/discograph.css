@@ -43,6 +43,16 @@ form .clear,
 #networkLayer .link {
   opacity: 0.25;
 }
+#networkLayer .link path {
+  /*
+            &.outer {
+                fill: none;
+                stroke-opacity: 0;
+                stroke: #000;
+                stroke-width: 10;
+                }
+            */
+}
 #networkLayer .link path.inner {
   fill: none;
   marker-end: url(#arrowhead);
@@ -51,12 +61,6 @@ form .clear,
   stroke-linejoin: round;
   stroke-width: 1;
   stroke: #000;
-}
-#networkLayer .link path.outer {
-  fill: none;
-  stroke-opacity: 0;
-  stroke: #000;
-  stroke-width: 10;
 }
 #networkLayer .link text {
   pointer-events: none;
@@ -83,7 +87,6 @@ form .clear,
   stroke-dasharray: 0, 0;
 }
 #networkLayer .link.released-on path.inner {
-  marker-end: url(#arrowhead);
   stroke-dasharray: 0, 0;
 }
 #networkLayer .link.selected {

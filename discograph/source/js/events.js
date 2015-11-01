@@ -6,33 +6,75 @@ function dg_events_network_toggle(event) {
     dg_network_toggle(event.status);
 }
 
-function dg_events_network_request(event) {
-
+function dg_events_network_fetch(event) {
+    dg_network_toggle(false);
+    dg_loading_toggle(true);
+    var entityKey = event.entityKey;
+    var entityType = entityKey.split("-")[0];
+    var entityId = entityKey.split("-")[1];
+    var pushHistory = event.pushHistory;
+    var url = "/api/" + entityType + "/network/" + entityId;
+    var params = {'roles': $('#filter select').val()};
+    if (params.roles) {
+        url += '?' + decodeURIComponent($.param(params));
+    }
+    d3.json(url, function(error, json) {
+        if (error) {
+            $(window).trigger({
+                type: 'discograph:error', 
+                error: error,
+            });
+        } else {
+            dg_network_handleAsyncData(json, pushHistory, params);
+        }
+    });
 }
 
-function dg_events_network_response(event) {
-
-}
-
-function dg_events_random_request(event) {
-
-}
-
-function dg_events_random_response(event) {
-
+function dg_events_random_fetch(event) {
+    dg_network_toggle(false);
+    dg_loading_toggle(true);
+    var url = '/api/random?' + Math.floor(Math.random() * 1000000);
+    d3.json(url, function(error, json) {
+        if (error) {
+            $(window).trigger({
+                type: 'discograph:error', 
+                error: error,
+            });
+        } else {
+            $(window).trigger({
+                type: 'discograph:network-fetch',
+                entityKey: json.center,
+                pushHistory: true,
+            });
+        }
+    });
 }
 
 function dg_events_error(event) {
-
+    var error = event.error;
+    var message = 'Something went wrong!';
+    var status = error.status;
+    if (status == 0) {
+        status = 404;
+    } else if (status == 429) {
+        message = 'Hey, slow down, buddy. Give it a minute.'
+    }
+    var text = '<div class="alert alert-danger alert-dismissible" role="alert">';
+    text += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+    text += '<strong>' + status + '!</strong> ' + message;
+    text += '</div>';
+    $('#flash').append(text);
+    dg_network_toggle(true);
+    dg_loading_toggle(false);
 }
 
 function dg_events_network_select_node(event) {
-    dg_network_selectNode(event.payload.key);
+    dg_network_selectNode(event.key);
 }
 
 function dg_events_network_select_page(event) {
     $(event.target).tooltip('hide');
-    dg_network_selectPage(event.payload.page);
+    dg_network_selectPage(event.page);
     dg_network_startForceLayout();
     dg_network_reselectNode();
 }
@@ -57,17 +99,22 @@ function dg_events_window_resize(event) {
 }
 
 function dg_events_init() {
+    $(window).on('discograph:error', dg_events_error);
     $(window).on('discograph:loading-toggle', dg_events_loading_toggle);
-    $(window).on('discograph:network-toggle', dg_events_network_toggle);
-    $(window).on('discograph:network-request', dg_events_network_request);
-    $(window).on('discograph:network-response', dg_events_network_response);
-    $(window).on('discograph:random-request', dg_events_random_request);
-    $(window).on('discograph:random-response', dg_events_random_response);
+    $(window).on('discograph:network-fetch', $.debounce(500, function(event) {
+        dg_events_network_fetch(event);
+    }));
     $(window).on('discograph:network-select-node', dg_events_network_select_node);
     $(window).on('discograph:network-select-page', dg_events_network_select_page);
-    $(window).on('popstate', dg_history_onPopState);
+    $(window).on('discograph:network-toggle', dg_events_network_toggle);
+    $(window).on('discograph:random-fetch', $.debounce(500, function(event) {
+        dg_events_random_fetch(event);
+    }));
+    $(window).on('popstate', function(event) {
+        //console.log('POP', event);
+        dg_history_onPopState(event.originalEvent);
+    });
     $(window).on('resize', $.debounce(100, function(event) { 
-        console.log(event);
         dg_events_window_resize(event);
     }));
 }

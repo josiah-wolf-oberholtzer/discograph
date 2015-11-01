@@ -1,22 +1,3 @@
-function dg_style_loading(state) {
-    if (state) {
-        dg.network.layers.root.transition()
-            .duration(250)
-            .style("opacity", 0.333);
-        $("#page-loading")
-            .removeClass("glyphicon-random")
-            .addClass("glyphicon-animate glyphicon-refresh");
-    } else {
-        dg.network.layers.root.transition()
-            .delay(250)
-            .duration(1000)
-            .style("opacity", 1);
-        $("#page-loading")
-            .removeClass("glyphicon-animate glyphicon-refresh")
-            .addClass("glyphicon-random");
-    }
-}
-
 function dg_svg_init() {
     d3.selection.prototype.moveToFront = function() {
         return this.each(function(){ this.parentNode.appendChild(this); });

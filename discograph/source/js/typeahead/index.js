@@ -68,9 +68,13 @@ function dg_typeahead_init() {
 function dg_typeahead_navigate() {
     var datum = $("#typeahead").data("selectedKey");
     if (datum) {
-        dg_network_navigate(datum, true);
         $("#typeahead").typeahead("close");
         $("#typeahead").blur();
         $('.navbar-toggle').click();
+        $(window).trigger({
+            type: 'discograph:network-fetch',
+            entityKey: datum,
+            pushHistory: true,
+        });
     };
 }

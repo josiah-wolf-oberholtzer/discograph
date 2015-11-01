@@ -8,7 +8,11 @@ function dg_history_onPopState(event) {
     var url = "/" + entityType + "/" + entityId;
     ga('send', 'pageview', url);
     ga('set', 'page', url);
-    dg_network_navigate(event.state.key, false);
+    $(window).trigger({
+        type: 'discograph:network-fetch',
+        entityKey: event.state.key,
+        pushHistory: false,
+    });
 }
 
 function dg_history_pushState(entityKey, params) {
