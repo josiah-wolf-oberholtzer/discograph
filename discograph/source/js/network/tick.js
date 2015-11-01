@@ -21,7 +21,6 @@ function dg_network_splineInner(sX, sY, sR, cX, cY) {
 }
 
 function dg_network_spline(d) {
-    //console.log(d);
     var sX = d.source.x;
     var sY = d.source.y;
     var tX = d.target.x;
@@ -88,13 +87,15 @@ function dg_network_translate(d) {
 
 function dg_network_tick(e) {
     var k = e.alpha * 5;
-    var centerNode = dg.network.data.nodeMap.get(dg.network.data.json.center.key);
-    if (!centerNode.fixed) {
-        var dims = dg.dimensions;
-        var dx = ((dims[0] / 2) - centerNode.x) * k;
-        var dy = ((dims[1] / 2) - centerNode.y) * k;
-        centerNode.x += dx;
-        centerNode.y += dy;
+    if (dg.network.data.json) {
+        var centerNode = dg.network.data.nodeMap.get(dg.network.data.json.center.key);
+        if (!centerNode.fixed) {
+            var dims = dg.dimensions;
+            var dx = ((dims[0] / 2) - centerNode.x) * k;
+            var dy = ((dims[1] / 2) - centerNode.y) * k;
+            centerNode.x += dx;
+            centerNode.y += dy;
+        }
     }
     dg.network.selections.link.each(dg_network_tick_link);
     dg.network.selections.halo.attr("transform", dg_network_translate);

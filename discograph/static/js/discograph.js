@@ -501,49 +501,45 @@
         dg_network_onLinkEnterEventBindings(linkEnter);
     }
 
+    function dg_network_linkTitle(d) {
+        var source = d.source.name,
+            role = d.role,
+            target = d.target.name;
+        if (role == "Alias") {
+            return source + " ↔ (" + role + ") ↔ " + target;
+        } else {
+            return source + " → (" + role + ") → " + target;
+        }
+    }
+
+    var nonAnnotatedRoles = [
+        'Alias',
+        'Member Of',
+        'Sublabel Of',
+    ]
+
+    function dg_network_linkAnnotation(d) {
+        if (nonAnnotatedRoles.indexOf(d.role) != -1) {
+            return null;
+        } else {
+            return d.role.split(' ').map(function(x) {
+                return x[0];
+            }).join('');
+        }
+    }
+
     function dg_network_onLinkEnterElementConstruction(linkEnter) {
-        var aggregateRoleNames = [
-            "Member Of", "Sublable Of",
-            "Released On", "Compiled On",
-        ]
         linkEnter.append("path")
             .attr("class", "inner")
-            /*
-            linkEnter.append("path")
-                .attr("class", "outer")
-            */
-            .append("title").text(function(d) {
-                var source = d.source.name,
-                    role = d.role,
-                    target = d.target.name;
-                if (role == "Alias") {
-                    return source + " ↔ (" + role + ") ↔ " + target;
-                } else {
-                    return source + " → (" + role + ") → " + target;
-                }
-            });
+            .append("title").text(dg_network_linkTitle);
         linkEnter.append("text")
             .attr('class', 'outer')
-            .text(function(d) {
-                if (['Alias', 'Member Of', 'Sublabel Of'].indexOf(d.role) != -1) {
-                    return null;
-                } else {
-                    return d.role.split(' ').map(function(x) {
-                        return x[0];
-                    }).join('');
-                }
-            });
+            .text(dg_network_linkAnnotation)
+            .append("title").text(dg_network_linkTitle);
         linkEnter.append("text")
             .attr('class', 'inner')
-            .text(function(d) {
-                if (['Alias', 'Member Of', 'Sublabel Of'].indexOf(d.role) != -1) {
-                    return null;
-                } else {
-                    return d.role.split(' ').map(function(x) {
-                        return x[0];
-                    }).join('');
-                }
-            });
+            .text(dg_network_linkAnnotation)
+            .append("title").text(dg_network_linkTitle);
     }
 
     function dg_network_onLinkEnterEventBindings(linkEnter) {
@@ -651,7 +647,6 @@
 
     function dg_network_onNodeEnterEventBindings(nodeEnter) {
         nodeEnter.on("dblclick", function(d) {
-            console.log(d);
             $(window).trigger({
                 type: 'discograph:network-fetch',
                 entityKey: d.key,
@@ -954,7 +949,6 @@
     }
 
     function dg_network_spline(d) {
-        //console.log(d);
         var sX = d.source.x;
         var sY = d.source.y;
         var tX = d.target.x;
@@ -1022,13 +1016,15 @@
 
     function dg_network_tick(e) {
         var k = e.alpha * 5;
-        var centerNode = dg.network.data.nodeMap.get(dg.network.data.json.center.key);
-        if (!centerNode.fixed) {
-            var dims = dg.dimensions;
-            var dx = ((dims[0] / 2) - centerNode.x) * k;
-            var dy = ((dims[1] / 2) - centerNode.y) * k;
-            centerNode.x += dx;
-            centerNode.y += dy;
+        if (dg.network.data.json) {
+            var centerNode = dg.network.data.nodeMap.get(dg.network.data.json.center.key);
+            if (!centerNode.fixed) {
+                var dims = dg.dimensions;
+                var dx = ((dims[0] / 2) - centerNode.x) * k;
+                var dy = ((dims[1] / 2) - centerNode.y) * k;
+                centerNode.x += dx;
+                centerNode.y += dy;
+            }
         }
         dg.network.selections.link.each(dg_network_tick_link);
         dg.network.selections.halo.attr("transform", dg_network_translate);
@@ -1214,7 +1210,6 @@
             return parseInt(d.key);
         })
         var extent = d3.extent(years);
-        console.log(extent);
         var scale = d3.scale.linear()
             .domain(extent)
             .range([100, dg.dimensions[0] - 100]);
@@ -1489,7 +1484,6 @@
             dg_events_random_fetch(event);
         }));
         $(window).on('popstate', function(event) {
-            //console.log('POP', event);
             dg_history_onPopState(event.originalEvent);
         });
         $(window).on('resize', $.debounce(100, function(event) {
@@ -1507,6 +1501,7 @@
             var params = {
                 'roles': $('#filter select').val()
             };
+            dg.network.data.json = dgData;
             dg_history_replaceState(dgData.center.key, params);
             dg_network_handleAsyncData(dgData, false);
         }

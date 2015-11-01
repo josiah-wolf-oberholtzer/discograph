@@ -111,7 +111,6 @@ function dg_events_init() {
         dg_events_random_fetch(event);
     }));
     $(window).on('popstate', function(event) {
-        //console.log('POP', event);
         dg_history_onPopState(event.originalEvent);
     });
     $(window).on('resize', $.debounce(100, function(event) { 

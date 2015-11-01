@@ -28,7 +28,6 @@ function dg_timeline_fetch(id) {
 function dg_timeline_chartTimeline() {
     var years = dg.timeline.nested.map(function(d) { return parseInt(d.key); })
     var extent = d3.extent(years);
-    console.log(extent);
     var scale = d3.scale.linear()
         .domain(extent)
         .range([100, dg.dimensions[0] - 100]);

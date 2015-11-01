@@ -63,7 +63,6 @@ function dg_network_onNodeEnterElementConstruction(nodeEnter) {
 
 function dg_network_onNodeEnterEventBindings(nodeEnter) {
     nodeEnter.on("dblclick", function(d) {
-        console.log(d);
         $(window).trigger({
             type: 'discograph:network-fetch',
             entityKey: d.key,

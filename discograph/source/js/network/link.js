@@ -14,49 +14,45 @@ function dg_network_onLinkEnter(linkEnter) {
     dg_network_onLinkEnterEventBindings(linkEnter);
 }
 
+function dg_network_linkTitle(d) {
+    var source = d.source.name,
+        role = d.role,
+        target = d.target.name;
+    if (role == "Alias") {
+        return source + " ↔ (" + role + ") ↔ " + target;
+    } else {
+        return source + " → (" + role + ") → " + target;
+    }
+}
+
+var nonAnnotatedRoles = [
+    'Alias',
+    'Member Of',
+    'Sublabel Of',
+    ]
+
+function dg_network_linkAnnotation(d) {
+    if (nonAnnotatedRoles.indexOf(d.role) != -1) {
+        return null;
+    } else {
+        return d.role.split(' ').map(function(x) {
+            return x[0];
+        }).join('');
+    }
+}
+
 function dg_network_onLinkEnterElementConstruction(linkEnter) {
-    var aggregateRoleNames = [
-        "Member Of", "Sublable Of",
-        "Released On", "Compiled On",
-        ]
     linkEnter.append("path")
         .attr("class", "inner")
-    /*
-    linkEnter.append("path")
-        .attr("class", "outer")
-    */
-        .append("title").text(function(d) {
-            var source = d.source.name,
-                role = d.role,
-                target = d.target.name;
-            if (role == "Alias") {
-                return source + " ↔ (" + role + ") ↔ " + target;
-            } else {
-                return source + " → (" + role + ") → " + target;
-            }
-        });
+        .append("title").text(dg_network_linkTitle);
     linkEnter.append("text")
         .attr('class', 'outer')
-        .text(function(d) {
-            if (['Alias', 'Member Of', 'Sublabel Of'].indexOf(d.role) != -1) {
-                return null;
-            } else {
-                return d.role.split(' ').map(function(x) {
-                    return x[0];
-                }).join('');
-            }
-        });
+        .text(dg_network_linkAnnotation)
+        .append("title").text(dg_network_linkTitle);
     linkEnter.append("text")
         .attr('class', 'inner')
-        .text(function(d) {
-            if (['Alias', 'Member Of', 'Sublabel Of'].indexOf(d.role) != -1) {
-                return null;
-            } else {
-                return d.role.split(' ').map(function(x) {
-                    return x[0];
-                }).join('');
-            }
-        });
+        .text(dg_network_linkAnnotation)
+        .append("title").text(dg_network_linkTitle);
 }
 
 function dg_network_onLinkEnterEventBindings(linkEnter) {

@@ -7,6 +7,7 @@ $(document).ready(function() {
     dg_events_init();
     if (dgData) {
         var params = {'roles': $('#filter select').val()};
+        dg.network.data.json = dgData;
         dg_history_replaceState(dgData.center.key, params);
         dg_network_handleAsyncData(dgData, false);
     }
