@@ -22,7 +22,7 @@ function dg_network_setupForceLayout() {
         })
         .charge(-300)
         .gravity(0.2)
-        .theta(0.9)
+        .theta(1)
         .alpha(0.1);
 }
 

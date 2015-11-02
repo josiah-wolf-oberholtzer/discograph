@@ -62,23 +62,22 @@ var unlabeled_roles = [
 
 function dg_network_tick_link(d, i) {
     var group = d3.select(this);
-    var paths = group.selectAll('path');
-    paths.attr('d', dg_network_spline(d));
+    var path = group.select('path');
+    path.attr('d', dg_network_spline(d));
     var x1 = d.source.x,
         y1 = d.source.y,
         x2 = d.target.x,
         y2 = d.target.y;
-    //paths.attr("x1", x1).attr("y1", y1).attr("x2", x2).attr("y2", y2);
-    if (unlabeled_roles.indexOf(d.role) == -1) {
-        var path = paths.node();
-        var point = path.getPointAtLength(path.getTotalLength() / 2);
-        var x = point.x, y = point.y;
-        var angle = Math.atan2((y2 - y1), (x2 - x1)) * (180 / Math.PI);
-        var text = group.selectAll('text')
-            .attr('dx', point.x)
-            .attr('dy', point.y)
-            .attr('transform', 'rotate(' + angle + ' ' + x + ' ' + y + ')');
-    }
+    var node = path.node();
+    var point = node.getPointAtLength(node.getTotalLength() / 2);
+    var x = point.x, y = point.y;
+    d.x = x;
+    d.y = y;
+    var angle = Math.atan2((y2 - y1), (x2 - x1)) * (180 / Math.PI);
+    var text = group.selectAll('text')
+        .attr('x', point.x)
+        .attr('y', point.y)
+        .attr('transform', 'rotate(' + angle + ' ' + x + ' ' + y + ')');
 }
 
 function dg_network_translate(d) {

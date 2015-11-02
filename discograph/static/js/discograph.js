@@ -282,7 +282,7 @@
             })
             .charge(-300)
             .gravity(0.2)
-            .theta(0.9)
+            .theta(1)
             .alpha(0.1);
     }
 
@@ -484,6 +484,11 @@
         dg.network.selections.text = dg.network.layers.text.selectAll(".node");
         dg.network.forceLayout = dg_network_setupForceLayout();
     }
+    var tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .direction('e')
+        .offset([0, 20])
+        .html(dg_network_tooltip);
 
     function dg_network_onLinkEnter(linkEnter) {
         var linkEnter = linkEnter.append("g")
@@ -501,72 +506,60 @@
         dg_network_onLinkEnterEventBindings(linkEnter);
     }
 
-    function dg_network_linkTitle(d) {
-        var source = d.source.name,
-            role = d.role,
-            target = d.target.name;
-        if (role == "Alias") {
-            return source + " ↔ (" + role + ") ↔ " + target;
-        } else {
-            return source + " → (" + role + ") → " + target;
-        }
-    }
-
-    var nonAnnotatedRoles = [
-        'Alias',
-        'Member Of',
-        'Sublabel Of',
-    ]
-
-    function dg_network_linkAnnotation(d) {
-        if (nonAnnotatedRoles.indexOf(d.role) != -1) {
-            return null;
-        } else {
-            return d.role.split(' ').map(function(x) {
-                return x[0];
-            }).join('');
-        }
-    }
-
     function dg_network_onLinkEnterElementConstruction(linkEnter) {
         linkEnter.append("path")
-            .attr("class", "inner")
-            .append("title").text(dg_network_linkTitle);
+            .attr("class", "inner");
         linkEnter.append("text")
             .attr('class', 'outer')
-            .text(dg_network_linkAnnotation)
-            .append("title").text(dg_network_linkTitle);
+            .text(dg_network_linkAnnotation);
         linkEnter.append("text")
             .attr('class', 'inner')
-            .text(dg_network_linkAnnotation)
-            .append("title").text(dg_network_linkTitle);
+            .text(dg_network_linkAnnotation);
     }
 
     function dg_network_onLinkEnterEventBindings(linkEnter) {
+        var debounce = $.debounce(250, function(self, d, status) {
+            if (status) {
+                tip.show(d, d3.select(self).select('text').node());
+            } else {
+                tip.hide(d);
+            }
+        });
         linkEnter.on("mouseover", function(d) {
             d3.select(this).select(".inner")
                 .transition()
                 .style("stroke-width", 3);
+            debounce(this, d, true);
         });
         linkEnter.on("mouseout", function(d) {
             d3.select(this).select(".inner")
                 .transition()
                 .duration(500)
                 .style("stroke-width", 1);
+            debounce(this, d, false);
         });
+    }
+
+    function dg_network_tooltip(d) {
+        var parts = [
+            '<p>' + d.source.name + '</p>',
+            '<p><strong>&laquo; ' + d.role + ' &raquo;</strong></p>',
+            '<p>' + d.target.name + '</p>',
+        ];
+        return parts.join('');
+    }
+
+    function dg_network_linkAnnotation(d) {
+        return d.role.split(' ').map(function(x) {
+            return x[0];
+        }).join('');
     }
 
     function dg_network_onLinkExit(linkExit) {
         linkExit.remove();
     }
 
-    function dg_network_onLinkUpdate(linkSelection) {
-        if (dg.debug) {
-            linkSelection.select('text').text(function(d) {
-                return "[" + d.pages + "]";
-            });
-        }
-    }
+    function dg_network_onLinkUpdate(linkSelection) {}
 
     function dg_network_onNodeEnter(nodeEnter) {
         var nodeEnter = nodeEnter.append("g")
@@ -990,24 +983,23 @@
 
     function dg_network_tick_link(d, i) {
         var group = d3.select(this);
-        var paths = group.selectAll('path');
-        paths.attr('d', dg_network_spline(d));
+        var path = group.select('path');
+        path.attr('d', dg_network_spline(d));
         var x1 = d.source.x,
             y1 = d.source.y,
             x2 = d.target.x,
             y2 = d.target.y;
-        //paths.attr("x1", x1).attr("y1", y1).attr("x2", x2).attr("y2", y2);
-        if (unlabeled_roles.indexOf(d.role) == -1) {
-            var path = paths.node();
-            var point = path.getPointAtLength(path.getTotalLength() / 2);
-            var x = point.x,
-                y = point.y;
-            var angle = Math.atan2((y2 - y1), (x2 - x1)) * (180 / Math.PI);
-            var text = group.selectAll('text')
-                .attr('dx', point.x)
-                .attr('dy', point.y)
-                .attr('transform', 'rotate(' + angle + ' ' + x + ' ' + y + ')');
-        }
+        var node = path.node();
+        var point = node.getPointAtLength(node.getTotalLength() / 2);
+        var x = point.x,
+            y = point.y;
+        d.x = x;
+        d.y = y;
+        var angle = Math.atan2((y2 - y1), (x2 - x1)) * (180 / Math.PI);
+        var text = group.selectAll('text')
+            .attr('x', point.x)
+            .attr('y', point.y)
+            .attr('transform', 'rotate(' + angle + ' ' + x + ' ' + y + ')');
     }
 
     function dg_network_translate(d) {
@@ -1084,6 +1076,7 @@
             .attr("width", dg.dimensions[0])
             .attr("height", dg.dimensions[1]);
         dg_svg_setupDefs();
+        d3.select('#svg').call(tip);
     }
 
     function dg_svg_setupDefs() {

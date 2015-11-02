@@ -18,6 +18,7 @@ function dg_svg_init() {
         .attr("width", dg.dimensions[0])
         .attr("height", dg.dimensions[1]);
     dg_svg_setupDefs();
+    d3.select('#svg').call(tip);
 }
 
 function dg_svg_setupDefs() {
