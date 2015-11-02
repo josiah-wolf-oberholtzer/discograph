@@ -33,12 +33,12 @@ function dg_network_spline(d) {
         sXY = dg_network_splineInner(sX, sY, sR, cX, cY);
         tXY = dg_network_splineInner(tX, tY, tR, cX, cY);
         return (
-            "M " + sXY[0] + "," + sXY[1] + " " +
-            "S " + cX + "," + cY + " " +
-            " " + tXY[0] + "," + tXY[1] + " "
+            'M ' + sXY[0] + ',' + sXY[1] + ' ' +
+            'S ' + cX + ',' + cY + ' ' +
+            ' ' + tXY[0] + ',' + tXY[1] + ' '
             );
     } else {
-        return "M " + [sX, sY] + " L " + [tX, tY];
+        return 'M ' + [sX, sY] + ' L ' + [tX, tY];
     }
 }
 
@@ -70,18 +70,17 @@ function dg_network_tick_link(d, i) {
         y2 = d.target.y;
     var node = path.node();
     var point = node.getPointAtLength(node.getTotalLength() / 2);
-    var x = point.x, y = point.y;
-    d.x = x;
-    d.y = y;
     var angle = Math.atan2((y2 - y1), (x2 - x1)) * (180 / Math.PI);
     var text = group.selectAll('text')
-        .attr('x', point.x)
-        .attr('y', point.y)
-        .attr('transform', 'rotate(' + angle + ' ' + x + ' ' + y + ')');
+        .attr('transform', [
+            'rotate(' + angle + ' ' + point.x + ' ' + point.y + ')',
+            'translate(' + point.x + ',' + point.y + ')',
+            ].join(' ')
+            );
 }
 
 function dg_network_translate(d) {
-    return "translate(" + d.x + "," + d.y + ")";
+    return 'translate(' + d.x + ',' + d.y + ')';
 }
 
 function dg_network_tick(e) {
@@ -97,10 +96,10 @@ function dg_network_tick(e) {
         }
     }
     dg.network.selections.link.each(dg_network_tick_link);
-    dg.network.selections.halo.attr("transform", dg_network_translate);
-    dg.network.selections.node.attr("transform", dg_network_translate);
-    dg.network.selections.text.attr("transform", dg_network_translate);
-    dg.network.selections.hull.select("path").attr("d", function(d) {
+    dg.network.selections.halo.attr('transform', dg_network_translate);
+    dg.network.selections.node.attr('transform', dg_network_translate);
+    dg.network.selections.text.attr('transform', dg_network_translate);
+    dg.network.selections.hull.select('path').attr('d', function(d) {
         var vertices = d3.geom.hull(dg_network_getHullVertices(d.values));
-        return "M" + vertices.join("L") + "Z"; });
+        return 'M' + vertices.join('L') + 'Z'; });
 }

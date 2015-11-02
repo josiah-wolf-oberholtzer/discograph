@@ -54,34 +54,6 @@ function dg_svg_setupDefs() {
         .attr("stroke-linecap", "round")
         .attr("stroke-linejoin", "round")
         .attr("stroke-width", 1.5);
-    // GAUSSIAN BLUR
-    var filter = defs.append("filter")
-        .attr("id", "drop-shadow")
-        .attr("y", "-50%")
-        .attr("x", "-50%")
-        .attr("height", "300%")
-        .attr("width", "300%");
-    filter.append("feGaussianBlur")
-        .attr("in", "SourceAlpha")
-        .attr("stdDeviation", 3)
-        .attr("result", "blur");
-    filter.append("feOffset")
-        .attr("in", "blur")
-        .attr("dx", 4)
-        .attr("dy", 4)
-        .attr("result", "offsetBlur");
-    var feComponentTransfer = filter.append("feComponentTransfer")
-        .attr("in", "offsetBlur")
-        .attr("result", "lightenedBlur");
-    feComponentTransfer.append("feFuncA")
-        .attr("type", "linear")
-        .attr("slope", 0.25)
-        .attr("intercept", 0);
-    var feMerge = filter.append("feMerge");
-    feMerge.append("feMergeNode")
-        .attr("in", "lightenedBlur")
-    feMerge.append("feMergeNode")
-        .attr("in", "SourceGraphic");
     // RADIAL GRADIENT
     var gradient = defs.append('radialGradient')
         .attr('id', 'radial-gradient');
