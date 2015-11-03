@@ -1,6 +1,8 @@
+@import url(//fonts.googleapis.com/css?family=Open+Sans);
+
 html,
 body,
-#svg {
+svg {
     margin: 0;
     height: 100%;
     width: 100%;
@@ -12,11 +14,18 @@ body,
 
 body {
     padding-top: 70px;
-}
+    }
 
 #svg {
-    background-color: #fff;
     pointer-events: visible;
+    }
+
+#svg text {
+    //display: none;
+    font-variant-ligatures: none;
+    font-feature-settings: none;
+    text-rendering: optimizeSpeed;
+    font-family: 'Open Sans', sans-serif;
     }
 
 a {
@@ -76,7 +85,7 @@ form .clear,
             cursor: help;
             dominant-baseline: middle;
             text-anchor: middle;
-            font: 8px sans-serif;
+            font: 8px 'Open Sans', sans-serif;
             &.inner {
                 fill: #000;
                 stroke: none;
@@ -137,13 +146,13 @@ form .clear,
         text {
             &.inner {
                 pointer-events: none;
-                font: 10px sans-serif;
+                font: 10px 'Open Sans', sans-serif;
                 fill: #000;
                 stroke: none;
                 }
             &.outer {
                 pointer-events: none;
-                font: 10px sans-serif;
+                font: 10px 'Open Sans', sans-serif;
                 stroke: #fff;
                 stroke-width: 3px;
                 fill: none;

@@ -1,6 +1,7 @@
+@import url(//fonts.googleapis.com/css?family=Open+Sans);
 html,
 body,
-#svg {
+svg {
   margin: 0;
   height: 100%;
   width: 100%;
@@ -13,8 +14,13 @@ body {
   padding-top: 70px;
 }
 #svg {
-  background-color: #fff;
   pointer-events: visible;
+}
+#svg text {
+  font-variant-ligatures: none;
+  font-feature-settings: none;
+  text-rendering: optimizeSpeed;
+  font-family: 'Open Sans', sans-serif;
 }
 a:hover {
   color: #cc8548;
@@ -66,7 +72,7 @@ form .clear,
   cursor: help;
   dominant-baseline: middle;
   text-anchor: middle;
-  font: 8px sans-serif;
+  font: 8px 'Open Sans', sans-serif;
 }
 #networkLayer .link text.inner {
   fill: #000;
@@ -116,13 +122,13 @@ form .clear,
 }
 #networkLayer .node text.inner {
   pointer-events: none;
-  font: 10px sans-serif;
+  font: 10px 'Open Sans', sans-serif;
   fill: #000;
   stroke: none;
 }
 #networkLayer .node text.outer {
   pointer-events: none;
-  font: 10px sans-serif;
+  font: 10px 'Open Sans', sans-serif;
   stroke: #fff;
   stroke-width: 3px;
   fill: none;
