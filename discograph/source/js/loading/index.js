@@ -16,21 +16,18 @@ function dg_loading_init() {
         .innerRadius(function(d) { return d.innerRadius; })
         .outerRadius(function(d) { return d.outerRadius; });
     dg.loading.barHeight = 200;
-    dg.loading.isLoading = false;
     dg.loading.layer = layer; 
     dg.loading.selection = layer.selectAll('path');
 }
 
 function dg_loading_toggle(status) {
     if (status) {
-        dg.loading.isLoading = true;
         var input = dg_loading_makeArray();
         var data = input[0], extent = input[1];
         $("#page-loading")
             .removeClass("glyphicon-random")
             .addClass("glyphicon-animate glyphicon-refresh");
     } else {
-        dg.loading.isLoading = false;
         var data = [], extent = [0, 0];
         $("#page-loading")
             .removeClass("glyphicon-animate glyphicon-refresh")

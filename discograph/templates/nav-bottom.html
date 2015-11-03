@@ -8,12 +8,19 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a id="entity-link" class="truncate navbar-brand hidden truncate" 
-                href="#" target="_blank" data-toggle="tooltip" 
-                title="visit them on discogs.com">
-                <span class="glyphicon glyphicon-new-window"></span>
-                <span id="entity-name">Band Name</span>
-            </a>
+            <div class="navbar-brand hidden" id="entity-details">
+                <p>
+                    <a class="navbar-link" id="entity-relations" data-toggle="tooltip" 
+                        title="see their relation breakdown"><span 
+                        class="glyphicon glyphicon-eye-open"></span></a>
+                    &nbsp;/&nbsp;
+                    <a class="navbar-link" id="entity-link" href="#" target="_blank" 
+                        data-toggle="tooltip" title="visit them on discogs.com">
+                        <span class="glyphicon glyphicon-new-window"></span>
+                        <span id="entity-name">Band Name</span>
+                    </a>
+                </p>
+            </div>
         </div>
         <div class="collapse navbar-collapse" id="nav-bottom-details">
             <form id="filter" class="navbar-form navbar-right" style="display: none" action="#">

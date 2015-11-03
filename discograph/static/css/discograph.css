@@ -169,7 +169,15 @@ form .clear,
 #networkLayer .node.selected.label .more {
   fill: #fff;
 }
-/* TIMELINE */
+/* RADIAL */
+#timelineLayer path.arc {
+  stroke: #fff;
+  stroke-width: 2px;
+}
+#timelineLayer path.arc:hover {
+  fill: #f00;
+}
+/* LOADING */
 #loadingLayer path.arc {
   opacity: 0.75;
   stroke: #fff;

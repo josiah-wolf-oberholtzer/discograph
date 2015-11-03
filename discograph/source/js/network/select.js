@@ -18,7 +18,8 @@ function dg_network_selectNode(key) {
         var url = 'http://discogs.com/' + node.type + '/' + node.id;
         $('#entity-name').text(node.name);
         $('#entity-link')
-            .attr('href', url)
+            .attr('href', url);
+        $('#entity-details')
             .removeClass('hidden')
             .show(0);
         nodeOn.moveToFront();
@@ -27,7 +28,7 @@ function dg_network_selectNode(key) {
         var linkOff = dg.network.selections.link;
         nodeOff.classed('selected', false);
         linkOff.classed('selected', false);
-        $('#entity-link').hide(0);
+        $('#entity-details').hide();
         return;
     }
 }

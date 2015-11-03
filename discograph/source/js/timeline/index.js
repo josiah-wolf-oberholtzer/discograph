@@ -9,8 +9,10 @@ function dg_timeline_init() {
         .attr("id", "timelineLayer");
 }
 
-function dg_timeline_fetch(id) {
-    var url = '/api/artist/timeline/' + id;
+function dg_timeline_fetch(entityKey, func) {
+    var entityType = entityKey.split("-")[0];
+    var entityId = entityKey.split("-")[1];
+    var url = '/api/' + entityType+ '/timeline/' + entityId;
     d3.json(url, function(error, json) {
         if (error) { console.warn(error); return; }
         dg.timeline.json = json;
@@ -22,6 +24,7 @@ function dg_timeline_fetch(id) {
             .key(function(d) { return d.role; })
             .rollup(function(leaves) { return leaves.length; })
             .entries(dg.timeline.json.results);
+        func();
     })
 }
 
@@ -49,7 +52,9 @@ function dg_timeline_chartTimeline() {
 }
 
 function dg_timeline_chartRadial() {
-    var barHeight = d3.min(dg.dimensions) / 2;
+    dg.timeline.layers.root = d3.select("#svg").append("g")
+        .attr("id", "timelineLayer");
+    var barHeight = d3.min(dg.dimensions) / 4;
     var data = dg.timeline.byRole;
     var extent = d3.extent(data, function(d) { return d.values; });
     var barScale = d3.scale.sqrt()

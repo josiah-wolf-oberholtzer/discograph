@@ -56,5 +56,9 @@ $(document).ready(function() {
         });
     });
     $('#filter').fadeIn(3000);
+    $('#entity-relations').click(function() {
+        dg_timeline_fetch(dg.network.pageData.selectedNodeKey, dg_timeline_chartRadial);
+        event.preventDefault();
+    });
     console.log('discograph initialized.');
 });
