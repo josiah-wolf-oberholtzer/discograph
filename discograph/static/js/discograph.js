@@ -1437,6 +1437,7 @@
     }
 
     function dg_events_init() {
+        /*
         $(window).on('discograph:error', dg_events_error);
         $(window).on('discograph:loading-toggle', dg_events_loading_toggle);
         $(window).on('discograph:network-fetch', $.debounce(500, function(event) {
@@ -1451,12 +1452,57 @@
         $(window).on('popstate', function(event) {
             dg_history_onPopState(event.originalEvent);
         });
-        $(window).on('resize', $.debounce(100, function(event) {
+        $(window).on('resize', $.debounce(100, function(event) { 
             dg_events_window_resize(event);
         }));
+        */
     }
     var DiscographFsm = machina.Fsm.extend({
-        initialize: function(options) {},
+        initialize: function(options) {
+            var self = this;
+            $(window).on('discograph:request-network', function(event) {
+                self.requestNetwork(event.entityKey);
+            });
+            $(window).on('discograph:request-random', function() {
+                self.requestRandom();
+            });
+            $(window).on('discograph:select-entity', function() {
+                self.selectEntity();
+            });
+            $(window).on('discograph:select-next-page', function() {
+                self.selectNextPage();
+            });
+            $(window).on('discograph:select-previous-page', function() {
+                sefl.selectPreviousPage();
+            });
+            $(window).on('discograph:show-network', function() {
+                self.showNetwork();
+            });
+            $(window).on('discograph:show-radial', function() {
+                self.showRadial();
+            });
+            $(window).on('popstate', function(event) {
+                dg_history_onPopState(event.originalEvent);
+            });
+            $(window).on('resize', $.debounce(100, function(event) {
+                var w = window,
+                    d = document,
+                    e = d.documentElement,
+                    g = d.getElementsByTagName('body')[0];
+                dg.dimensions = [
+                    w.innerWidth || e.clientWidth || g.clientWidth,
+                    w.innerHeight || e.clientHeight || g.clientHeight,
+                ];
+                d3.select("#svg")
+                    .attr("width", dg.dimensions[0])
+                    .attr("height", dg.dimensions[1]);
+                d3.selectAll('.centered')
+                    .attr('transform', "translate(" +
+                        dg.dimensions[0] / 2 + "," +
+                        dg.dimensions[1] / 2 + ")");
+                dg.network.forceLayout.size(dg.dimensions).start();
+            }));
+        },
         namespace: 'discograph',
         initialState: 'uninitialized',
         states: {

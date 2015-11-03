@@ -99,6 +99,7 @@ function dg_events_window_resize(event) {
 }
 
 function dg_events_init() {
+    /*
     $(window).on('discograph:error', dg_events_error);
     $(window).on('discograph:loading-toggle', dg_events_loading_toggle);
     $(window).on('discograph:network-fetch', $.debounce(500, function(event) {
@@ -116,4 +117,5 @@ function dg_events_init() {
     $(window).on('resize', $.debounce(100, function(event) { 
         dg_events_window_resize(event);
     }));
+    */
 }
