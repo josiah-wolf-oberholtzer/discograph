@@ -218,13 +218,15 @@ var DiscographFsm = machina.Fsm.extend({
         dg_network_selectNode(entityKey);
     },
     selectNextPage: function() {
-        dg_network_selectPage(dg_network_getNextPage());
+        this.selectPage(dg_network_getNextPage());
     },
     selectPreviousPage: function() {
-        dg_network_selectPage(dg_network_getPrevPage());
+        this.selectPage(dg_network_getPrevPage());
     },
     selectPage: function(page) {
         dg_network_selectPage(page);
+        dg_network_startForceLayout();
+        dg_network_reselectNode();
     },
     showNetwork: function() {
         this.handle('show-network');

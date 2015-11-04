@@ -6,7 +6,6 @@ import "network/";
 import "svg/";
 import "timeline/";
 import "typeahead/";
-import "events";
 import "fsm";
 import "init";
 import "end";
