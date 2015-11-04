@@ -1,6 +1,5 @@
 import "start";
 import "color/";
-import "history/";
 import "loading/";
 import "network/";
 import "svg/";

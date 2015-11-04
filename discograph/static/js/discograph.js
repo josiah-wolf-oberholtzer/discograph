@@ -19,56 +19,6 @@
         return d3.hsl(hue, saturation, lightness).toString();
     }
 
-    function dg_history_onPopState(event) {
-        if (!event || !event.state || !event.state.key) {
-            return;
-        }
-        var entityKey = event.state.key;
-        var entityType = entityKey.split("-")[0];
-        var entityId = entityKey.split("-")[1];
-        var url = "/" + entityType + "/" + entityId;
-        ga('send', 'pageview', url);
-        ga('set', 'page', url);
-        $(window).trigger({
-            type: 'discograph:request-network',
-            entityKey: event.state.key,
-            pushHistory: false,
-        });
-    }
-
-    function dg_history_pushState(entityKey, params) {
-        var entityType = entityKey.split("-")[0];
-        var entityId = entityKey.split("-")[1];
-        var title = document.title;
-        var url = "/" + entityType + "/" + entityId;
-        if (params) {
-            url += "?" + decodeURIComponent($.param(params));
-        }
-        var state = {
-            key: entityKey,
-            params: params
-        };
-        window.history.pushState(state, title, url);
-        ga('send', 'pageview', url);
-        ga('set', 'page', url);
-    }
-
-    function dg_history_replaceState(entityKey, params) {
-        var entityType = entityKey.split("-")[0];
-        var entityId = entityKey.split("-")[1];
-        var title = document.title;
-        var url = "/" + entityType + "/" + entityId;
-        if (params) {
-            url += "?" + decodeURIComponent($.param(params));
-        }
-        var state = {
-            key: entityKey,
-            params: params
-        };
-        window.history.replaceState(state, title, url);
-        ga('send', 'pageview', url);
-        ga('set', 'page', url);
-    }
     dg.loading = {};
 
     function dg_loading_init() {
@@ -1189,9 +1139,22 @@
             $(window).on('discograph:show-radial', function() {
                 self.showRadial();
             });
-            $(window).on('popstate', function(event) {
-                dg_history_onPopState(event.originalEvent);
-            });
+            window.onpopstate = function(event) {
+                if (!event || !event.state || !event.state.key) {
+                    return;
+                }
+                var entityKey = event.state.key;
+                var entityType = entityKey.split("-")[0];
+                var entityId = entityKey.split("-")[1];
+                var url = "/" + entityType + "/" + entityId;
+                ga('send', 'pageview', url);
+                ga('set', 'page', url);
+                $(window).trigger({
+                    type: 'discograph:request-network',
+                    entityKey: event.state.key,
+                    pushHistory: false,
+                });
+            };
             $(window).on('resize', $.debounce(100, function(event) {
                 var w = window,
                     d = document,
@@ -1334,12 +1297,12 @@
                     var params = {
                         'roles': $('#filter select').val()
                     };
-                    var key = data.center.key;
+                    var entityKey = data.center.key;
                     dg.network.data.json = JSON.parse(JSON.stringify(data));
                     document.title = 'Disco/graph: ' + data.center.name;
-                    $(document).attr('body').id = key;
+                    $(document).attr('body').id = entityKey;
                     if (pushHistory === true) {
-                        dg_history_pushState(key, params);
+                        this.pushState(entityKey, params);
                     }
                     dg.network.data.pageCount = data.pages;
                     dg.network.pageData.currentPage = 1;
@@ -1422,6 +1385,22 @@
             if (dgData) {
                 this.handle('load-inline-data');
             }
+        },
+        pushState: function(entityKey, params) {
+            var entityType = entityKey.split("-")[0];
+            var entityId = entityKey.split("-")[1];
+            var title = document.title;
+            var url = "/" + entityType + "/" + entityId;
+            if (params) {
+                url += "?" + decodeURIComponent($.param(params));
+            }
+            var state = {
+                key: entityKey,
+                params: params
+            };
+            window.history.pushState(state, title, url);
+            ga('send', 'pageview', url);
+            ga('set', 'page', url);
         },
         requestNetwork: function(entityKey, pushHistory) {
             this.transition('requesting');
@@ -1612,14 +1591,6 @@
             event.preventDefault();
         });
         dg.fsm = new DiscographFsm();
-        /*
-        if (dgData) {
-            var params = {'roles': $('#filter select').val()};
-            dg.network.data.json = dgData;
-            dg_history_replaceState(dgData.center.key, params);
-            dg_network_handleAsyncData(dgData, false);
-        }
-        */
         console.log('discograph initialized.');
     });
     if (typeof define === "function" && define.amd) define(dg);
