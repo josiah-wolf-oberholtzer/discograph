@@ -1,33 +1,3 @@
-function dg_network_nextPage() {
-    var page = dg_network_getNextPage();
-    dg_network_selectPage(page);
-    dg_network_startForceLayout();
-    dg_network_reselectNode();
-}
-
-function dg_network_prevPage() {
-    var page = dg_network_getPrevPage();
-    dg_network_selectPage(page);
-    dg_network_startForceLayout();
-    dg_network_reselectNode();
-}
-
-function dg_network_getNextPage() {
-    var page = dg.network.pageData.currentPage + 1;
-    if (dg.network.data.pageCount < page) {
-        page = 1;
-    }
-    return page;
-}
-
-function dg_network_getPrevPage() {
-    var page = dg.network.pageData.currentPage - 1;
-    if (page == 0) {
-        page = dg.network.data.pageCount;
-    }
-    return page;
-}
-
 function dg_network_selectPage(page) {
     if ((1 <= page) && (page <= dg.network.data.pageCount)) {
         dg.network.pageData.currentPage = page;

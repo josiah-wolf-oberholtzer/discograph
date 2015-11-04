@@ -1,11 +1,6 @@
 function dg_network_init() {
-    var root = d3.select("#svg").append("g")
-        .attr("id", "networkLayer");
+    var root = d3.select("#svg").append("g").attr("id", "networkLayer");
     dg.network.layers.root = root;
-    d3.select("#svg").on("mousedown", function() {
-        dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
-        dg_network_selectNode(null);
-    });
     dg.network.layers.halo = root.append("g").attr("id", "haloLayer");
     dg.network.layers.link = root.append("g").attr("id", "linkLayer");
     dg.network.layers.node = root.append("g").attr("id", "nodeLayer");

@@ -72,7 +72,7 @@ function dg_typeahead_navigate() {
         $("#typeahead").blur();
         $('.navbar-toggle').click();
         $(window).trigger({
-            type: 'discograph:network-fetch',
+            type: 'discograph:request-network',
             entityKey: datum,
             pushHistory: true,
         });

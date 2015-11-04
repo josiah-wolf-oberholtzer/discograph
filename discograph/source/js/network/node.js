@@ -21,7 +21,6 @@ function dg_network_onNodeEnter(nodeEnter) {
 }
 
 function dg_network_onNodeEnterElementConstruction(nodeEnter) {
-
     var artistEnter = nodeEnter.select(function(d) {
         return d.type == 'artist' ? this : null;
     });
@@ -64,17 +63,17 @@ function dg_network_onNodeEnterElementConstruction(nodeEnter) {
 function dg_network_onNodeEnterEventBindings(nodeEnter) {
     nodeEnter.on("dblclick", function(d) {
         $(window).trigger({
-            type: 'discograph:network-fetch',
+            type: 'discograph:request-network',
             entityKey: d.key,
             pushHistory: true,
         });
     });
     nodeEnter.on("mousedown", function(d) {
-        if (!dg.network.isUpdating) {
-            dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
-            d.fixed = true;
-            dg_network_selectNode(d.key);
-        }
+        $(window).trigger({
+            type: 'discograph:select-entity',
+            entityKey: d.key,
+            fixed: true,
+        });
         d3.event.stopPropagation(); // Prevents propagation to #svg element.
     });
     nodeEnter.on("mouseover", function(d) {
@@ -88,14 +87,14 @@ function dg_network_onNodeEnterEventBindings(nodeEnter) {
         var lastTime = d.lastTouchTime;
         d.lastTouchTime = thisTime;
         if (!lastTime || (500 < (thisTime - lastTime))) {
-            if (!dg.network.isUpdating) {
-                dg.network.pageData.nodes.forEach(function(n) { n.fixed = false; });
-                d.fixed = true;
-                dg_network_selectNode(d.key);
-            }
+            $(window).trigger({
+                type: 'discograph:select-entity',
+                entityKey: d.key,
+                fixed: true,
+            });
         } else if ((thisTime - lastTime) < 500) {
             $(window).trigger({
-                type: 'discograph:network-fetch',
+                type: 'discograph:request-network',
                 entityKey: d.key,
                 pushHistory: true,
             });

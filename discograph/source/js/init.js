@@ -4,32 +4,25 @@ $(document).ready(function() {
     dg_timeline_init();
     dg_loading_init();
     dg_typeahead_init();
-    dg_events_init();
-    if (dgData) {
-        var params = {'roles': $('#filter select').val()};
-        dg.network.data.json = dgData;
-        dg_history_replaceState(dgData.center.key, params);
-        dg_network_handleAsyncData(dgData, false);
-    }
     $('[data-toggle="tooltip"]').tooltip();
     $('#brand').on("click touchstart", function(event) {
         event.preventDefault();
         $(this).tooltip('hide');
         $(this).trigger({
-            type: 'discograph:random-fetch',
+            type: 'discograph:request-random',
         });
     });
     $('#paging .next a').click(function(event) {
         $(this).trigger({
-            type: 'discograph:network-select-page', 
-            page: dg_network_getNextPage(),
+            type: 'discograph:select-next-page', 
         });
+        $(this).tooltip('hide');
     });
     $('#paging .previous a').click(function(event) {
         $(this).trigger({
-            type: 'discograph:network-select-page',
-            page: dg_network_getPrevPage(),
+            type: 'discograph:select-previous-page',
         });
+        $(this).tooltip('hide');
     });
     $('#filter-roles').multiselect({
         buttonWidth: "160px",
@@ -50,7 +43,7 @@ $(document).ready(function() {
     $('#filter').submit(function(event) {
         event.preventDefault();
         $(window).trigger({
-            type: 'discograph:network-fetch',
+            type: 'discograph:request-network',
             entityKey: dg.network.data.json.center.key,
             pushHistory: true,
         });
@@ -60,5 +53,14 @@ $(document).ready(function() {
         dg_timeline_fetch(dg.network.pageData.selectedNodeKey, dg_timeline_chartRadial);
         event.preventDefault();
     });
+    dg.fsm = new DiscographFsm();
+    /*
+    if (dgData) {
+        var params = {'roles': $('#filter select').val()};
+        dg.network.data.json = dgData;
+        dg_history_replaceState(dgData.center.key, params);
+        dg_network_handleAsyncData(dgData, false);
+    }
+    */
     console.log('discograph initialized.');
 });

@@ -2,19 +2,19 @@ var DiscographFsm = machina.Fsm.extend({
     initialize: function(options) {
         var self = this;
         $(window).on('discograph:request-network', function(event) {
-            self.requestNetwork(event.entityKey);
+            self.requestNetwork(event.entityKey, event.pushHistory);
         });
         $(window).on('discograph:request-random', function() {
             self.requestRandom();
         });
-        $(window).on('discograph:select-entity', function() {
-            self.selectEntity();
+        $(window).on('discograph:select-entity', function(event) {
+            self.selectEntity(event.entityKey, event.fixed);
         });
         $(window).on('discograph:select-next-page', function() {
             self.selectNextPage();
         });
         $(window).on('discograph:select-previous-page', function() {
-            sefl.selectPreviousPage();
+            self.selectPreviousPage();
         });
         $(window).on('discograph:show-network', function() {
             self.showNetwork();
@@ -43,6 +43,10 @@ var DiscographFsm = machina.Fsm.extend({
                     dg.dimensions[1] / 2 + ")");
             dg.network.forceLayout.size(dg.dimensions).start();
         }));
+        $('#svg').on('mousedown', function() {
+            self.selectEntity(null);
+        });
+        this.loadInlineData();
     },
     namespace: 'discograph',
     initialState: 'uninitialized',
@@ -54,6 +58,11 @@ var DiscographFsm = machina.Fsm.extend({
             'request-random': function() {
                 this.requestRandom();
             },
+            'load-inline-data': function() {
+                var params = {'roles': $('#filter select').val()};
+                this.handle('received-network', dgData, false, params);
+                this.deferAndTransition('requesting');
+            }
         },
         'viewing-network': {
             '_onEnter': function() {
@@ -73,8 +82,49 @@ var DiscographFsm = machina.Fsm.extend({
                     this.requestRadial(dg.network.pageData.selectedNodeKey);
                 }
             },
-            'select-entity': function(entityKey) {
-                dg_network_selectNode(entityKey);
+            'select-entity': function(entityKey, fixed) {
+                dg.network.pageData.selectedNodeKey = entityKey;
+                if (entityKey !== null) {
+                    var selectedNode = dg.network.data.nodeMap.get(entityKey);
+                    var currentPage = dg.network.pageData.currentPage;
+                    if (-1 == selectedNode.pages.indexOf(currentPage)) {
+                        dg.network.pageData.selectedNodeKey = null;
+                    }
+                }
+                entityKey = dg.network.pageData.selectedNodeKey;
+                if (entityKey !== null) {
+                    var nodeOn = dg.network.layers.root.selectAll('.' + entityKey);
+                    var nodeOff = dg.network.layers.root.selectAll('.node:not(.' + entityKey + ')');
+                    var linkKeys = nodeOn.datum().links;
+                    var linkOn = dg.network.selections.link.filter(function(d) {
+                        return 0 <= linkKeys.indexOf(d.key);
+                    });
+                    var linkOff = dg.network.selections.link.filter(function(d) {
+                        return linkKeys.indexOf(d.key) == -1;
+                    });
+                    var node = dg.network.data.nodeMap.get(entityKey);
+                    var url = 'http://discogs.com/' + node.type + '/' + node.id;
+                    $('#entity-name').text(node.name);
+                    $('#entity-link').attr('href', url);
+                    $('#entity-details').removeClass('hidden').show(0);
+                    nodeOn.moveToFront();
+                    nodeOn.classed('selected', true);
+                    if (fixed) {
+                        nodeOn.each(function(d) { d.fixed = true; });
+                    }
+                    linkOn.classed('selected', true);
+                } else {
+                    var nodeOff = dg.network.layers.root.selectAll('.node');
+                    var linkOff = dg.network.selections.link;
+                    $('#entity-details').hide();
+                }
+                if (nodeOff) {
+                    nodeOff.classed('selected', false);
+                    nodeOff.each(function(d) { d.fixed = false; });
+                }
+                if (linkOff) {
+                    linkOff.classed('selected', false);
+                }
             },
         },
         'viewing-radial': {
@@ -124,8 +174,8 @@ var DiscographFsm = machina.Fsm.extend({
                 dg_network_processJson(data);
                 dg_network_selectPage(1);
                 dg_network_startForceLayout();
-                dg_network_selectNode(dg.network.data.json.center.key);
-                this.transition('viewing-network');
+                this.selectEntity(dg.network.data.json.center.key, false);
+                this.deferAndTransition('viewing-network');
             },
             'received-random': function(data) {
                 this.requestNetwork(data.center, true);
@@ -181,6 +231,9 @@ var DiscographFsm = machina.Fsm.extend({
         var entityId = entityKey.split("-")[1];
         return '/api/' + entityType+ '/timeline/' + entityId;
     },
+    loadInlineData: function() {
+        if (dgData) { this.handle('load-inline-data'); }
+    },
     requestNetwork: function(entityKey, pushHistory) {
         this.transition('requesting');
         var self = this;
@@ -214,19 +267,27 @@ var DiscographFsm = machina.Fsm.extend({
             }
         });
     },
-    selectEntity: function(entityKey) {
-        dg_network_selectNode(entityKey);
+    selectEntity: function(entityKey, fixed) {
+        this.handle('select-entity', entityKey, fixed);
     },
     selectNextPage: function() {
-        this.selectPage(dg_network_getNextPage());
+        var page = dg.network.pageData.currentPage + 1;
+        if (dg.network.data.pageCount < page) {
+            page = 1;
+        }
+        this.selectPage(page);
     },
     selectPreviousPage: function() {
-        this.selectPage(dg_network_getPrevPage());
+        var page = dg.network.pageData.currentPage - 1;
+        if (page == 0) {
+            page = dg.network.data.pageCount;
+        }
+        this.selectPage(page);
     },
     selectPage: function(page) {
         dg_network_selectPage(page);
         dg_network_startForceLayout();
-        dg_network_reselectNode();
+        this.selectEntity(dg.network.pageData.selectedNodeKey, true);
     },
     showNetwork: function() {
         this.handle('show-network');
@@ -280,5 +341,3 @@ var DiscographFsm = machina.Fsm.extend({
         dg_loading_update(data, extent);
     },
 });
-
-dg.fsm = new DiscographFsm();

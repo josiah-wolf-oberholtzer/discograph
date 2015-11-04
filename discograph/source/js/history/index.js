@@ -9,7 +9,7 @@ function dg_history_onPopState(event) {
     ga('send', 'pageview', url);
     ga('set', 'page', url);
     $(window).trigger({
-        type: 'discograph:network-fetch',
+        type: 'discograph:request-network',
         entityKey: event.state.key,
         pushHistory: false,
     });
