@@ -170,11 +170,11 @@ form .clear,
   fill: #fff;
 }
 /* RADIAL */
-#timelineLayer path.arc {
+#relationsLayer path.arc {
   stroke: #fff;
   stroke-width: 2px;
 }
-#timelineLayer path.arc:hover {
+#relationsLayer path.arc:hover {
   fill: #f00;
 }
 /* LOADING */

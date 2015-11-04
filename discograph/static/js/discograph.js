@@ -939,19 +939,19 @@
             .attr('stop-color', '#333')
             .attr('stop-opacity', '0%');
     }
-    dg.timeline = {
+    dg.relations = {
         layers: {
             root: null,
         },
     };
 
-    function dg_timeline_init() {
-        dg.timeline.layers.root = d3.select("#svg").append("g")
-            .attr("id", "timelineLayer");
+    function dg_relations_init() {
+        dg.relations.layers.root = d3.select('#svg').append('g')
+            .attr('id', 'relationsLayer');
     }
 
-    function dg_timeline_chartTimeline() {
-        var years = dg.timeline.nested.map(function(d) {
+    function dg_relations_chartrelations() {
+        var years = dg.relations.nested.map(function(d) {
             return parseInt(d.key);
         })
         var extent = d3.extent(years);
@@ -959,27 +959,28 @@
             .domain(extent)
             .range([100, dg.dimensions[0] - 100]);
         var axis = d3.svg.axis()
-            .orient("bottom")
+            .orient('bottom')
             .scale(scale)
             .ticks(years.length)
             .tickFormat(d3.format('0000'));
-        dg.timeline.layers.root.append("g")
-            .attr("class", "x axis")
-            .attr("transform", 'translate(0, 100)')
+        dg.relations.layers.root.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0, 100)')
             .call(axis)
-            .selectAll("text")
-            .attr("y", 0)
-            .attr("x", 9)
-            .attr("dy", ".35em")
-            .attr("transform", "rotate(45)")
-            .style("text-anchor", "start");
+            .selectAll('text')
+            .attr('y', 0)
+            .attr('x', 9)
+            .attr('dy', '.35em')
+            .attr('transform', 'rotate(45)')
+            .style('text-anchor', 'start');
     }
 
-    function dg_timeline_chartRadial() {
-        dg.timeline.layers.root = d3.select("#svg").append("g")
-            .attr("id", "timelineLayer");
+    function dg_relations_chartRadial() {
+        dg.relations.layers.root = d3.select('#svg')
+            .append('g')
+            .attr('id', 'relationsLayer');
         var barHeight = d3.min(dg.dimensions) / 4;
-        var data = dg.timeline.byRole;
+        var data = dg.relations.byRole;
         var extent = d3.extent(data, function(d) {
             return d.values;
         });
@@ -999,29 +1000,29 @@
                 return ((i + 1) * 2 * Math.PI) / numBars;
             })
             .innerRadius(0);
-        var group = dg.timeline.layers.root.append('g')
-            .attr('class', 'radial')
-            .attr('transform', "translate(" +
-                dg.dimensions[0] / 2 +
-                "," +
-                dg.dimensions[1] / 2 +
-                ")"
+        var group = dg.relations.layers.root.append('g')
+            .attr('class', 'radial centered')
+            .attr('transform', 'translate(' +
+                (dg.dimensions[0] / 2) +
+                ',' +
+                (dg.dimensions[1] / 2) +
+                ')'
             );
         var segments = group.selectAll('path')
             .data(data)
-            .enter().append("path")
+            .enter().append('path')
             .attr('class', 'arc')
             .each(function(d) {
                 d.outerRadius = 0;
             })
-            .attr("d", arc);
+            .attr('d', arc);
         segments.transition()
-            .ease("elastic")
+            .ease('elastic')
             .duration(500)
             .delay(function(d, i) {
                 return (numBars - i) * 25;
             })
-            .attrTween("d", function(d, index) {
+            .attrTween('d', function(d, index) {
                 var i = d3.interpolate(d.outerRadius, barScale(+d.values));
                 return function(t) {
                     d.outerRadius = i(t);
@@ -1164,14 +1165,22 @@
                     w.innerWidth || e.clientWidth || g.clientWidth,
                     w.innerHeight || e.clientHeight || g.clientHeight,
                 ];
-                d3.select("#svg")
-                    .attr("width", dg.dimensions[0])
-                    .attr("height", dg.dimensions[1]);
+                d3.select('#svg')
+                    .attr('width', dg.dimensions[0])
+                    .attr('height', dg.dimensions[1]);
+                var transform = [
+                    'translate(', (dg.dimensions[0] / 2),
+                    ',', (dg.dimensions[1] / 2),
+                    ')'
+                ].join('');
                 d3.selectAll('.centered')
-                    .attr('transform', "translate(" +
-                        dg.dimensions[0] / 2 + "," +
-                        dg.dimensions[1] / 2 + ")");
-                dg.network.forceLayout.size(dg.dimensions).start();
+                    .transition()
+                    .duration(250)
+                    .attr('transform', transform);
+                dg.network.forceLayout.size(dg.dimensions);
+                if (self.state == 'viewing-network') {
+                    dg.network.forceLayout.start();
+                }
             }));
             $('#svg').on('mousedown', function() {
                 self.selectEntity(null);
@@ -1266,11 +1275,11 @@
             'viewing-radial': {
                 '_onEnter': function() {
                     this.toggleRadial(true);
-                    d3.select('#timelineLayer').remove();
-                    dg_timeline_chartRadial();
+                    d3.select('#relationsLayer').remove();
+                    dg_relations_chartRadial();
                 },
                 '_onExit': function() {
-                    d3.select('#timelineLayer').remove();
+                    d3.select('#relationsLayer').remove();
                     this.toggleRadial(false);
                 },
                 'request-network': function(entityKey) {
@@ -1321,8 +1330,8 @@
                     this.requestNetwork(data.center, true);
                 },
                 'received-radial': function(data) {
-                    dg.timeline.data = data;
-                    dg.timeline.byYear = d3.nest()
+                    dg.relations.data = data;
+                    dg.relations.byYear = d3.nest()
                         .key(function(d) {
                             return d.year;
                         })
@@ -1330,14 +1339,14 @@
                             return d.category;
                         })
                         .entries(data.results);
-                    dg.timeline.byRole = d3.nest()
+                    dg.relations.byRole = d3.nest()
                         .key(function(d) {
                             return d.role;
                         })
                         .rollup(function(leaves) {
                             return leaves.length;
                         })
-                        .entries(dg.timeline.data.results);
+                        .entries(dg.relations.data.results);
                     this.transition('viewing-radial');
                 },
             },
@@ -1379,7 +1388,7 @@
         getRadialURL: function(entityKey) {
             var entityType = entityKey.split("-")[0];
             var entityId = entityKey.split("-")[1];
-            return '/api/' + entityType + '/timeline/' + entityId;
+            return '/api/' + entityType + '/relations/' + entityId;
         },
         loadInlineData: function() {
             if (dgData) {
@@ -1538,7 +1547,7 @@
     $(document).ready(function() {
         dg_svg_init();
         dg_network_init();
-        dg_timeline_init();
+        dg_relations_init();
         dg_loading_init();
         dg_typeahead_init();
         $('[data-toggle="tooltip"]').tooltip();
@@ -1586,13 +1595,10 @@
             });
         });
         $('#filter').fadeIn(3000);
-        $('#entity-relations').click(function() {
-            dg_timeline_fetch(dg.network.pageData.selectedNodeKey, dg_timeline_chartRadial);
-            event.preventDefault();
-        });
         dg.fsm = new DiscographFsm();
         console.log('discograph initialized.');
     });
+
     if (typeof define === "function" && define.amd) define(dg);
     else if (typeof module === "object" && module.exports) module.exports = dg;
     this.dg = dg;

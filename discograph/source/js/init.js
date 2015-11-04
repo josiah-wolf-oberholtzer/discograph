@@ -1,7 +1,7 @@
 $(document).ready(function() {
     dg_svg_init();
     dg_network_init();
-    dg_timeline_init();
+    dg_relations_init();
     dg_loading_init();
     dg_typeahead_init();
     $('[data-toggle="tooltip"]').tooltip();
@@ -49,10 +49,6 @@ $(document).ready(function() {
         });
     });
     $('#filter').fadeIn(3000);
-    $('#entity-relations').click(function() {
-        dg_timeline_fetch(dg.network.pageData.selectedNodeKey, dg_timeline_chartRadial);
-        event.preventDefault();
-    });
     dg.fsm = new DiscographFsm();
     console.log('discograph initialized.');
 });

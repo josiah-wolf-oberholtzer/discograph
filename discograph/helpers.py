@@ -85,7 +85,7 @@ def get_random_entity(roles=None):
     return entity_type, entity_id
 
 
-def get_timeline(entity_id, entity_type):
+def get_relations(entity_id, entity_type):
     import discograph
     if isinstance(entity_type, str):
         entity_type = entity_name_types[entity_type]

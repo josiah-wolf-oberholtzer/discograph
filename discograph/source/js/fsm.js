@@ -47,14 +47,24 @@ var DiscographFsm = machina.Fsm.extend({
                 w.innerWidth || e.clientWidth || g.clientWidth,
                 w.innerHeight|| e.clientHeight|| g.clientHeight,
             ];
-            d3.select("#svg")
-                .attr("width", dg.dimensions[0])
-                .attr("height", dg.dimensions[1]);
+            d3.select('#svg')
+                .attr('width', dg.dimensions[0])
+                .attr('height', dg.dimensions[1]);
+            var transform = [
+                'translate(',
+                (dg.dimensions[0] / 2),
+                ',',
+                (dg.dimensions[1] / 2),
+                ')'
+                ].join('');
             d3.selectAll('.centered')
-                .attr('transform', "translate(" +
-                    dg.dimensions[0] / 2 + "," +
-                    dg.dimensions[1] / 2 + ")");
-            dg.network.forceLayout.size(dg.dimensions).start();
+                .transition()
+                .duration(250)
+                .attr('transform', transform);
+            dg.network.forceLayout.size(dg.dimensions);
+            if (self.state == 'viewing-network') {
+                dg.network.forceLayout.start();
+            }
         }));
         $('#svg').on('mousedown', function() {
             self.selectEntity(null);
@@ -145,11 +155,11 @@ var DiscographFsm = machina.Fsm.extend({
         'viewing-radial': {
             '_onEnter': function() {
                 this.toggleRadial(true);
-                d3.select('#timelineLayer').remove();
-                dg_timeline_chartRadial();
+                d3.select('#relationsLayer').remove();
+                dg_relations_chartRadial();
             },
             '_onExit': function() {
-                d3.select('#timelineLayer').remove();
+                d3.select('#relationsLayer').remove();
                 this.toggleRadial(false);
             },
             'request-network': function(entityKey) {
@@ -198,15 +208,15 @@ var DiscographFsm = machina.Fsm.extend({
                 this.requestNetwork(data.center, true);
             },
             'received-radial': function(data) {
-                dg.timeline.data = data;
-                dg.timeline.byYear = d3.nest()
+                dg.relations.data = data;
+                dg.relations.byYear = d3.nest()
                     .key(function(d) { return d.year; })
                     .key(function(d) { return d.category; })
                     .entries(data.results);
-                dg.timeline.byRole = d3.nest()
+                dg.relations.byRole = d3.nest()
                     .key(function(d) { return d.role; })
                     .rollup(function(leaves) { return leaves.length; })
-                    .entries(dg.timeline.data.results);
+                    .entries(dg.relations.data.results);
                 this.transition('viewing-radial');
             },
         },
@@ -246,7 +256,7 @@ var DiscographFsm = machina.Fsm.extend({
     getRadialURL: function(entityKey) {
         var entityType = entityKey.split("-")[0];
         var entityId = entityKey.split("-")[1];
-        return '/api/' + entityType+ '/timeline/' + entityId;
+        return '/api/' + entityType+ '/relations/' + entityId;
     },
     loadInlineData: function() {
         if (dgData) { this.handle('load-inline-data'); }

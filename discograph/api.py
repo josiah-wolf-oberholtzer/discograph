@@ -11,12 +11,12 @@ from discograph import helpers
 blueprint = Blueprint('api', __name__, template_folder='templates')
 
 
-@blueprint.route('/<entity_type>/timeline/<int:entity_id>')
+@blueprint.route('/<entity_type>/relations/<int:entity_id>')
 @decorators.limit(max_requests=60, period=60)
-def route__api__entity_type__timeline__entity_id(entity_type, entity_id):
+def route__api__entity_type__relations__entity_id(entity_type, entity_id):
     if entity_type != 'artist':
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
-    data = helpers.get_timeline(
+    data = helpers.get_relations(
         entity_id,
         entity_type,
         )
