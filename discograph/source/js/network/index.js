@@ -1,4 +1,3 @@
-import "async";
 import "forceLayout";
 import "halo";
 import "hull";

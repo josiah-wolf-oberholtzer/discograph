@@ -232,29 +232,6 @@
         });
     }
 
-    function dg_network_handleAsyncData(json, pushHistory, params) {
-        dg.network.data.json = JSON.parse(JSON.stringify(json));
-        var key = json.center.key;
-        document.title = "Disco/graph: " + json.center.name;
-        $(document).attr("body").id = key;
-        if (pushHistory === true) {
-            dg_history_pushState(key, params);
-        }
-        dg.network.data.pageCount = json.pages;
-        dg.network.pageData.currentPage = 1;
-        if (1 < json.pages) {
-            $('#paging').fadeIn();
-        } else {
-            $('#paging').fadeOut();
-        }
-        dg_network_processJson(json);
-        dg_network_selectPage(1);
-        dg_network_startForceLayout();
-        dg_network_selectNode(dg.network.data.json.center.key);
-        dg_network_toggle(true);
-        dg_loading_toggle(false);
-    }
-
     function dg_network_setupForceLayout() {
         return d3.layout.force()
             .nodes(dg.network.pageData.nodes)
@@ -1138,36 +1115,6 @@
             .attr("id", "timelineLayer");
     }
 
-    function dg_timeline_fetch(entityKey, func) {
-        var entityType = entityKey.split("-")[0];
-        var entityId = entityKey.split("-")[1];
-        var url = '/api/' + entityType + '/timeline/' + entityId;
-        d3.json(url, function(error, json) {
-            if (error) {
-                console.warn(error);
-                return;
-            }
-            dg.timeline.json = json;
-            dg.timeline.byYear = d3.nest()
-                .key(function(d) {
-                    return d.year;
-                })
-                .key(function(d) {
-                    return d.category;
-                })
-                .entries(json.results);
-            dg.timeline.byRole = d3.nest()
-                .key(function(d) {
-                    return d.role;
-                })
-                .rollup(function(leaves) {
-                    return leaves.length;
-                })
-                .entries(dg.timeline.json.results);
-            func();
-        })
-    }
-
     function dg_timeline_chartTimeline() {
         var years = dg.timeline.nested.map(function(d) {
             return parseInt(d.key);
@@ -1340,52 +1287,6 @@
 
     function dg_events_network_toggle(event) {
         dg_network_toggle(event.status);
-    }
-
-    function dg_events_network_fetch(event) {
-        dg_network_toggle(false);
-        dg_loading_toggle(true);
-        var entityKey = event.entityKey;
-        var entityType = entityKey.split("-")[0];
-        var entityId = entityKey.split("-")[1];
-        var pushHistory = event.pushHistory;
-        var url = "/api/" + entityType + "/network/" + entityId;
-        var params = {
-            'roles': $('#filter select').val()
-        };
-        if (params.roles) {
-            url += '?' + decodeURIComponent($.param(params));
-        }
-        d3.json(url, function(error, json) {
-            if (error) {
-                $(window).trigger({
-                    type: 'discograph:error',
-                    error: error,
-                });
-            } else {
-                dg_network_handleAsyncData(json, pushHistory, params);
-            }
-        });
-    }
-
-    function dg_events_random_fetch(event) {
-        dg_network_toggle(false);
-        dg_loading_toggle(true);
-        var url = '/api/random?' + Math.floor(Math.random() * 1000000);
-        d3.json(url, function(error, json) {
-            if (error) {
-                $(window).trigger({
-                    type: 'discograph:error',
-                    error: error,
-                });
-            } else {
-                $(window).trigger({
-                    type: 'discograph:network-fetch',
-                    entityKey: json.center,
-                    pushHistory: true,
-                });
-            }
-        });
     }
 
     function dg_events_error(event) {

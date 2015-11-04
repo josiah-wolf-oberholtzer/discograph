@@ -6,50 +6,6 @@ function dg_events_network_toggle(event) {
     dg_network_toggle(event.status);
 }
 
-function dg_events_network_fetch(event) {
-    dg_network_toggle(false);
-    dg_loading_toggle(true);
-    var entityKey = event.entityKey;
-    var entityType = entityKey.split("-")[0];
-    var entityId = entityKey.split("-")[1];
-    var pushHistory = event.pushHistory;
-    var url = "/api/" + entityType + "/network/" + entityId;
-    var params = {'roles': $('#filter select').val()};
-    if (params.roles) {
-        url += '?' + decodeURIComponent($.param(params));
-    }
-    d3.json(url, function(error, json) {
-        if (error) {
-            $(window).trigger({
-                type: 'discograph:error', 
-                error: error,
-            });
-        } else {
-            dg_network_handleAsyncData(json, pushHistory, params);
-        }
-    });
-}
-
-function dg_events_random_fetch(event) {
-    dg_network_toggle(false);
-    dg_loading_toggle(true);
-    var url = '/api/random?' + Math.floor(Math.random() * 1000000);
-    d3.json(url, function(error, json) {
-        if (error) {
-            $(window).trigger({
-                type: 'discograph:error', 
-                error: error,
-            });
-        } else {
-            $(window).trigger({
-                type: 'discograph:network-fetch',
-                entityKey: json.center,
-                pushHistory: true,
-            });
-        }
-    });
-}
-
 function dg_events_error(event) {
     var error = event.error;
     var message = 'Something went wrong!';

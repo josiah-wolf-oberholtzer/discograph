@@ -9,25 +9,6 @@ function dg_timeline_init() {
         .attr("id", "timelineLayer");
 }
 
-function dg_timeline_fetch(entityKey, func) {
-    var entityType = entityKey.split("-")[0];
-    var entityId = entityKey.split("-")[1];
-    var url = '/api/' + entityType+ '/timeline/' + entityId;
-    d3.json(url, function(error, json) {
-        if (error) { console.warn(error); return; }
-        dg.timeline.json = json;
-        dg.timeline.byYear = d3.nest()
-            .key(function(d) { return d.year; })
-            .key(function(d) { return d.category; })
-            .entries(json.results);
-        dg.timeline.byRole = d3.nest()
-            .key(function(d) { return d.role; })
-            .rollup(function(leaves) { return leaves.length; })
-            .entries(dg.timeline.json.results);
-        func();
-    })
-}
-
 function dg_timeline_chartTimeline() {
     var years = dg.timeline.nested.map(function(d) { return parseInt(d.key); })
     var extent = d3.extent(years);
