@@ -1214,6 +1214,7 @@
                 self.selectEntity(null);
             });
             this.loadInlineData();
+            this.toggleRadial(false);
         },
         namespace: 'discograph',
         initialState: 'uninitialized',
@@ -1279,9 +1280,8 @@
                         nodeOn.moveToFront();
                         nodeOn.classed('selected', true);
                         if (fixed) {
-                            nodeOn.each(function(d) {
-                                d.fixed = true;
-                            });
+                            //nodeOn.each(function(d) { d.fixed = true; });
+                            node.fixed = true;
                         }
                         linkOn.classed('selected', true);
                     } else {
@@ -1302,11 +1302,13 @@
             },
             'viewing-radial': {
                 '_onEnter': function() {
+                    this.toggleRadial(true);
                     d3.select('#timelineLayer').remove();
                     dg_timeline_chartRadial();
                 },
                 '_onExit': function() {
                     d3.select('#timelineLayer').remove();
+                    this.toggleRadial(false);
                 },
                 'request-network': function(entityKey) {
                     this.requestNetwork(entityKey);
@@ -1528,6 +1530,30 @@
                     .addClass('glyphicon-random');
             }
             dg_loading_update(data, extent);
+        },
+        toggleRadial: function(status) {
+            var self = this;
+            if (status) {
+                $('#entity-relations')
+                    .off('click')
+                    .on('click', function(event) {
+                        self.showNetwork();
+                        event.preventDefault();
+                    });
+                $('#entity-relations .glyphicon')
+                    .removeClass('glyphicon-eye-open')
+                    .addClass('glyphicon-eye-close');
+            } else {
+                $('#entity-relations')
+                    .off('click')
+                    .on('click', function(event) {
+                        self.showRadial();
+                        event.preventDefault();
+                    });
+                $('#entity-relations .glyphicon')
+                    .addClass('glyphicon-eye-open')
+                    .removeClass('glyphicon-eye-close');
+            }
         },
     });
     $(document).ready(function() {
