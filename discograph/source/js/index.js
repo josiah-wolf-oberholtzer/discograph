@@ -1,12 +1,12 @@
 !function(){
     var dg = {version: "0.1"};
 
-import "color/";
-import "loading/";
+import "color";
+import "loading";
 import "network/";
-import "svg/";
-import "relations/";
-import "typeahead/";
+import "svg";
+import "relations";
+import "typeahead";
 import "fsm";
 import "init";
 

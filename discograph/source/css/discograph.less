@@ -203,10 +203,26 @@ form .clear,
     path {
         &.arc {
             stroke: #fff;
-            stroke-width: 2px;
+            stroke-width: 1px;
             &:hover {
                 fill: #f00;
                 }
+            }
+        }
+    text {
+        text-rendering: optimizeLegibility;
+        dominant-baseline: middle;
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-weight: bold;
+        &.outer {
+            fill: #fff;
+            stroke: #fff;
+            stroke-width: 3px;
+            }
+        &.inner {
+            fill: #000;
+            stroke: none;
             }
         }
     } 

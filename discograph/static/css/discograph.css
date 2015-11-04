@@ -172,10 +172,26 @@ form .clear,
 /* RADIAL */
 #relationsLayer path.arc {
   stroke: #fff;
-  stroke-width: 2px;
+  stroke-width: 1px;
 }
 #relationsLayer path.arc:hover {
   fill: #f00;
+}
+#relationsLayer text {
+  text-rendering: optimizeLegibility;
+  dominant-baseline: middle;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+}
+#relationsLayer text.outer {
+  fill: #fff;
+  stroke: #fff;
+  stroke-width: 3px;
+}
+#relationsLayer text.inner {
+  fill: #000;
+  stroke: none;
 }
 /* LOADING */
 #loadingLayer path.arc {

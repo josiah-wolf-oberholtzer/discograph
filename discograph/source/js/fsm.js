@@ -67,7 +67,11 @@ var DiscographFsm = machina.Fsm.extend({
             }
         }));
         $('#svg').on('mousedown', function() {
-            self.selectEntity(null);
+            if (self.state == 'viewing-network') {
+                self.selectEntity(null);
+            } else if (self.state == 'viewing-radial') {
+                self.showNetwork();
+            }
         });
         this.loadInlineData();
         this.toggleRadial(false);
@@ -215,6 +219,7 @@ var DiscographFsm = machina.Fsm.extend({
                     .entries(data.results);
                 dg.relations.byRole = d3.nest()
                     .key(function(d) { return d.role; })
+                    .sortKeys(d3.ascending)
                     .rollup(function(leaves) { return leaves.length; })
                     .entries(dg.relations.data.results);
                 this.transition('viewing-radial');
@@ -343,8 +348,7 @@ var DiscographFsm = machina.Fsm.extend({
                 $('#paging').fadeOut();
             }
             dg.network.layers.root.transition()
-                .delay(250)
-                .duration(1000)
+                .duration(250)
                 .style('opacity', 1)
                 .each('end', function(d, i) {
                     dg.network.layers.link.selectAll('.link')

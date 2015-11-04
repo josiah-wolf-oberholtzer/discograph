@@ -1000,6 +1000,7 @@
                 return ((i + 1) * 2 * Math.PI) / numBars;
             })
             .innerRadius(0);
+        dg.arc = arc;
         var group = dg.relations.layers.root.append('g')
             .attr('class', 'radial centered')
             .attr('transform', 'translate(' +
@@ -1015,7 +1016,12 @@
             .each(function(d) {
                 d.outerRadius = 0;
             })
-            .attr('d', arc);
+            .attr('d', arc)
+            .on('mousedown', function(d) {
+                $('#filter-roles').multiselect('select', d.key);
+                dg.fsm.requestNetwork(dg.network.data.json.center.key, true);
+                d3.event.stopPropagation();
+            });
         segments.transition()
             .ease('elastic')
             .duration(500)
@@ -1029,9 +1035,45 @@
                     return arc(d, index);
                 };
             });
-        var labels = group.selectAll('text')
+        var textAnchor = function(d, i) {
+            var angle = (i + 0.5) / numBars;
+            if (angle < 0.5) {
+                return 'start';
+            } else {
+                return 'end';
+            }
+        };
+        var transform = function(d, i) {
+            var hypotenuse = barScale(d.values) + 5;
+            var angle = (i + 0.5) / numBars;
+            var degrees = (angle * 360);
+            if (180 <= degrees) {
+                degrees -= 180;
+            }
+            degrees -= 90;
+            var radians = angle * 2 * Math.PI;
+            var x = Math.sin(radians) * hypotenuse;
+            var y = -Math.cos(radians) * hypotenuse;
+            return [
+                'rotate(' + degrees + ',' + x + ',' + y + ')',
+                'translate(' + x + ',' + y + ')'
+            ].join(' ');
+        }
+        var outerLabels = group.selectAll('text.outer')
             .data(data)
             .enter().append('text')
+            .attr('class', 'outer')
+            .attr('text-anchor', textAnchor)
+            .attr('transform', transform)
+            .text(function(d) {
+                return d.key;
+            });
+        var innerLabels = group.selectAll('text.inner')
+            .data(data)
+            .enter().append('text')
+            .attr('class', 'inner')
+            .attr('text-anchor', textAnchor)
+            .attr('transform', transform)
             .text(function(d) {
                 return d.key;
             });
@@ -1183,7 +1225,11 @@
                 }
             }));
             $('#svg').on('mousedown', function() {
-                self.selectEntity(null);
+                if (self.state == 'viewing-network') {
+                    self.selectEntity(null);
+                } else if (self.state == 'viewing-radial') {
+                    self.showNetwork();
+                }
             });
             this.loadInlineData();
             this.toggleRadial(false);
@@ -1343,6 +1389,7 @@
                         .key(function(d) {
                             return d.role;
                         })
+                        .sortKeys(d3.ascending)
                         .rollup(function(leaves) {
                             return leaves.length;
                         })
@@ -1480,8 +1527,7 @@
                     $('#paging').fadeOut();
                 }
                 dg.network.layers.root.transition()
-                    .delay(250)
-                    .duration(1000)
+                    .duration(250)
                     .style('opacity', 1)
                     .each('end', function(d, i) {
                         dg.network.layers.link.selectAll('.link')
