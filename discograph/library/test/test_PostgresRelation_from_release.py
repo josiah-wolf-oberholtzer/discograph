@@ -21,6 +21,24 @@ class Test(unittest.TestCase):
             {
                 'entity_one_id': 1,
                 'entity_one_type': discograph.PostgresRelation.EntityType.ARTIST,
+                'entity_two_id': 56025,
+                'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
+                'release_id': 1,
+                'role': 'Pressed By',
+                'year': 1999,
+                },
+            {
+                'entity_one_id': 1,
+                'entity_one_type': discograph.PostgresRelation.EntityType.ARTIST,
+                'entity_two_id': 271046,
+                'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
+                'release_id': 1,
+                'role': 'Recorded At',
+                'year': 1999,
+                },
+            {
+                'entity_one_id': 1,
+                'entity_one_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'entity_two_id': -1,
                 'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
                 'release_id': 1,
@@ -322,6 +340,33 @@ class Test(unittest.TestCase):
         release_document.resolve_references({}, spuriously=True)
         actual = discograph.PostgresRelation.from_release(release_document)
         expected = [
+            {
+                'entity_one_id': 22,
+                'entity_one_type': discograph.PostgresRelation.EntityType.ARTIST,
+                'entity_two_id': 291931,
+                'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
+                'release_id': 5,
+                'role': 'Manufactured By',
+                'year': 1995,
+                },
+            {
+                'entity_one_id': 22,
+                'entity_one_type': discograph.PostgresRelation.EntityType.ARTIST,
+                'entity_two_id': 403521,
+                'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
+                'release_id': 5,
+                'role': 'Marketed By',
+                'year': 1995,
+                },
+            {
+                'entity_one_id': 22,
+                'entity_one_type': discograph.PostgresRelation.EntityType.ARTIST,
+                'entity_two_id': 265233,
+                'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
+                'release_id': 5,
+                'role': 'Produced At',
+                'year': 1995,
+                },
             {
                 'entity_one_id': 22,
                 'entity_one_type': discograph.PostgresRelation.EntityType.ARTIST,
@@ -643,15 +688,6 @@ class Test(unittest.TestCase):
             {
                 'entity_one_id': 64,
                 'entity_one_type': discograph.PostgresRelation.EntityType.ARTIST,
-                'entity_two_id': -1,
-                'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
-                'release_id': 36,
-                'role': 'Compiled On',
-                'year': 2000,
-                },
-            {
-                'entity_one_id': 64,
-                'entity_one_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'entity_two_id': 64,
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
@@ -746,6 +782,15 @@ class Test(unittest.TestCase):
                 'entity_two_type': discograph.PostgresRelation.EntityType.ARTIST,
                 'release_id': 36,
                 'role': 'DJ Mix',
+                'year': 2000,
+                },
+            {
+                'entity_one_id': 64,
+                'entity_one_type': discograph.PostgresRelation.EntityType.ARTIST,
+                'entity_two_id': -1,
+                'entity_two_type': discograph.PostgresRelation.EntityType.LABEL,
+                'release_id': 36,
+                'role': 'Released On',
                 'year': 2000,
                 },
             {

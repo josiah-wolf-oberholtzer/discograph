@@ -11,8 +11,8 @@ class CreditRole(abctools.AbjadValueObject):
 
     class Category(datastructuretools.Enumeration):
         ACTING_LITERARY_AND_SPOKEN = 1
-        CONDUCTING_AND_LEADING = 2
-        COMPANIES = 3
+        COMPANIES = 2
+        CONDUCTING_AND_LEADING = 3
         DJ_MIX = 4
         FEATURING_AND_PRESENTING = 5
         INSTRUMENTS = 6
@@ -42,7 +42,7 @@ class CreditRole(abctools.AbjadValueObject):
         Category.CONDUCTING_AND_LEADING: 'Conducting & Leading',
         Category.DJ_MIX: 'DJ Mix',
         Category.FEATURING_AND_PRESENTING: 'Featuring & Presenting',
-        Category.MANUFACTURE: 'Manufacturing',
+        Category.MANAGEMENT: 'Management',
         Category.PRODUCTION: 'Production',
         Category.RELATION: 'Structural Relationships',
         Category.REMIX: 'Remix',

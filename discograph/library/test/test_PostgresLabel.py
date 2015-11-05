@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
             discograph.library.postgres.PostgresLabel(
                 id=1,
                 name='Planet E',
-                profile='Classic Techno label from Detroit, USA.\n[b]Label owner:[/b] [a=Carl Craig].\n',
+                profile='Classic Techno label from Detroit, USA.\r\n[b]Label owner:[/b] [a=Carl Craig].\r\n',
                 sublabels={
                     'Antidote (4)': None,
                     'Community Projects': None,

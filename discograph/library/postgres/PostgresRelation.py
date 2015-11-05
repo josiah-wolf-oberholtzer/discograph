@@ -79,6 +79,20 @@ class PostgresRelation(PostgresModel):
             'year',
             )
 
+    ### PRIVATE METHODS ###
+
+    @classmethod
+    def _as_artist_credits(cls, companies):
+        artists = []
+        for company in companies:
+            artist = {
+                'name': company['name'],
+                'id': company['id'],
+                'roles': [{'name': company['entity_type_name']}],
+                }
+            artists.append(artist)
+        return artists
+
     ### PUBLIC METHODS ###
 
     def as_json(self):
@@ -284,6 +298,7 @@ class PostgresRelation(PostgresModel):
             is_compilation,
             ))
         aggregate_roles = {}
+
         if is_compilation:
             iterator = itertools.product(labels, release.extra_artists)
         else:
@@ -301,6 +316,18 @@ class PostgresRelation(PostgresModel):
                     continue
                 entity_one = (cls.EntityType.ARTIST, credit['id'])
                 triples.add((entity_one, role, entity_two))
+
+        if is_compilation:
+            iterator = itertools.product(labels, release.companies)
+        else:
+            iterator = itertools.product(artists, release.companies)
+        for entity_one, company in iterator:
+                role = company['entity_type_name']
+                if role not in discograph.CreditRole.all_credit_roles:
+                    continue
+                entity_two = (cls.EntityType.LABEL, company['id'])
+                triples.add((entity_one, role, entity_two))
+
         all_track_artists = set()
         for track in release.tracklist:
             track_artists = set(

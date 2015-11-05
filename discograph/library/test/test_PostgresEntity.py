@@ -56,7 +56,7 @@ class Test(unittest.TestCase):
                 entity_id=1,
                 entity_type=2,
                 metadata={
-                    'profile': 'Classic Techno label from Detroit, USA.\n[b]Label owner:[/b] [a=Carl Craig].\n',
+                    'profile': 'Classic Techno label from Detroit, USA.\r\n[b]Label owner:[/b] [a=Carl Craig].\r\n',
                     'urls': [
                         'http://planet-e.net',
                         'http://planetecommunications.bandcamp.com',

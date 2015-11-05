@@ -50,6 +50,6 @@ class TestCase(unittest.TestCase):
                 ],
             }
 
-    def test_timeline_01(self):
-        response = self.app.get('/api/artist/timeline/32550')
+    def test_relations_01(self):
+        response = self.app.get('/api/artist/relations/32550')
         assert response.status == '200 OK'
