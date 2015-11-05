@@ -95,12 +95,11 @@ class RelationGrapher2(object):
         self.entity_keys_to_visit.add(self.center_entity.entity_key)
         for distance in range(self.degree + 1):
             self._report_search_loop_start(distance)
-            print('        Retrieving entities')
-            if not self.entity_keys_to_visit or self.break_on_next_loop:
-                break
-            entities = PostgresEntity.search_multi(self.entity_keys_to_visit)
+            entities = self._search_entities(self.entity_keys_to_visit)
             relations = {}
             self._process_entities(distance, entities)
+            if not self.entity_keys_to_visit or self.break_on_next_loop:
+                break
             self._test_loop_one(distance)
             self._prune_roles(distance, provisional_roles)
             self._search_via_structural_roles(distance, provisional_roles, relations)
@@ -109,10 +108,10 @@ class RelationGrapher2(object):
             self._test_loop_two(distance, relations)
             self.entity_keys_to_visit.clear()
             self._process_relations(relations)
-        self._cross_reference()
+        self._cross_reference(distance)
         self._find_clusters()
         self._build_trellis()
-        pages = self._partition_trellis()
+        pages = self._partition_trellis(distance)
         self._page_entities(pages)
         for node in self.nodes.values():
             expected_count = node.entity.roles_to_relation_count(self.all_roles)
@@ -157,6 +156,15 @@ class RelationGrapher2(object):
                 node.cluster = cluster
         #import pprint
         #pprint.pprint(cluster_map)
+
+    def _page_naively(self, pages, trellis_nodes_by_distance):
+        print('        Paging by naively...')
+        index = 0
+        for distance in sorted(trellis_nodes_by_distance):
+            while trellis_nodes_by_distance[distance]:
+                trellis_node = trellis_nodes_by_distance[distance].pop(0)
+                pages[index].add(trellis_node)
+                index = (index + 1) % len(pages)
 
     def _page_entities(self, pages):
         for page_number, page in enumerate(pages, 1):
@@ -212,13 +220,16 @@ class RelationGrapher2(object):
                 target_node.children.add(source_node)
                 source_node.parents.add(target_node)
         self._recurse_trellis(self.nodes[self.center_entity.entity_key])
+        message = '    Built trellis: {} nodes / {} links'
+        message = message.format(len(self.nodes), len(self.links))
+        print(message)
 
-    def _partition_trellis(self):
-        print('    Partitioning trellis...')
-        message = '        Maximum: {} / {}'
+    def _partition_trellis(self, distance):
+        page_count = math.ceil(float(len(self.nodes)) / self.max_nodes)
+        print('    Partitioning trellis into {} pages...'.format(page_count))
+        message = '        Maximum: {} nodes / {} links'
         message = message.format(self.max_nodes, self.max_links)
         print(message)
-        page_count = math.ceil(float(len(self.nodes)) / self.max_nodes)
         pages = [set() for _ in range(page_count)]
         trellis_nodes_by_distance = self._group_trellis(self.nodes)
         threshold = len(self.nodes) / len(pages) / len(trellis_nodes_by_distance)
@@ -227,8 +238,12 @@ class RelationGrapher2(object):
             threshold,
             )
         self._page_by_local_neighborhood(pages, trellis_nodes_by_distance)
-        self._page_at_winning_distance(pages, trellis_nodes_by_distance, winning_distance)
-        self._page_by_distance(pages, trellis_nodes_by_distance)
+        # TODO: Add fast path when node count is very high (e.g. 4000+)
+        if 1 < distance:
+            self._page_at_winning_distance(pages, trellis_nodes_by_distance, winning_distance)
+            self._page_by_distance(pages, trellis_nodes_by_distance)
+        else:
+            self._page_naively(pages, trellis_nodes_by_distance)
         for i, page in enumerate(pages):
             message = '        Page {}: {}'
             message = message.format(i, len(page))
@@ -241,6 +256,7 @@ class RelationGrapher2(object):
         trellis_nodes_by_distance,
         winning_distance,
         ):
+        print('        Paging at winning distance...')
         while trellis_nodes_by_distance[winning_distance]:
             trellis_node = trellis_nodes_by_distance[winning_distance].pop(0)
             parentage = trellis_node.get_parentage()
@@ -264,7 +280,7 @@ class RelationGrapher2(object):
             if len(local_neighborhood) + len(trellis_nodes) < neighborhood_threshold:
                 local_neighborhood.extend(trellis_nodes)
                 trellis_nodes[:] = []
-        message = '        Local neighborhood: {}'
+        message = '        Paging by local neighborhood: {}'
         message = message.format(len(local_neighborhood))
         print(message)
         for trellis_node in local_neighborhood:
@@ -277,6 +293,7 @@ class RelationGrapher2(object):
         pages,
         trellis_nodes_by_distance,
         ):
+        print('        Paging by distance...')
         for distance in sorted(trellis_nodes_by_distance):
             while trellis_nodes_by_distance[distance]:
                 trellis_node = trellis_nodes_by_distance[distance].pop(0)
@@ -344,8 +361,12 @@ class RelationGrapher2(object):
         self._entity_keys_to_visit.clear()
         self._break_on_next_loop = False
 
-    def _cross_reference(self):
+    def _cross_reference(self, distance):
         if not self.relational_roles:
+            print('    Skipping cross-referencing: no relational roles')
+            return
+        elif distance < 2:
+            print('    Skipping cross-referencing: maximum distance less than 2')
             return
         relations = {}
         entity_keys = sorted(self.nodes)
@@ -363,7 +384,7 @@ class RelationGrapher2(object):
                 )
             relations.update(found)
         self._process_relations(relations)
-        message = '    Cross-referenced: {} / {}'
+        message = '    Cross-referenced: {} nodes / {} links'
         message = message.format(len(self.nodes), len(self.links))
         print(message)
 
@@ -438,6 +459,20 @@ class RelationGrapher2(object):
         message = '    Roles: {}'
         message = message.format(self.all_roles)
         print(message)
+
+    def _search_entities(self, entity_keys_to_visit):
+        print('        Retrieving entities')
+        entities = []
+        entity_keys_to_visit = list(entity_keys_to_visit)
+        step = 1000
+        for start in range(0, len(entity_keys_to_visit), step):
+            entity_key_slice = entity_keys_to_visit[start:start + step]
+            found = PostgresEntity.search_multi(entity_key_slice)
+            entities.extend(found)
+            message = '            {}-{} of {}'
+            message = message.format(start, start + step, len(entity_keys_to_visit))
+            print(message)
+        return entities
 
     def _search_via_structural_roles(self, distance, provisional_roles, relations):
         if not self.structural_roles:
