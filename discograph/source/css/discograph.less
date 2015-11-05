@@ -200,13 +200,26 @@ form .clear,
 /* RADIAL */
 
 #relationsLayer {
+    g.segment.selected {
+        path.arc {
+            fill: #00f;
+            }
+        text.inner {
+            fill: #00f;
+            }
+        }
+    g.segment:hover {
+        path.arc {
+            fill: #f00;
+            }
+        text.inner {
+            fill: #f00;
+            }
+        }
     path {
         &.arc {
             stroke: #fff;
             stroke-width: 1px;
-            &:hover {
-                fill: #f00;
-                }
             }
         }
     text {

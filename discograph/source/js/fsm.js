@@ -284,7 +284,7 @@ var DiscographFsm = machina.Fsm.extend({
         var self = this;
         d3.json(this.getNetworkURL(entityKey), function(error, data) {
             if (error) {
-                this.handleError(error);
+                self.handleError(error);
             } else {
                 self.handle('received-network', data, pushHistory);
             }
@@ -295,7 +295,7 @@ var DiscographFsm = machina.Fsm.extend({
         var self = this;
         d3.json(this.getRadialURL(entityKey), function(error, data) {
             if (error) {
-                this.handleError(error);
+                self.handleError(error);
             } else {
                 self.handle('received-radial', data);
             }
@@ -306,7 +306,7 @@ var DiscographFsm = machina.Fsm.extend({
         var self = this;
         d3.json(this.getRandomURL(), function(error, data) {
             if (error) {
-                this.handleError(error);
+                self.handleError(error);
             } else {
                 self.handle('received-random', data);
             }
@@ -362,7 +362,7 @@ var DiscographFsm = machina.Fsm.extend({
             dg.network.forceLayout.stop()
             dg.network.layers.root.transition()
                 .duration(250)
-                .style('opacity', 0.333);
+                .style('opacity', 0.25);
             dg.network.layers.link.selectAll('.link')
                 .classed('noninteractive', true);
             dg.network.layers.node.selectAll('.node')

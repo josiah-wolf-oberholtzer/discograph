@@ -170,12 +170,21 @@ form .clear,
   fill: #fff;
 }
 /* RADIAL */
+#relationsLayer g.segment.selected path.arc {
+  fill: #00f;
+}
+#relationsLayer g.segment.selected text.inner {
+  fill: #00f;
+}
+#relationsLayer g.segment:hover path.arc {
+  fill: #f00;
+}
+#relationsLayer g.segment:hover text.inner {
+  fill: #f00;
+}
 #relationsLayer path.arc {
   stroke: #fff;
   stroke-width: 1px;
-}
-#relationsLayer path.arc:hover {
-  fill: #f00;
 }
 #relationsLayer text {
   text-rendering: optimizeLegibility;

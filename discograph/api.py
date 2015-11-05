@@ -14,7 +14,7 @@ blueprint = Blueprint('api', __name__, template_folder='templates')
 @blueprint.route('/<entity_type>/relations/<int:entity_id>')
 @decorators.limit(max_requests=60, period=60)
 def route__api__entity_type__relations__entity_id(entity_type, entity_id):
-    if entity_type != 'artist':
+    if entity_type not in ('artist', 'label'):
         raise exceptions.APIError(message='Bad Entity Type', status_code=404)
     data = helpers.get_relations(
         entity_id,

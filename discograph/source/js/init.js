@@ -24,6 +24,14 @@ $(document).ready(function() {
         });
         $(this).tooltip('hide');
     });
+    $('#filter-roles').select2().on('change', function(event) {
+        $(window).trigger({
+            type: 'discograph:request-network',
+            entityKey: dg.network.data.json.center.key,
+            pushHistory: true,
+        });
+    });
+    /*
     $('#filter-roles').multiselect({
         buttonWidth: "160px",
         enableFiltering: true,
@@ -48,6 +56,7 @@ $(document).ready(function() {
             pushHistory: true,
         });
     });
+    */
     $('#filter').fadeIn(3000);
     dg.fsm = new DiscographFsm();
     console.log('discograph initialized.');
