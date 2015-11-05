@@ -112,61 +112,61 @@ class PostgresRelation(PostgresModel):
     def bootstrap(cls):
         cls.drop_table(True)
         cls.create_table()
-        cls.bootstrap_pass_one()
-        cls.bootstrap_pass_two()
+        #cls.bootstrap_pass_one()
+        #cls.bootstrap_pass_two()
         cls.bootstrap_pass_three()
 
-    @classmethod
-    def bootstrap_pass_one(cls):
-        import discograph
-        model_class = discograph.PostgresArtist
-        maximum_id = model_class.select(peewee.fn.Max(model_class.id)).scalar()
-        for i in range(1, maximum_id + 1):
-            query = model_class.select().where(model_class.id == i)
-            if not query.count():
-                continue
-            document = query.get()
-            print('(id:{}) {}'.format(
-                document.id,
-                document.name,
-                ))
-            relations = cls.from_artist(document)
-            for relation in relations:
-                relation['random'] = random.random()
-                print('    {}-{} -> {!r} -> {}-{}'.format(
-                    relation['entity_one_type'].name,
-                    relation['entity_one_id'],
-                    relation['role'],
-                    relation['entity_two_type'].name,
-                    relation['entity_two_id'],
-                    ))
-                cls.create_or_get(**relation)
+#    @classmethod
+#    def bootstrap_pass_one(cls):
+#        import discograph
+#        model_class = discograph.PostgresArtist
+#        maximum_id = model_class.select(peewee.fn.Max(model_class.id)).scalar()
+#        for i in range(1, maximum_id + 1):
+#            query = model_class.select().where(model_class.id == i)
+#            if not query.count():
+#                continue
+#            document = query.get()
+#            print('(id:{}) {}'.format(
+#                document.id,
+#                document.name,
+#                ))
+#            relations = cls.from_artist(document)
+#            for relation in relations:
+#                relation['random'] = random.random()
+#                print('    {}-{} -> {!r} -> {}-{}'.format(
+#                    relation['entity_one_type'].name,
+#                    relation['entity_one_id'],
+#                    relation['role'],
+#                    relation['entity_two_type'].name,
+#                    relation['entity_two_id'],
+#                    ))
+#                cls.create_or_get(**relation)
 
-    @classmethod
-    def bootstrap_pass_two(cls):
-        import discograph
-        model_class = discograph.PostgresLabel
-        maximum_id = model_class.select(peewee.fn.Max(model_class.id)).scalar()
-        for i in range(1, maximum_id + 1):
-            query = model_class.select().where(model_class.id == i)
-            if not query.count():
-                continue
-            document = query.get()
-            print('(id:{}) {}'.format(
-                document.id,
-                document.name,
-                ))
-            relations = cls.from_label(document)
-            for relation in relations:
-                relation['random'] = random.random()
-                print('    {}-{} -> {!r} -> {}-{}'.format(
-                    relation['entity_one_type'].name,
-                    relation['entity_one_id'],
-                    relation['role'],
-                    relation['entity_two_type'].name,
-                    relation['entity_two_id'],
-                    ))
-                cls.create_or_get(**relation)
+#    @classmethod
+#    def bootstrap_pass_two(cls):
+#        import discograph
+#        model_class = discograph.PostgresLabel
+#        maximum_id = model_class.select(peewee.fn.Max(model_class.id)).scalar()
+#        for i in range(1, maximum_id + 1):
+#            query = model_class.select().where(model_class.id == i)
+#            if not query.count():
+#                continue
+#            document = query.get()
+#            print('(id:{}) {}'.format(
+#                document.id,
+#                document.name,
+#                ))
+#            relations = cls.from_label(document)
+#            for relation in relations:
+#                relation['random'] = random.random()
+#                print('    {}-{} -> {!r} -> {}-{}'.format(
+#                    relation['entity_one_type'].name,
+#                    relation['entity_one_id'],
+#                    relation['role'],
+#                    relation['entity_two_type'].name,
+#                    relation['entity_two_id'],
+#                    ))
+#                cls.create_or_get(**relation)
 
     @classmethod
     def bootstrap_pass_three(cls):
@@ -196,30 +196,30 @@ class PostgresRelation(PostgresModel):
         database = cls._meta.database
         with database.execution_context(with_transaction=False):
             release_class = discograph.PostgresRelease
-            master_class = discograph.PostgresMaster
+#            master_class = discograph.PostgresMaster
             query = release_class.select().where(release_class.id == release_id)
             if not query.count():
                 return
             document = query.get()
-            if document.master_id:
-                if document.master_id in corpus:
-                    main_release_id = corpus[document.master_id]
-                else:
-                    where_clause = master_class.id == document.master_id
-                    query = master_class.select().where(where_clause)
-                    if query.count():
-                        master = query.get()
-                        corpus[document.master_id] = master.main_release_id
-                        main_release_id = corpus[document.master_id]
-                    else:
-                        main_release_id = document.id
-                if main_release_id != document.id:
-                    print('[{}] (id:{}) [SKIPPED] {}'.format(
-                        annotation,
-                        document.id,
-                        document.title,
-                        ))
-                    return
+#            if document.master_id:
+#                if document.master_id in corpus:
+#                    main_release_id = corpus[document.master_id]
+#                else:
+#                    where_clause = master_class.id == document.master_id
+#                    query = master_class.select().where(where_clause)
+#                    if query.count():
+#                        master = query.get()
+#                        corpus[document.master_id] = master.main_release_id
+#                        main_release_id = corpus[document.master_id]
+#                    else:
+#                        main_release_id = document.id
+#                if main_release_id != document.id:
+#                    print('[{}] (id:{}) [SKIPPED] {}'.format(
+#                        annotation,
+#                        document.id,
+#                        document.title,
+#                        ))
+#                    return
             relations = cls.from_release(document)
             print('[{}] (id:{})           [{}] {}'.format(
                 annotation,
