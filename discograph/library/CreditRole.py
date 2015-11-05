@@ -12,17 +12,18 @@ class CreditRole(abctools.AbjadValueObject):
     class Category(datastructuretools.Enumeration):
         ACTING_LITERARY_AND_SPOKEN = 1
         CONDUCTING_AND_LEADING = 2
-        DJ_MIX = 3
-        FEATURING_AND_PRESENTING = 4
-        INSTRUMENTS = 5
-        MANAGEMENT = 6
-        PRODUCTION = 7
-        RELATION = 13
-        REMIX = 8
-        TECHNICAL = 9
-        VISUAL = 10
-        VOCAL = 11
-        WRITING_AND_ARRANGEMENT = 12
+        COMPANIES = 3
+        DJ_MIX = 4
+        FEATURING_AND_PRESENTING = 5
+        INSTRUMENTS = 6
+        MANAGEMENT = 7
+        PRODUCTION = 8
+        RELATION = 9
+        REMIX = 10
+        TECHNICAL = 11
+        VISUAL = 12
+        VOCAL = 13
+        WRITING_AND_ARRANGEMENT = 14
 
     class Subcategory(datastructuretools.Enumeration):
         DRUMS_AND_PERCUSSION = 1
@@ -37,10 +38,11 @@ class CreditRole(abctools.AbjadValueObject):
 
     category_names = {
         Category.ACTING_LITERARY_AND_SPOKEN: 'Acting, Literary & Spoken',
+        Category.COMPANIES: 'Companies',
         Category.CONDUCTING_AND_LEADING: 'Conducting & Leading',
         Category.DJ_MIX: 'DJ Mix',
         Category.FEATURING_AND_PRESENTING: 'Featuring & Presenting',
-        Category.MANAGEMENT: 'Management',
+        Category.MANUFACTURE: 'Manufacturing',
         Category.PRODUCTION: 'Production',
         Category.RELATION: 'Structural Relationships',
         Category.REMIX: 'Remix',
@@ -725,6 +727,38 @@ class CreditRole(abctools.AbjadValueObject):
         ("Trautonium", (Category.INSTRUMENTS, Subcategory.OTHER_MUSICAL)),
         ("Wind Chimes", (Category.INSTRUMENTS, Subcategory.OTHER_MUSICAL)),
         ("Wobble Board", (Category.INSTRUMENTS, Subcategory.OTHER_MUSICAL)),
+        ("Copyright (c)", (Category.COMPANIES,)),
+        ("Designed At", (Category.COMPANIES,)),
+        ("Distributed By", (Category.COMPANIES,)),
+        ("Duplicated By", (Category.COMPANIES,)),
+        ("Edited At", (Category.COMPANIES,)),
+        ("Engineered At", (Category.COMPANIES,)),
+        ("Exclusive Retailer", (Category.COMPANIES,)),
+        ("Exported By", (Category.COMPANIES,)),
+        ("Filmed At", (Category.COMPANIES,)),
+        ("Glass Mastered At", (Category.COMPANIES,)),
+        ("Lacquer Cut At", (Category.COMPANIES,)),
+        ("Licensed From", (Category.COMPANIES,)),
+        ("Licensed Through", (Category.COMPANIES,)),
+        ("Licensed To", (Category.COMPANIES,)),
+        ("Made By", (Category.COMPANIES,)),
+        ("Manufactured By", (Category.COMPANIES,)),
+        ("Manufactured For", (Category.COMPANIES,)),
+        ("Marketed By", (Category.COMPANIES,)),
+        ("Mastered At", (Category.COMPANIES,)),
+        ("Mixed At", (Category.COMPANIES,)),
+        ("Overdubbed At", (Category.COMPANIES,)),
+        ("Phonographic Copyright (p)", (Category.COMPANIES,)),
+        ("Pressed By", (Category.COMPANIES,)),
+        ("Printed By", (Category.COMPANIES,)),
+        ("Produced At", (Category.COMPANIES,)),
+        ("Produced For", (Category.COMPANIES,)),
+        ("Published By", (Category.COMPANIES,)),
+        ("Record Company", (Category.COMPANIES,)),
+        ("Recorded At", (Category.COMPANIES,)),
+        ("Recorded By", (Category.COMPANIES,)),
+        ("Remastered At", (Category.COMPANIES,)),
+        ("Remixed At", (Category.COMPANIES,)),
         ])
 
     ### INITIALIZER ###
