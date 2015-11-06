@@ -832,7 +832,7 @@ class CreditRole(abctools.AbjadValueObject):
         #    'Member Of',
         #    ]
         mapping = collections.OrderedDict()
-        for role, categories in cls.all_credit_roles.items():
+        for role, categories in sorted(cls.all_credit_roles.items()):
             if categories is None:
                 continue
             #if categories is None or role in excluded_roles:

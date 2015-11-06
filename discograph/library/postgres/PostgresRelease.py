@@ -60,24 +60,6 @@ class PostgresRelease(PostgresModel):
     def bootstrap_pass_two(cls):
         PostgresModel.bootstrap_pass_two(cls, 'title')
 
-    def resolve_references(self, corpus, spuriously=False):
-        import discograph
-        changed = False
-        spurious_id = 0
-        for entry in self.labels:
-            name = entry['name']
-            if not spuriously:
-                discograph.PostgresLabel.update_corpus(corpus, name)
-            if name in corpus:
-                entry['id'] = corpus[name]
-                changed = True
-            elif spuriously:
-                spurious_id -= 1
-                corpus[name] = spurious_id
-                entry['id'] = corpus[name]
-                changed = True
-        return changed
-
     @classmethod
     def element_to_artist_credits(cls, element):
         result = []
@@ -227,6 +209,25 @@ class PostgresRelease(PostgresModel):
         data = cls.tags_to_fields(element)
         data['id'] = int(element.get('id'))
         return cls(**data)
+
+    def resolve_references(self, corpus, spuriously=False):
+        import discograph
+        changed = False
+        spurious_id = 0
+        for entry in self.labels:
+            name = entry['name']
+            entity_key = (2, name)
+            if not spuriously:
+                discograph.PostgresEntity.update_corpus(corpus, entity_key)
+            if entity_key in corpus:
+                entry['id'] = corpus[entity_key]
+                changed = True
+            elif spuriously:
+                spurious_id -= 1
+                corpus[entity_key] = spurious_id
+                entry['id'] = corpus[entity_key]
+                changed = True
+        return changed
 
 
 PostgresRelease._tags_to_fields_mapping = {

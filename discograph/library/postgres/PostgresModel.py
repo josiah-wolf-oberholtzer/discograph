@@ -14,7 +14,7 @@ database = pool.PooledPostgresqlExtDatabase(
     'discograph',
     max_connections=16,
     host='127.0.0.1',
-    user='postgres',
+    user='josiah',
     )
 
 
@@ -68,11 +68,10 @@ class PostgresModel(gfk.Model):
     @classmethod
     def bootstrap_postgres_models(cls):
         import discograph
-        discograph.PostgresArtist.bootstrap()
-        discograph.PostgresLabel.bootstrap()
-        discograph.PostgresMaster.bootstrap()
+        discograph.PostgresEntity.bootstrap()
         discograph.PostgresRelease.bootstrap()
         discograph.PostgresRelation.bootstrap()
+        discograph.PostgresEntity.bootstrap_pass_three()
 
     @classmethod
     def bootstrap_pass_one(
@@ -85,6 +84,7 @@ class PostgresModel(gfk.Model):
         # Pass one.
         template = u'{} (Pass 1) (idx:{}) (id:{}) [{:.8f}]: {}'
         xml_path = Bootstrapper.get_xml_path(xml_tag)
+        print(xml_path)
         with gzip.GzipFile(xml_path, 'r') as file_pointer:
             iterator = Bootstrapper.iterparse(file_pointer, xml_tag)
             for i, element in enumerate(iterator):
