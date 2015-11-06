@@ -1,6 +1,6 @@
 # discograph
 
-[Discograph](http://discograph.mbrsi.org/) - Social Graphing for the Discogs Database
+[Disco/graph](http://discograph.mbrsi.org/) - Social Graphing for the Discogs Database
 
 #### What?
 
