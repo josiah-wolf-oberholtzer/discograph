@@ -74,14 +74,18 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None)
 
 def get_random_entity(roles=None):
     import discograph
-    relation = discograph.PostgresRelation.get_random(roles=roles)
-    entity_choice = random.randint(1, 2)
-    if entity_choice == 1:
-        entity_type = relation.entity_one_type
-        entity_id = relation.entity_one_id
+    if roles:
+        relation = discograph.PostgresRelation.get_random(roles=roles)
+        entity_choice = random.randint(1, 2)
+        if entity_choice == 1:
+            entity_type = relation.entity_one_type
+            entity_id = relation.entity_one_id
+        else:
+            entity_type = relation.entity_two_type
+            entity_id = relation.entity_two_id
     else:
-        entity_type = relation.entity_two_type
-        entity_id = relation.entity_two_id
+        entity = discograph.PostgresEntity.get_random()
+        entity_type, entity_id = entity.entity_type, entity.entity_id
     return entity_type, entity_id
 
 
