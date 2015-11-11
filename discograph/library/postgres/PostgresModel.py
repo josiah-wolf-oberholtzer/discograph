@@ -7,6 +7,7 @@ import traceback
 from abjad.tools import systemtools
 from playhouse import gfk
 from playhouse import pool
+from discograph.app import app
 from discograph.library.Bootstrapper import Bootstrapper
 
 
@@ -14,7 +15,8 @@ database = pool.PooledPostgresqlExtDatabase(
     'discograph',
     max_connections=16,
     host='127.0.0.1',
-    user='josiah',
+    user=app.config['POSTGRESQL_USERNAME'],
+    password=app.config['POSTGRESQL_PASSWORD'],
     )
 
 
