@@ -1,7 +1,6 @@
 -e git://github.com/Abjad/abjad.git#egg=abjad [development]
 Flask-Mobility
 Flask-Compress
-apsw
 flask
 gunicorn
 peewee
