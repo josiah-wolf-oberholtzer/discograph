@@ -160,7 +160,8 @@ def search_entities(search_string, cache=True):
         data = discograph.RelationGrapher.cache_get(cache_key)
         if data is not None:
             return data
-    query = discograph.SqliteFTSEntity.search_bm25(search_string).limit(10)
+    # query = discograph.SqliteFTSEntity.search_bm25(search_string).limit(10)
+    query = discograph.PostgresEntity.search_text(search_string)
     data = []
     for entity in query:
         datum = dict(

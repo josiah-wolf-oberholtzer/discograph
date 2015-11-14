@@ -110,8 +110,8 @@ class PostgresRelation(PostgresModel):
 
     @classmethod
     def bootstrap(cls):
-        cls.drop_table(True)
-        cls.create_table()
+        #cls.drop_table(True)
+        #cls.create_table()
         #cls.bootstrap_pass_one()
         #cls.bootstrap_pass_two()
         cls.bootstrap_pass_three()
@@ -172,12 +172,14 @@ class PostgresRelation(PostgresModel):
     def bootstrap_pass_three(cls):
         import discograph
         release_class = discograph.PostgresRelease
+        minimum_id = 0
+        minimum_id = 6000000
         maximum_id = release_class.select(peewee.fn.Max(release_class.id)).scalar()
         queue = multiprocessing.JoinableQueue()
         workers = [cls.BootstrapWorker(queue) for _ in range(4)]
         for worker in workers:
             worker.start()
-        for release_id in range(1, maximum_id + 1):
+        for release_id in range(minimum_id, maximum_id + 1):
             while not queue.empty():
                 time.sleep(0.0001)
             queue.put(release_id)

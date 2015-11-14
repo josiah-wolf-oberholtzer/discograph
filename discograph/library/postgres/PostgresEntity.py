@@ -1,5 +1,7 @@
 # -*- encoding: utf-8 -*-
+import multiprocessing
 import peewee
+import time
 from abjad.tools import systemtools
 from playhouse import postgres_ext
 from discograph.library.Bootstrapper import Bootstrapper
@@ -7,6 +9,30 @@ from discograph.library.postgres.PostgresModel import PostgresModel
 
 
 class PostgresEntity(PostgresModel):
+
+    ### CLASS VARIABLES ###
+
+    class BootstrapWorker(multiprocessing.Process):
+
+        corpus = {}
+
+        def __init__(self, queue):
+            multiprocessing.Process.__init__(self)
+            self.queue = queue
+
+        def run(self):
+            proc_name = self.name
+            while True:
+                task = self.queue.get()
+                if task is None:
+                    self.queue.task_done()
+                    break
+                entity_type, entity_id = task
+                PostgresEntity.bootstrap_pass_three_single(
+                    entity_type=entity_type,
+                    entity_id=entity_id,
+                    )
+                self.queue.task_done()
 
     ### PEEWEE FIELDS ###
 
@@ -117,55 +143,80 @@ class PostgresEntity(PostgresModel):
 
     @classmethod
     def bootstrap_pass_three(cls):
-        cls.bootstrap_pass_three_inner(1)
-        cls.bootstrap_pass_three_inner(2)
+        queue = multiprocessing.JoinableQueue()
+        workers = [cls.BootstrapWorker(queue) for _ in range(4)]
+        for worker in workers:
+            worker.start()
+        entity_type = 1
+        artist_id_query = cls.select(peewee.fn.Max(cls.entity_id))
+        artist_id_query = artist_id_query.where(cls.entity_type == entity_type)
+        max_artist_id = artist_id_query.scalar()
+        for entity_id in range(1, max_artist_id + 1):
+            while not queue.empty():
+                time.sleep(0.0001)
+            queue.put((entity_type, entity_id))
+        entity_type = 2
+        label_id_query = cls.select(peewee.fn.Max(cls.entity_id))
+        label_id_query = label_id_query.where(cls.entity_type == entity_type)
+        max_label_id = label_id_query.scalar()
+        for entity_id in range(1, max_label_id + 1):
+            while not queue.empty():
+                time.sleep(0.0001)
+            queue.put((entity_type, entity_id))
+        for worker in workers:
+            queue.put(None)
+        queue.join()
+        queue.close()
+        for worker in workers:
+            worker.join()
+        for worker in workers:
+            worker.terminate()
 
     @classmethod
-    def bootstrap_pass_three_inner(cls, entity_type):
+    def bootstrap_pass_three_single(cls, entity_type, entity_id):
         import discograph
         template = u'{} (Pass 3) (id:{}) {}: {}'
-        id_query = cls.select(peewee.fn.Max(cls.entity_id))
-        id_query = id_query.where(cls.entity_type == entity_type)
-        max_id = id_query.scalar()
-        for i in range(1, max_id + 1):
-            query = cls.select().where(cls.entity_id == i, cls.entity_type == entity_type)
-            if not query.count():
-                continue
-            document = query.get()
-            entity_id = document.entity_id
-            where_clause = (
-                (discograph.PostgresRelation.entity_one_id == entity_id) &
-                (discograph.PostgresRelation.entity_one_type == entity_type)
+        query = cls.select().where(
+            cls.entity_id == entity_id, 
+            cls.entity_type == entity_type,
+            )
+        if not query.count():
+            return
+        document = query.get()
+        entity_id = document.entity_id
+        where_clause = (
+            (discograph.PostgresRelation.entity_one_id == entity_id) &
+            (discograph.PostgresRelation.entity_one_type == entity_type)
+            )
+        where_clause |= (
+            (discograph.PostgresRelation.entity_two_id == entity_id) &
+            (discograph.PostgresRelation.entity_two_type == entity_type)
+            )
+        query = discograph.PostgresRelation.select().where(where_clause)
+        relation_counts = {}
+        for relation in query:
+            if relation.role not in relation_counts:
+                relation_counts[relation.role] = set()
+            key = (
+                relation.entity_one_type,
+                relation.entity_one_id,
+                relation.entity_two_type,
+                relation.entity_two_id,
                 )
-            where_clause |= (
-                (discograph.PostgresRelation.entity_two_id == entity_id) &
-                (discograph.PostgresRelation.entity_two_type == entity_type)
-                )
-            query = discograph.PostgresRelation.select().where(where_clause)
-            relation_counts = {}
-            for relation in query:
-                if relation.role not in relation_counts:
-                    relation_counts[relation.role] = set()
-                key = (
-                    relation.entity_one_type,
-                    relation.entity_one_id,
-                    relation.entity_two_type,
-                    relation.entity_two_id,
-                    )
-                relation_counts[relation.role].add(key)
-            for role, keys in relation_counts.items():
-                relation_counts[role] = len(keys)
-            if not relation_counts:
-                continue
-            document.relation_counts = relation_counts
-            document.save()
-            message = template.format(
-                cls.__name__.upper(),
-                (document.entity_type, document.entity_id),
-                document.name,
-                len(relation_counts),
-                )
-            print(message)
+            relation_counts[relation.role].add(key)
+        for role, keys in relation_counts.items():
+            relation_counts[role] = len(keys)
+        if not relation_counts:
+            return
+        document.relation_counts = relation_counts
+        document.save()
+        message = template.format(
+            cls.__name__.upper(),
+            (document.entity_type, document.entity_id),
+            document.name,
+            len(relation_counts),
+            )
+        print(message)
 
     @classmethod
     def element_to_names(cls, names):
@@ -321,9 +372,17 @@ class PostgresEntity(PostgresModel):
 
     def roles_to_relation_count(self, roles):
         relation_count = 0
+        relation_counts = self.relation_counts or {}
         for role in roles:
-            relation_count += self.relation_counts.get(role, 0)
+            relation_count += relation_counts.get(role, 0)
         return relation_count
+
+    @classmethod
+    def search_text(cls, search_string):
+        search_string = ','.join(search_string.split())
+        query = PostgresEntity.select()
+        query = query.where(PostgresEntity.search_content.match(search_string))
+        return query 
 
     def structural_roles_to_relations(self, roles):
         from discograph import PostgresRelation
