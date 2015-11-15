@@ -112,61 +112,7 @@ class PostgresRelation(PostgresModel):
     def bootstrap(cls):
         #cls.drop_table(True)
         #cls.create_table()
-        #cls.bootstrap_pass_one()
-        #cls.bootstrap_pass_two()
         cls.bootstrap_pass_three()
-
-#    @classmethod
-#    def bootstrap_pass_one(cls):
-#        import discograph
-#        model_class = discograph.PostgresArtist
-#        maximum_id = model_class.select(peewee.fn.Max(model_class.id)).scalar()
-#        for i in range(1, maximum_id + 1):
-#            query = model_class.select().where(model_class.id == i)
-#            if not query.count():
-#                continue
-#            document = query.get()
-#            print('(id:{}) {}'.format(
-#                document.id,
-#                document.name,
-#                ))
-#            relations = cls.from_artist(document)
-#            for relation in relations:
-#                relation['random'] = random.random()
-#                print('    {}-{} -> {!r} -> {}-{}'.format(
-#                    relation['entity_one_type'].name,
-#                    relation['entity_one_id'],
-#                    relation['role'],
-#                    relation['entity_two_type'].name,
-#                    relation['entity_two_id'],
-#                    ))
-#                cls.create_or_get(**relation)
-
-#    @classmethod
-#    def bootstrap_pass_two(cls):
-#        import discograph
-#        model_class = discograph.PostgresLabel
-#        maximum_id = model_class.select(peewee.fn.Max(model_class.id)).scalar()
-#        for i in range(1, maximum_id + 1):
-#            query = model_class.select().where(model_class.id == i)
-#            if not query.count():
-#                continue
-#            document = query.get()
-#            print('(id:{}) {}'.format(
-#                document.id,
-#                document.name,
-#                ))
-#            relations = cls.from_label(document)
-#            for relation in relations:
-#                relation['random'] = random.random()
-#                print('    {}-{} -> {!r} -> {}-{}'.format(
-#                    relation['entity_one_type'].name,
-#                    relation['entity_one_id'],
-#                    relation['role'],
-#                    relation['entity_two_type'].name,
-#                    relation['entity_two_id'],
-#                    ))
-#                cls.create_or_get(**relation)
 
     @classmethod
     def bootstrap_pass_three(cls):
