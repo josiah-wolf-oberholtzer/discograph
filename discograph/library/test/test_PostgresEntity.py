@@ -12,7 +12,7 @@ class Test(unittest.TestCase):
         entity = discograph.PostgresEntity.from_element(element)
         actual = stringtools.normalize(format(entity))
         expected = stringtools.normalize(u"""
-            discograph.library.postgres.PostgresEntity(
+            discograph.library.PostgresEntity(
                 entities={
                     'aliases': {
                         'Dick Track': None,
@@ -42,7 +42,7 @@ class Test(unittest.TestCase):
         entity = discograph.PostgresEntity.from_element(element)
         actual = stringtools.normalize(format(entity))
         expected = stringtools.normalize(r'''
-            discograph.library.postgres.PostgresEntity(
+            discograph.library.PostgresEntity(
                 entities={
                     'sublabels': {
                         'Antidote (4)': None,

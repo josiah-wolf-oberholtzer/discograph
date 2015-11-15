@@ -13,7 +13,7 @@ class Test(unittest.TestCase):
         release = discograph.PostgresRelease.from_element(release_element)
         actual = format(release)
         expected = stringtools.normalize(u"""
-            discograph.library.postgres.PostgresRelease(
+            discograph.library.PostgresRelease(
                 artists=[
                     {
                         'id': 1,
@@ -132,7 +132,7 @@ class Test(unittest.TestCase):
         release = discograph.PostgresRelease.from_element(release_element)
         actual = format(release)
         expected = stringtools.normalize(r'''
-            discograph.library.postgres.PostgresRelease(
+            discograph.library.PostgresRelease(
                 artists=[
                     {
                         'id': 3,

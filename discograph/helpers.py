@@ -46,7 +46,7 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None)
             roles=roles,
             )
         cache_key = cache_key.format(entity_type, entity_id)
-        data = discograph.RelationGrapher2.cache_get(cache_key)
+        data = discograph.RelationGrapher.cache_get(cache_key)
         if data is not None:
             return data
     entity_type = entity_name_types[entity_type]
@@ -174,5 +174,5 @@ def search_entities(search_string, cache=True):
         print('    {}'.format(datum))
     data = {'results': tuple(data)}
     if cache:
-        discograph.RelationGrapher2.cache_set(cache_key, data)
+        discograph.RelationGrapher.cache_set(cache_key, data)
     return data

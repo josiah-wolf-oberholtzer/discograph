@@ -3,27 +3,29 @@ from __future__ import print_function
 import peewee
 from playhouse import postgres_ext
 from discograph.library.Bootstrapper import Bootstrapper
-from discograph.library.postgres.PostgresModel import PostgresModel
+from discograph.library.PostgresModel import PostgresModel
 
 
-class PostgresLabel(PostgresModel):
+class PostgresArtist(PostgresModel):
 
     ### PEEWEE FIELDS ###
 
     id = peewee.IntegerField(primary_key=True)
     name = peewee.TextField(index=True)
 
-    sublabels = postgres_ext.BinaryJSONField(null=True)
-    parent_label = postgres_ext.BinaryJSONField(null=True)
+    aliases = postgres_ext.BinaryJSONField(null=True)
+    groups = postgres_ext.BinaryJSONField(null=True)
+    members = postgres_ext.BinaryJSONField(null=True)
 
-    contact_info = peewee.TextField(null=True)
+    name_variations = postgres_ext.ArrayField(peewee.TextField, null=True)
     profile = peewee.TextField(null=True)
+    real_name = peewee.TextField(null=True)
     urls = postgres_ext.ArrayField(peewee.TextField, null=True)
 
     ### PEEWEE META ###
 
     class Meta:
-        db_table = 'labels'
+        db_table = 'artists'
 
     ### PUBLIC METHODS ###
 
@@ -38,7 +40,7 @@ class PostgresLabel(PostgresModel):
     def bootstrap_pass_one(cls):
         PostgresModel.bootstrap_pass_one(
             model_class=cls,
-            xml_tag='label',
+            xml_tag='artist',
             name_attr='name',
             skip_without=['name'],
             )
@@ -48,29 +50,26 @@ class PostgresLabel(PostgresModel):
         PostgresModel.bootstrap_pass_two(cls, 'name')
 
     @classmethod
-    def element_to_parent_label(cls, parent_label):
+    def element_to_names(cls, names):
         result = {}
-        if parent_label is None or parent_label.text is None:
+        if names is None or not len(names):
             return result
-        name = parent_label.text.strip()
-        if not name:
-            return result
-        result[name] = None
-        return result
-
-    @classmethod
-    def element_to_sublabels(cls, sublabels):
-        result = {}
-        if sublabels is None or not len(sublabels):
-            return result
-        for sublabel in sublabels:
-            name = sublabel.text
-            if name is None:
-                continue
-            name = name.strip()
+        for name in names:
+            name = name.text
             if not name:
                 continue
             result[name] = None
+        return result
+
+    @classmethod
+    def element_to_names_and_ids(cls, names_and_ids):
+        result = {}
+        if names_and_ids is None or not len(names_and_ids):
+            return result
+        for i in range(0, len(names_and_ids), 2):
+            discogs_id = int(names_and_ids[i].text)
+            name = names_and_ids[i + 1].text
+            result[name] = discogs_id
         return result
 
     @classmethod
@@ -80,39 +79,47 @@ class PostgresLabel(PostgresModel):
 
     def resolve_references(self, corpus):
         changed = False
-        if self.sublabels:
-            for name in self.sublabels.keys():
+        if self.aliases:
+            for name in self.aliases.keys():
                 self.update_corpus(corpus, name)
                 if name in corpus:
-                    self.sublabels[name] = corpus[name]
+                    self.aliases[name] = corpus[name]
                     changed = True
-        if self.parent_label:
-            for name in self.parent_label.keys():
+        if self.members:
+            for name in self.members.keys():
                 self.update_corpus(corpus, name)
                 if name in corpus:
-                    self.parent_label[name] = corpus[name]
+                    self.members[name] = corpus[name]
+                    changed = True
+        if self.groups:
+            for name in self.groups.keys():
+                self.update_corpus(corpus, name)
+                if name in corpus:
+                    self.groups[name] = corpus[name]
                     changed = True
         return changed
 
     @classmethod
     def update_corpus(cls, corpus, name):
         import discograph
-        label_class = discograph.PostgresLabel
+        artist_class = discograph.PostgresArtist
         if name in corpus:
             return
-        query = label_class.select().where(label_class.name == name)
+        query = artist_class.select().where(artist_class.name == name)
         query = query.limit(1)
         found = list(query)
         if found:
             corpus[name] = found[0].id
 
 
-PostgresLabel._tags_to_fields_mapping = {
-    'contact_info': ('contact_info', Bootstrapper.element_to_string),
+PostgresArtist._tags_to_fields_mapping = {
+    'aliases': ('aliases', PostgresArtist.element_to_names),
+    'groups': ('groups', PostgresArtist.element_to_names),
     'id': ('id', Bootstrapper.element_to_integer),
+    'members': ('members', PostgresArtist.element_to_names_and_ids),
     'name': ('name', Bootstrapper.element_to_string),
-    'parentLabel': ('parent_label', PostgresLabel.element_to_parent_label),
+    'namevariations': ('name_variations', Bootstrapper.element_to_strings),
     'profile': ('profile', Bootstrapper.element_to_string),
-    'sublabels': ('sublabels', PostgresLabel.element_to_sublabels),
+    'realname': ('real_name', Bootstrapper.element_to_string),
     'urls': ('urls', Bootstrapper.element_to_strings),
     }

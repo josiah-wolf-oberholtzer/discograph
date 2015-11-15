@@ -2,7 +2,7 @@
 import peewee
 from playhouse import postgres_ext
 from discograph.library.Bootstrapper import Bootstrapper
-from discograph.library.postgres.PostgresModel import PostgresModel
+from discograph.library.PostgresModel import PostgresModel
 
 
 class PostgresRelease(PostgresModel):

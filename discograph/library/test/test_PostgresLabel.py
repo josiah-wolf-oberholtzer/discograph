@@ -13,7 +13,7 @@ class Test(unittest.TestCase):
         label = discograph.PostgresLabel.from_element(element)
         actual = stringtools.normalize(format(label))
         expected = stringtools.normalize(r'''
-            discograph.library.postgres.PostgresLabel(
+            discograph.library.PostgresLabel(
                 id=1,
                 name='Planet E',
                 profile='Classic Techno label from Detroit, USA.\r\n[b]Label owner:[/b] [a=Carl Craig].\r\n',

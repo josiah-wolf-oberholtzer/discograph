@@ -6,8 +6,8 @@ import re
 import six
 from discograph.library.CreditRole import CreditRole
 from discograph.library.TrellisNode import TrellisNode
-from discograph.library.postgres.PostgresEntity import PostgresEntity
-from discograph.library.postgres.PostgresRelation import PostgresRelation
+from discograph.library.PostgresEntity import PostgresEntity
+from discograph.library.PostgresRelation import PostgresRelation
 
 
 class RelationGrapher(object):

@@ -13,7 +13,7 @@ class Test(unittest.TestCase):
         artist = discograph.PostgresArtist.from_element(element)
         actual = format(artist)
         expected = stringtools.normalize(u"""
-            discograph.library.postgres.PostgresArtist(
+            discograph.library.PostgresArtist(
                 aliases={
                     'Dick Track': None,
                     'Faxid': None,

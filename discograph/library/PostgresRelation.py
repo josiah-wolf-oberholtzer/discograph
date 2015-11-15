@@ -6,7 +6,7 @@ import multiprocessing
 import re
 import time
 from abjad.tools import datastructuretools
-from discograph.library.postgres.PostgresModel import PostgresModel
+from discograph.library.PostgresModel import PostgresModel
 
 
 class PostgresRelation(PostgresModel):
