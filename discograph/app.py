@@ -22,6 +22,7 @@ from discograph import exceptions
 
 app = Flask(__name__)
 app.config.from_object('discograph.config.DevelopmentConfiguration')
+app.config.from_object('discograph.locals')
 app.fcache = FileSystemCache(
     app.config['FILE_CACHE_PATH'],
     default_timeout=app.config['FILE_CACHE_TIMEOUT'],

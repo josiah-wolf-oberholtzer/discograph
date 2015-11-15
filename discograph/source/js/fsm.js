@@ -179,9 +179,11 @@ var DiscographFsm = machina.Fsm.extend({
         'requesting': {
             '_onEnter': function(fsm, entityKey, pushHistory) {
                 this.toggleLoading(true);
+                this.toggleFilter(false);
             },
             '_onExit': function() {
                 this.toggleLoading(false);
+                this.toggleFilter(true);
             },
             'errored': function(error) {
                 this.handleError(error);
@@ -339,6 +341,13 @@ var DiscographFsm = machina.Fsm.extend({
     },
     showRadial: function() {
         this.handle('show-radial');
+    },
+    toggleFilter: function(status) {
+        if (status) {
+            $('#filter-roles').attr('disabled', false);
+        } else {
+            $('#filter-roles').attr('disabled', true);
+        }
     },
     toggleNetwork: function(status) {
         if (status) {

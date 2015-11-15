@@ -527,6 +527,54 @@ class RelationGrapher2(object):
                 print('        Max links: exiting next search loop.')
                 self.break_on_next_loop = True
 
+    ### PUBLIC METHODS ###
+
+    @classmethod
+    def make_cache_key(cls, template, entity_type, entity_id, roles=None, year=None):
+        if isinstance(entity_type, int):
+            entity_type = cls.entity_type_names[entity_type]
+        key = template.format(entity_type=entity_type, entity_id=entity_id)
+        if roles or year:
+            parts = []
+            if roles:
+                roles = (cls.word_pattern.sub('+', _) for _ in roles)
+                roles = ('roles[]={}'.format(_) for _ in roles)
+                roles = '&'.join(sorted(roles))
+                parts.append(roles)
+            if year:
+                if isinstance(year, int):
+                    year = 'year={}'.format(year)
+                else:
+                    year = '-'.join(str(_) for _ in year)
+                    year = 'year={}'.format(year)
+                parts.append(year)
+            query_string = '&'.join(parts)
+            key = '{}?{}'.format(key, query_string)
+        key = 'discograph:{}'.format(key)
+        return key
+
+    @classmethod
+    def cache_get(cls, key, use_redis=False):
+        from discograph import app
+        if use_redis:
+            cache = app.rcache
+        else:
+            cache = app.fcache
+        data = cache.get(key)
+        #print('CACHE GET: {} [{}]'.format(data is not None, key))
+        return data
+
+    @classmethod
+    def cache_set(cls, key, value, timeout=None, use_redis=False):
+        from discograph import app
+        if not timeout:
+            timeout = 60 * 60 * 24
+        if use_redis:
+            cache = app.rcache
+        else:
+            cache = app.fcache
+        cache.set(key, value, timeout=timeout)
+
     ### PUBLIC PROPERTIES ###
 
     @property
