@@ -950,31 +950,6 @@
             .attr('id', 'relationsLayer');
     }
 
-    function dg_relations_chartrelations() {
-        var years = dg.relations.nested.map(function(d) {
-            return parseInt(d.key);
-        })
-        var extent = d3.extent(years);
-        var scale = d3.scale.linear()
-            .domain(extent)
-            .range([100, dg.dimensions[0] - 100]);
-        var axis = d3.svg.axis()
-            .orient('bottom')
-            .scale(scale)
-            .ticks(years.length)
-            .tickFormat(d3.format('0000'));
-        dg.relations.layers.root.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0, 100)')
-            .call(axis)
-            .selectAll('text')
-            .attr('y', 0)
-            .attr('x', 9)
-            .attr('dy', '.35em')
-            .attr('transform', 'rotate(45)')
-            .style('text-anchor', 'start');
-    }
-
     function dg_relations_chartRadial() {
         var textAnchor = function(d, i) {
             var angle = (i + 0.5) / numBars;
@@ -1189,6 +1164,12 @@
             $(window).on('discograph:show-radial', function() {
                 self.showRadial();
             });
+            $(window).on('select2:selecting', function(event) {
+                self.roleBackup = $('#filter select').val();
+            });
+            $(window).on('select2:unselecting', function(event) {
+                self.roleBackup = $('#filter select').val();
+            });
             window.onpopstate = function(event) {
                 if (!event || !event.state || !event.state.key) {
                     return;
@@ -1240,6 +1221,7 @@
             });
             this.loadInlineData();
             this.toggleRadial(false);
+            self.rolesBackup = $('#filter select').val();
         },
         namespace: 'discograph',
         initialState: 'uninitialized',
@@ -1424,6 +1406,7 @@
                 '</div>'
             ].join('');
             $('#flash').append(text);
+            $('#filter select').val(this.rolesBackup).trigger('change');
             this.transition('viewing-network');
         },
         getNetworkURL: function(entityKey) {
@@ -1632,7 +1615,14 @@
             });
             $(this).tooltip('hide');
         });
-        $('#filter-roles').select2().on('change', function(event) {
+        $('#filter-roles').select2().on('select2:select', function(event) {
+            $(window).trigger({
+                type: 'discograph:request-network',
+                entityKey: dg.network.data.json.center.key,
+                pushHistory: true,
+            });
+        });
+        $('#filter-roles').select2().on('select2:unselect', function(event) {
             $(window).trigger({
                 type: 'discograph:request-network',
                 entityKey: dg.network.data.json.center.key,

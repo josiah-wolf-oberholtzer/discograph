@@ -9,29 +9,6 @@ function dg_relations_init() {
         .attr('id', 'relationsLayer');
 }
 
-function dg_relations_chartrelations() {
-    var years = dg.relations.nested.map(function(d) { return parseInt(d.key); })
-    var extent = d3.extent(years);
-    var scale = d3.scale.linear()
-        .domain(extent)
-        .range([100, dg.dimensions[0] - 100]);
-    var axis = d3.svg.axis()
-        .orient('bottom')
-        .scale(scale)
-        .ticks(years.length)
-        .tickFormat(d3.format('0000'));
-    dg.relations.layers.root.append('g')
-        .attr('class', 'x axis')
-        .attr('transform', 'translate(0, 100)')
-        .call(axis)
-        .selectAll('text')
-        .attr('y', 0)
-        .attr('x', 9)
-        .attr('dy', '.35em')
-        .attr('transform', 'rotate(45)')
-        .style('text-anchor', 'start');
-}
-
 function dg_relations_chartRadial() {
     var textAnchor = function(d, i) {
         var angle = (i + 0.5) / numBars;

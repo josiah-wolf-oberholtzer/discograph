@@ -24,7 +24,14 @@ $(document).ready(function() {
         });
         $(this).tooltip('hide');
     });
-    $('#filter-roles').select2().on('change', function(event) {
+    $('#filter-roles').select2().on('select2:select', function(event) {
+        $(window).trigger({
+            type: 'discograph:request-network',
+            entityKey: dg.network.data.json.center.key,
+            pushHistory: true,
+        });
+    });
+    $('#filter-roles').select2().on('select2:unselect', function(event) {
         $(window).trigger({
             type: 'discograph:request-network',
             entityKey: dg.network.data.json.center.key,

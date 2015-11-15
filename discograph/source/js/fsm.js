@@ -22,6 +22,12 @@ var DiscographFsm = machina.Fsm.extend({
         $(window).on('discograph:show-radial', function() {
             self.showRadial();
         });
+        $(window).on('select2:selecting', function(event) {
+            self.roleBackup = $('#filter select').val();
+        });
+        $(window).on('select2:unselecting', function(event) {
+            self.roleBackup = $('#filter select').val();
+        });
         window.onpopstate = function(event) {
             if (!event || !event.state || !event.state.key) {
                 return;
@@ -75,6 +81,7 @@ var DiscographFsm = machina.Fsm.extend({
         });
         this.loadInlineData();
         this.toggleRadial(false);
+        self.rolesBackup = $('#filter select').val();
     },
     namespace: 'discograph',
     initialState: 'uninitialized',
@@ -245,6 +252,7 @@ var DiscographFsm = machina.Fsm.extend({
             '</div>'
             ].join('');
         $('#flash').append(text);
+        $('#filter select').val(this.rolesBackup).trigger('change');
         this.transition('viewing-network');
     },
     getNetworkURL: function(entityKey) {
