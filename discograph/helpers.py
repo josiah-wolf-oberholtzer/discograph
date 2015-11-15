@@ -39,7 +39,7 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None)
         template = 'discograph:/api/{entity_type}/network/{entity_id}'
         if on_mobile:
             template = '{}/mobile'.format(template)
-        cache_key = discograph.RelationGrapher2.make_cache_key(
+        cache_key = discograph.RelationGrapher.make_cache_key(
             template,
             entity_type,
             entity_id,
@@ -59,7 +59,7 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None)
     else:
         max_nodes = 25
         degree = 6
-    relation_grapher = discograph.RelationGrapher2(
+    relation_grapher = discograph.RelationGrapher(
         center_entity=entity,
         degree=degree,
         max_nodes=max_nodes,
@@ -68,7 +68,7 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None)
     with systemtools.Timer(exit_message='Network query time:'):
         data = relation_grapher()
     if cache:
-        discograph.RelationGrapher2.cache_set(cache_key, data)
+        discograph.RelationGrapher.cache_set(cache_key, data)
     return data
 
 
@@ -157,7 +157,7 @@ def search_entities(search_string, cache=True):
     if cache:
         cache_key = 'discograph:/api/search/{}'.format(
             urlify_pattern.sub('+', search_string))
-        data = discograph.RelationGrapher2.cache_get(cache_key)
+        data = discograph.RelationGrapher.cache_get(cache_key)
         if data is not None:
             return data
     query = discograph.PostgresEntity.search_text(search_string)

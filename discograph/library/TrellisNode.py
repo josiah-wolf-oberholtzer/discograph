@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 
-class TrellisNode2(object):
+class TrellisNode(object):
 
     __slots__ = (
         '_children',

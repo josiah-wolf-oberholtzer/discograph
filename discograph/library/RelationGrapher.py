@@ -5,12 +5,12 @@ import math
 import re
 import six
 from discograph.library.CreditRole import CreditRole
-from discograph.library.TrellisNode2 import TrellisNode2
+from discograph.library.TrellisNode import TrellisNode
 from discograph.library.postgres.PostgresEntity import PostgresEntity
 from discograph.library.postgres.PostgresRelation import PostgresRelation
 
 
-class RelationGrapher2(object):
+class RelationGrapher(object):
 
     ### CLASS VARIABLES ###
 
@@ -413,7 +413,7 @@ class RelationGrapher2(object):
                 continue
             entity_key = entity.entity_key
             if entity_key not in self.nodes:
-                self.nodes[entity_key] = TrellisNode2(entity, distance)
+                self.nodes[entity_key] = TrellisNode(entity, distance)
 
     def _process_relations(self, relations):
         for link_key, relation in sorted(relations.items()):

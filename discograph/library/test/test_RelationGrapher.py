@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
     def test___call___01(self):
         artist = discograph.PostgresEntity.get(entity_type=1, name='Morris Day')
         roles = ['Alias', 'Member Of']
-        grapher = discograph.RelationGrapher2(
+        grapher = discograph.RelationGrapher(
             artist,
             degree=1,
             roles=roles,
@@ -76,7 +76,7 @@ class Test(unittest.TestCase):
     def test___call___02(self):
         artist = discograph.PostgresEntity.get(entity_type=1, name='Morris Day')
         roles = ['Alias', 'Member Of']
-        grapher = discograph.RelationGrapher2(
+        grapher = discograph.RelationGrapher(
             artist,
             degree=2,
             max_nodes=5,
@@ -333,7 +333,7 @@ class Test(unittest.TestCase):
     def test___call___03(self):
         artist = discograph.PostgresEntity.get(entity_type=1, name='Morris Day')
         roles = ['Alias', 'Member Of']
-        grapher = discograph.RelationGrapher2(
+        grapher = discograph.RelationGrapher(
             artist,
             degree=2,
             link_ratio=2,
@@ -594,7 +594,7 @@ class Test(unittest.TestCase):
             entity_id=1362698,
             )
         roles = ['Alias', 'Member Of']
-        grapher = discograph.RelationGrapher2(
+        grapher = discograph.RelationGrapher(
             artist,
             degree=12,
             roles=roles,
