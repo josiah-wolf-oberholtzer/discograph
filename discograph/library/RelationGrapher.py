@@ -116,7 +116,6 @@ class RelationGrapher(object):
         for node in self.nodes.values():
             expected_count = node.entity.roles_to_relation_count(self.all_roles)
             node.missing = expected_count - len(node.links)
-            print(self.all_roles, node.entity.name, expected_count, len(node.links))
         json_links = tuple(link.as_json() for key, link in
             sorted(self.links.items(), key=lambda x: x[0]))
         json_nodes = tuple(node.as_json() for key, node in
