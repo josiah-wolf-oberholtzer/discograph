@@ -116,6 +116,7 @@ class RelationGrapher2(object):
         for node in self.nodes.values():
             expected_count = node.entity.roles_to_relation_count(self.all_roles)
             node.missing = expected_count - len(node.links)
+            print(self.all_roles, node.entity.name, expected_count, len(node.links))
         json_links = tuple(link.as_json() for key, link in
             sorted(self.links.items(), key=lambda x: x[0]))
         json_nodes = tuple(node.as_json() for key, node in
@@ -368,6 +369,8 @@ class RelationGrapher2(object):
         elif distance < 2:
             print('    Skipping cross-referencing: maximum distance less than 2')
             return
+        else:
+            print('    Cross-referencing...')
         relations = {}
         entity_keys = sorted(self.nodes)
         entity_keys.remove(self.center_entity.entity_key)
@@ -377,6 +380,7 @@ class RelationGrapher2(object):
             entity_key_slices.append(entity_keys[start:start + step])
         iterator = itertools.product(entity_key_slices, entity_key_slices)
         for lh_entities, rh_entities in iterator:
+            print('        {} & {}'.format(len(lh_entities), len(rh_entities)))
             found = PostgresRelation.search_bimulti(
                 lh_entities,
                 rh_entities,
@@ -384,7 +388,7 @@ class RelationGrapher2(object):
                 )
             relations.update(found)
         self._process_relations(relations)
-        message = '    Cross-referenced: {} nodes / {} links'
+        message = '        Cross-referenced: {} nodes / {} links'
         message = message.format(len(self.nodes), len(self.links))
         print(message)
 

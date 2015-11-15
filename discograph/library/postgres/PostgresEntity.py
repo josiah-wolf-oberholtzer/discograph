@@ -371,11 +371,20 @@ class PostgresEntity(PostgresModel):
             corpus[key] = query.get().entity_id
 
     def roles_to_relation_count(self, roles):
-        relation_count = 0
+        count = 0
         relation_counts = self.relation_counts or {}
         for role in roles:
-            relation_count += relation_counts.get(role, 0)
-        return relation_count
+            if role == 'Alias':
+                count += len(self.entities.get('aliases', ()))
+            elif role == 'Member Of':
+                count += len(self.entities.get('groups', ()))
+                count += len(self.entities.get('members', ()))
+            elif role == 'Sublabel Of':
+                count += len(self.entities.get('parent_label', ()))
+                count += len(self.entities.get('sublabels', ()))
+            else:
+                count += relation_counts.get(role, 0)
+        return count
 
     @classmethod
     def search_text(cls, search_string):

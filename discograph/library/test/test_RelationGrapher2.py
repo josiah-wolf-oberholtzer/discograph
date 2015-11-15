@@ -584,3 +584,103 @@ class Test(unittest.TestCase):
                        'size': 7,
                        'type': 'artist'}),
             'pages': 1}
+
+    def test___call___04(self):
+        r'''Missing count takes into account structural roles: members,
+        aliases, groups, sublabels, parent labels, etc.
+        '''
+        artist = discograph.PostgresEntity.get(
+            entity_type=1, 
+            entity_id=1362698,
+            )
+        roles = ['Alias', 'Member Of']
+        grapher = discograph.RelationGrapher2(
+            artist,
+            degree=12,
+            roles=roles,
+            )
+        network = grapher.__call__()
+        assert network == {
+            'center': {
+                'key': 'artist-1362698', 
+                'name': 'Revolution (13)',
+                },
+            'links': (
+                {
+                    'key': 'artist-144943-alias-artist-535046',
+                    'pages': (1,),
+                    'role': 'Alias',
+                    'source': 'artist-144943',
+                    'target': 'artist-535046',
+                    },
+                {
+                    'key': 'artist-144943-member-of-artist-1362698',
+                    'pages': (1,),
+                    'role': 'Member Of',
+                    'source': 'artist-144943',
+                    'target': 'artist-1362698',
+                    },
+                {
+                    'key': 'artist-271585-member-of-artist-1362698',
+                    'pages': (1,),
+                    'role': 'Member Of',
+                    'source': 'artist-271585',
+                    'target': 'artist-1362698',
+                    },
+                ),
+            'nodes': (
+                {   
+                    'cluster': 1,
+                    'distance': 1,
+                    'id': 144943,
+                    'key': 'artist-144943',
+                    'links': (
+                        'artist-144943-alias-artist-535046',
+                        'artist-144943-member-of-artist-1362698',
+                        ),
+                    'missing': 0,
+                    'name': 'DJ D-Sfase',
+                    'pages': (1,),
+                    'size': 0,
+                    'type': 'artist',
+                    },
+                {
+                    'distance': 1,
+                    'id': 271585,
+                    'key': 'artist-271585',
+                    'links': ('artist-271585-member-of-artist-1362698',),
+                    'missing': 0,
+                    'name': 'Neuroti-k',
+                    'pages': (1,),
+                    'size': 0,
+                    'type': 'artist',
+                    },
+                {
+                    'cluster': 1,
+                    'distance': 2,
+                    'id': 535046,
+                    'key': 'artist-535046',
+                    'links': ('artist-144943-alias-artist-535046',),
+                    'missing': 0,
+                    'name': 'Jose Antonio Gonzalez Sanchez',
+                    'pages': (1,),
+                    'size': 0,
+                    'type': 'artist',
+                    },
+                {
+                    'distance': 0,
+                    'id': 1362698,
+                    'key': 'artist-1362698',
+                    'links': (
+                        'artist-144943-member-of-artist-1362698',
+                        'artist-271585-member-of-artist-1362698',
+                        ),
+                    'missing': 0,
+                    'name': 'Revolution (13)',
+                    'pages': (1,),
+                    'size': 2,
+                    'type': 'artist',
+                    },
+                ),
+            'pages': 1,
+            }
