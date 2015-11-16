@@ -2,6 +2,7 @@
 import multiprocessing
 import peewee
 import time
+from abjad.tools import stringtools
 from abjad.tools import systemtools
 from playhouse import postgres_ext
 from discograph.library.Bootstrapper import Bootstrapper
@@ -75,21 +76,23 @@ class PostgresEntity(PostgresModel):
             )
 
     @classmethod
-    def bootstrap_pass_two(cls):
-        skipped_template = u'{} [SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
-        changed_template = u'{}           (Pass 2) (id:{}) [{:.8f}]: {}'
-
-        corpus = {}
-        entity_type = 1
+    def get_entity_iterator(cls, entity_type):
         id_query = cls.select(peewee.fn.Max(cls.entity_id))
         id_query = id_query.where(cls.entity_type == entity_type)
         max_id = id_query.scalar()
-
         for i in range(1, max_id + 1):
             query = cls.select().where(cls.entity_id == i, cls.entity_type == entity_type)
             if not query.count():
                 continue
             document = query.get()
+            yield document
+
+    @classmethod
+    def bootstrap_pass_two(cls):
+        skipped_template = u'{} [SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
+        changed_template = u'{}           (Pass 2) (id:{}) [{:.8f}]: {}'
+        corpus = {}
+        for document in cls.get_entity_iterator(entity_type=1):
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references(corpus)
             if not changed:
@@ -109,18 +112,8 @@ class PostgresEntity(PostgresModel):
                 document.name,
                 )
             print(message)
-
         corpus = {}
-        entity_type = 2
-        id_query = cls.select(peewee.fn.Max(cls.entity_id))
-        id_query = id_query.where(cls.entity_type == entity_type)
-        max_id = id_query.scalar()
-
-        for i in range(1, max_id + 1):
-            query = cls.select().where(cls.entity_id == i, cls.entity_type == entity_type)
-            if not query.count():
-                continue
-            document = query.get()
+        for document in cls.get_entity_iterator(entity_type=2):
             with systemtools.Timer(verbose=False) as timer:
                 changed = document.resolve_references(corpus)
             if not changed:
@@ -268,6 +261,34 @@ class PostgresEntity(PostgresModel):
         return result
 
     @classmethod
+    def fixup_search_content(cls):
+        template = 'FIXUP ({}:{}): {}'
+        for document in cls.get_entity_iterator(entity_type=1):
+            search_content = document.name
+            search_content = search_content.lower()
+            search_content = stringtools.strip_diacritics(search_content)
+            document.search_content = peewee.fn.to_tsvector(search_content)
+            document.save()
+            message = template.format(
+                document.entity_type,
+                document.entity_id,
+                document.name,
+                )
+            print(message)
+        for document in cls.get_entity_iterator(entity_type=2):
+            search_content = document.name
+            search_content = search_content.lower()
+            search_content = stringtools.strip_diacritics(search_content)
+            document.search_content = search_content
+            document.save()
+            message = template.format(
+                document.entity_type,
+                document.entity_id,
+                document.name,
+                )
+            print(message)
+
+    @classmethod
     def from_element(cls, element):
         data = cls.tags_to_fields(element)
         return cls(**data)
@@ -295,7 +316,10 @@ class PostgresEntity(PostgresModel):
             if key in data:
                 data['metadata'][key] = data.pop(key)
         if 'name' in data and data.get('name'):
-            data['search_content'] = peewee.fn.to_tsvector(data['name'])
+            search_content = data.get('name')
+            search_content = search_content.lower()
+            search_content = stringtools.strip_diacritics(search_content)
+            data['search_content'] = peewee.fn.to_tsvector(search_content)
         if element.tag == 'artist':
             data['entity_type'] = 1
         elif element.tag == 'label':
@@ -328,6 +352,22 @@ class PostgresEntity(PostgresModel):
                         changed = True
         return changed
 
+    def roles_to_relation_count(self, roles):
+        count = 0
+        relation_counts = self.relation_counts or {}
+        for role in roles:
+            if role == 'Alias':
+                count += len(self.entities.get('aliases', ()))
+            elif role == 'Member Of':
+                count += len(self.entities.get('groups', ()))
+                count += len(self.entities.get('members', ()))
+            elif role == 'Sublabel Of':
+                count += len(self.entities.get('parent_label', ()))
+                count += len(self.entities.get('sublabels', ()))
+            else:
+                count += relation_counts.get(role, 0)
+        return count
+
     @classmethod
     def search_multi(cls, entity_keys):
         artist_ids, label_ids = [], []
@@ -359,39 +399,45 @@ class PostgresEntity(PostgresModel):
         return cls.select().where(where_clause)
 
     @classmethod
-    def update_corpus(cls, corpus, key):
-        if key in corpus:
-            return
-        entity_type, entity_name = key
-        query = cls.select().where(
-            cls.entity_type == entity_type,
-            cls.name == entity_name,
-            )
-        if query.count():
-            corpus[key] = query.get().entity_id
-
-    def roles_to_relation_count(self, roles):
-        count = 0
-        relation_counts = self.relation_counts or {}
-        for role in roles:
-            if role == 'Alias':
-                count += len(self.entities.get('aliases', ()))
-            elif role == 'Member Of':
-                count += len(self.entities.get('groups', ()))
-                count += len(self.entities.get('members', ()))
-            elif role == 'Sublabel Of':
-                count += len(self.entities.get('parent_label', ()))
-                count += len(self.entities.get('sublabels', ()))
-            else:
-                count += relation_counts.get(role, 0)
-        return count
-
-    @classmethod
     def search_text(cls, search_string):
+        search_string = search_string.lower()
+        search_string = stringtools.strip_diacritics(search_string)
         search_string = ','.join(search_string.split())
         query = PostgresEntity.select()
         query = query.where(PostgresEntity.search_content.match(search_string))
         return query 
+
+    def structural_roles_to_entity_keys(self, roles):
+        entity_keys = set()
+        if self.entity_type == 1:
+            entity_type = 1
+            if 'Alias' in roles:
+                for section in ('aliases',):
+                    if section not in self.entities:
+                        continue
+                    for entity_id in self.entities[section].values():
+                        if not entity_id:
+                            continue
+                        entity_keys.add((entity_type, entity_id))
+            if 'Member Of' in roles:
+                for section in ('groups', 'members'):
+                    if section not in self.entities:
+                        continue
+                    for entity_id in self.entities[section].values():
+                        if not entity_id:
+                            continue
+                        entity_keys.add((entity_type, entity_id))
+        elif self.entity_type == 2:
+            entity_type = 2
+            if 'Sublabel Of' in roles:
+                for section in ('parent_label', 'sublabels'):
+                    if section not in self.entities:
+                        continue
+                    for entity_id in self.entities[section].values():
+                        if not entity_id:
+                            continue
+                        entity_keys.add((entity_type, entity_id))
+        return entity_keys
 
     def structural_roles_to_relations(self, roles):
         from discograph import PostgresRelation
@@ -467,37 +513,17 @@ class PostgresEntity(PostgresModel):
                     relations[relation.link_key] = relation
         return relations
 
-    def structural_roles_to_entity_keys(self, roles):
-        entity_keys = set()
-        if self.entity_type == 1:
-            entity_type = 1
-            if 'Alias' in roles:
-                for section in ('aliases',):
-                    if section not in self.entities:
-                        continue
-                    for entity_id in self.entities[section].values():
-                        if not entity_id:
-                            continue
-                        entity_keys.add((entity_type, entity_id))
-            if 'Member Of' in roles:
-                for section in ('groups', 'members'):
-                    if section not in self.entities:
-                        continue
-                    for entity_id in self.entities[section].values():
-                        if not entity_id:
-                            continue
-                        entity_keys.add((entity_type, entity_id))
-        elif self.entity_type == 2:
-            entity_type = 2
-            if 'Sublabel Of' in roles:
-                for section in ('parent_label', 'sublabels'):
-                    if section not in self.entities:
-                        continue
-                    for entity_id in self.entities[section].values():
-                        if not entity_id:
-                            continue
-                        entity_keys.add((entity_type, entity_id))
-        return entity_keys
+    @classmethod
+    def update_corpus(cls, corpus, key):
+        if key in corpus:
+            return
+        entity_type, entity_name = key
+        query = cls.select().where(
+            cls.entity_type == entity_type,
+            cls.name == entity_name,
+            )
+        if query.count():
+            corpus[key] = query.get().entity_id
 
     ### PUBLIC PROPERTIES ###
 
