@@ -159,8 +159,12 @@ def search_entities(search_string, cache=True):
             urlify_pattern.sub('+', search_string))
         data = discograph.RelationGrapher.cache_get(cache_key)
         if data is not None:
+            print('{}: CACHED'.format(cache_key))
+            for datum in data['results']:
+                print('    {}'.format(datum))
             return data
     query = discograph.PostgresEntity.search_text(search_string)
+    print('{}: NOT CACHED'.format(cache_key))
     data = []
     for entity in query:
         datum = dict(

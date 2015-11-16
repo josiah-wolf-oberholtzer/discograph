@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import multiprocessing
 import peewee
+import re
 import time
 from abjad.tools import stringtools
 from abjad.tools import systemtools
@@ -12,6 +13,8 @@ from discograph.library.PostgresModel import PostgresModel
 class PostgresEntity(PostgresModel):
 
     ### CLASS VARIABLES ###
+
+    _strip_pattern = re.compile(r'(\(\d+\)|[^(\w\s)]+)')
 
     class BootstrapWorker(multiprocessing.Process):
 
@@ -262,29 +265,25 @@ class PostgresEntity(PostgresModel):
 
     @classmethod
     def fixup_search_content(cls):
-        template = 'FIXUP ({}:{}): {}'
+        template = 'FIXUP ({}:{}): {} -> {}'
         for document in cls.get_entity_iterator(entity_type=1):
-            search_content = document.name
-            search_content = search_content.lower()
-            search_content = stringtools.strip_diacritics(search_content)
-            document.search_content = peewee.fn.to_tsvector(search_content)
+            document.search_content = cls.string_to_tsvector(document.name)
             document.save()
             message = template.format(
                 document.entity_type,
                 document.entity_id,
                 document.name,
+                document.search_content,
                 )
             print(message)
         for document in cls.get_entity_iterator(entity_type=2):
-            search_content = document.name
-            search_content = search_content.lower()
-            search_content = stringtools.strip_diacritics(search_content)
-            document.search_content = search_content
+            document.search_content = cls.string_to_tsvector(document.name)
             document.save()
             message = template.format(
                 document.entity_type,
                 document.entity_id,
                 document.name,
+                document.search_content,
                 )
             print(message)
 
@@ -403,9 +402,26 @@ class PostgresEntity(PostgresModel):
         search_string = search_string.lower()
         search_string = stringtools.strip_diacritics(search_string)
         search_string = ','.join(search_string.split())
-        query = PostgresEntity.select()
-        query = query.where(PostgresEntity.search_content.match(search_string))
-        return query 
+        query = PostgresEntity.raw("""
+            SELECT entity_type, 
+                entity_id, 
+                name, 
+                ts_rank_cd(search_content, query, 63) AS rank
+            FROM entities, 
+                to_tsquery(%s) query
+            WHERE query @@ search_content
+            ORDER BY rank DESC
+            LIMIT 100
+            """, search_string)
+        return query
+
+    @classmethod
+    def string_to_tsvector(cls, string):
+        string = string.lower()
+        string = stringtools.strip_diacritics(string)
+        string = cls._strip_pattern.sub('', string)
+        tsvector = peewee.fn.to_tsvector(string) 
+        return tsvector
 
     def structural_roles_to_entity_keys(self, roles):
         entity_keys = set()
