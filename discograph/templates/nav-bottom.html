@@ -24,23 +24,19 @@
         </div>
         <div class="collapse navbar-collapse" id="nav-bottom-details">
             <form id="filter" class="navbar-form navbar-right" style="display: none" action="#">
-                <div class="btn-group dropup">
-                    <select id="filter-roles" multiple="multiple" name="roles" class="form-control">
-                    {% for category, roles in multiselect_mapping.items() %}
-                        <optgroup label="{{ category }}">
-                        {% for role in roles %}
-                            {% if role in original_roles %}
-                            <option value="{{ role }}" selected>{{ role }}</option>
-                            {% else %}
-                            <option value="{{ role }}">{{ role }}</option>
-                            {% endif %}
-                        {% endfor %}
-                        </optgroup>
+                <select id="filter-roles" multiple="multiple" name="roles" class="form-control" style="width: 100%">
+                {% for category, roles in multiselect_mapping.items() %}
+                    <optgroup label="{{ category }}">
+                    {% for role in roles %}
+                        {% if role in original_roles %}
+                        <option value="{{ role }}" selected>{{ role }}</option>
+                        {% else %}
+                        <option value="{{ role }}">{{ role }}</option>
+                        {% endif %}
                     {% endfor %}
-                    </select>
-                    <!--<button id="filter-reset" type="reset" class="btn btn-default">Reset</button>-->
-                </div>
-                <!--<button type="submit" class="submit btn btn-default">Filter</button>-->
+                    </optgroup>
+                {% endfor %}
+                </select>
             </form>
         </div>
     </div>
