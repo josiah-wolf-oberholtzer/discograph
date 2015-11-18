@@ -1,5 +1,12 @@
 digraph G {
-    graph [root=A1];
+    graph [
+        mindist=10;
+        root=A1;
+        ];
+
+    edge [
+        //style=dotted;
+        ];
 
     A1;
 
@@ -15,19 +22,14 @@ digraph G {
     D2 -> I3;
     E2 -> J3;
 
-    edge [style=dotted];
-
     F3 -> K4;
     G3 -> K4;
     G3 -> L4;
-    H3 -> L4;
     J3 -> M4;
 
-    /*
     K4 -> Q5;
     M4 -> N5;
     M4 -> O5;
 
     N5 -> P6;
-    */
 }
