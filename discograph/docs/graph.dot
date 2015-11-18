@@ -1,0 +1,33 @@
+digraph G {
+    graph [root=A1];
+
+    A1;
+
+    A1 -> B2;
+    A1 -> C2;
+    A1 -> D2;
+    A1 -> E2;
+
+    B2 -> C2 [constraint=false];
+    B2 -> F3;
+    B2 -> G3;
+    D2 -> H3;
+    D2 -> I3;
+    E2 -> J3;
+
+    edge [style=dotted];
+
+    F3 -> K4;
+    G3 -> K4;
+    G3 -> L4;
+    H3 -> L4;
+    J3 -> M4;
+
+    /*
+    K4 -> Q5;
+    M4 -> N5;
+    M4 -> O5;
+
+    N5 -> P6;
+    */
+}
