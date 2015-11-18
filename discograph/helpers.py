@@ -35,6 +35,7 @@ def get_entity(entity_type, entity_id):
 def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None):
     import discograph
     assert entity_type in ('artist', 'label')
+    cache = False
     if cache:
         template = 'discograph:/api/{entity_type}/network/{entity_id}'
         if on_mobile:
@@ -154,6 +155,7 @@ def parse_request_args(args):
 
 def search_entities(search_string, cache=True):
     import discograph
+    cache = False
     if cache:
         cache_key = 'discograph:/api/search/{}'.format(
             urlify_pattern.sub('+', search_string))
