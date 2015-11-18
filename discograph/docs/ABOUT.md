@@ -47,7 +47,7 @@ The `entities` table looks like this:
 - `entity_type` (1 == Artist, 2 == Label)
 - `entity_id` (the Discogs database id)
 - `name`
-- `random` (random float for easily looking up random entities)
+- `random` (random float for efficiently looking up random entities)
 - `metadata` (ANV, profile, etc.)
 - `entities` (JSON store of entity IDS for aliases, parent/sublabels, members/groups) (this simplifies many queries)
 - `relation_counts` (precomputed counts of # of relations of each time involving this entity, for optimizing graph search)
@@ -117,10 +117,10 @@ The `relations` table looks like this:
 - `entity_one_id`
 - `entity_two_type` 
 - `entity_two_id`
-- `release_id`
-- `role`
-- `year`
-- `random`
+- `release_id` (will soon be migrated to a JSON store to reduce the number of rows in the relations table, by collapsing relations with identical entities and roles into a single row of multiple releases)
+- `role` (the credit role)
+- `year` (currently just aspirational)
+- `random` (random float for efficiently looking up random relations)
 
 For example:
 
@@ -136,4 +136,79 @@ PostgresRelation(
     role='Producer',
     year=2004
     )
+```
+
+The graph-search algorithm
+--------------------------
+
+Here's the terminal output for the graph-search, starting with Morris Day, and using the roles "Alias", "Member Of" and "Guitar":
+
+```
+Searching around Morris Day...
+    Max nodes: 75
+    Max links: 225
+    Roles: ('Alias', 'Member Of', 'Guitar')
+    At distance 0:
+        0 old nodes
+        0 old links
+        1 new nodes
+        Retrieving entities
+            1-1 of 1
+        Retrieving structural relations
+        Retrieving relational relations
+            1-1 of 1
+    At distance 1:
+        1 old nodes
+        8 old links
+        8 new nodes
+        Retrieving entities
+            1-8 of 8
+        Retrieving structural relations
+        Retrieving relational relations
+            1-8 of 8
+    At distance 2:
+        9 old nodes
+        188 old links
+        161 new nodes
+        Retrieving entities
+            1-161 of 161
+        Max nodes: exiting next search loop.
+        Retrieving structural relations
+        Max links: exiting next search loop.
+    At distance 3:
+        170 old nodes
+        833 old links
+        584 new nodes
+        Retrieving entities
+            1-584 of 584
+    Cross-referencing...
+        753 & 753
+        Cross-referenced: 754 nodes / 1060 links
+    Built trellis: 754 nodes / 1060 links
+    Partitioning trellis into 11 pages...
+        Maximum: 75 nodes / 225 links
+        Maximum depth: 3
+        Subgraph threshold: 17.136363636363637
+            At distance 0: 754.0 geometric mean
+            At distance 1: 2.306143078159937 geometric mean
+            At distance 2: 1.0427629961486573 geometric mean
+            At distance 3: 1.0109670668659374 geometric mean
+                Testing 754.0 @ distance 0
+                Testing 2.306143078159937 @ distance 1
+            Winning distance: 1
+        Paging by local neighborhood: 9
+        Paging at winning distance...
+        Paging by distance...
+        Page 0: 104
+        Page 1: 103
+        Page 2: 103
+        Page 3: 103
+        Page 4: 103
+        Page 5: 103
+        Page 6: 103
+        Page 7: 103
+        Page 8: 103
+        Page 9: 104
+        Page 10: 104
+Network query time: 0.6372168064117432
 ```
