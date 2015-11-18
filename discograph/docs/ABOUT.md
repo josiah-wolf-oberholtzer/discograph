@@ -141,6 +141,20 @@ PostgresRelation(
 The graph-search algorithm
 --------------------------
 
+1. Start with an entity
+2. Get all relations involving that entity.
+3. Get all other entities involved in those relations.
+4. Get all relations involving those new entities.
+   - `Alias`, `Member Of`, `Sublabel Of` are stored on in the `entities` table
+   - All other credit roles require hitting the `relations` table.
+   - Some prolific roles (`Released On`, `Compiled On`, `Written-By`) are pruned after distance 1.
+5. Repeat getting entities and relations until either:
+   - the maximum distance is reached,
+   - we run out of entities,
+   - or we surpass either the max-entities or max-relations thresholds.
+6. Cross-reference all entities with all roles (pre-role-pruning).
+7. Build a *trellis* to perform subgraph paging.
+
 Here's the terminal output for the graph-search, starting with Morris Day, and using the roles "Alias", "Member Of" and "Guitar":
 
 ```
