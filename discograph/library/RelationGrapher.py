@@ -89,6 +89,7 @@ class RelationGrapher(object):
     ### SPECIAL METHODS ###
 
     def __call__(self):
+        print('Searching around {}...'.format(self.center_entity.name))
         provisional_roles = list(self.relational_roles)
         self._report_search_start()
         self._clear()
@@ -467,13 +468,18 @@ class RelationGrapher(object):
         print('        Retrieving entities')
         entities = []
         entity_keys_to_visit = list(entity_keys_to_visit)
+        stop = len(entity_keys_to_visit)
         step = 1000
-        for start in range(0, len(entity_keys_to_visit), step):
+        for start in range(0, stop, step):
             entity_key_slice = entity_keys_to_visit[start:start + step]
             found = PostgresEntity.search_multi(entity_key_slice)
             entities.extend(found)
             message = '            {}-{} of {}'
-            message = message.format(start, start + step, len(entity_keys_to_visit))
+            message = message.format(
+                start + 1, 
+                min(start + step, stop),
+                stop,
+                )
             print(message)
         return entities
 
@@ -503,9 +509,15 @@ class RelationGrapher(object):
         if provisional_roles and distance < self.degree:
             print('        Retrieving relational relations')
             keys = sorted(self.entity_keys_to_visit)
-            for start in range(0, len(keys), 500):
-                key_slice = keys[start:start + 500]
-                print('            {}-{} of {}'.format(start, start + 500, len(keys)))
+            step = 500
+            stop = len(keys)
+            for start in range(0, stop, step):
+                key_slice = keys[start:start + step]
+                print('            {}-{} of {}'.format(
+                    start + 1, 
+                    min(start + step, stop),
+                    stop,
+                    ))
                 relations.update(
                     PostgresRelation.search_multi(
                         key_slice,
