@@ -266,7 +266,12 @@ var DiscographFsm = machina.Fsm.extend({
         return url;
     },
     getRandomURL: function() {
-        return '/api/random?' + Math.floor(Math.random() * 1000000);
+        var url = '/api/random?r=' + Math.floor(Math.random() * 1000000);
+        var params = {'roles': $('#filter select').val()};
+        if (params.roles) {
+            url += '&' + decodeURIComponent($.param(params));
+        }
+        return url;
     },
     getRadialURL: function(entityKey) {
         var entityType = entityKey.split("-")[0];

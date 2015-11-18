@@ -1422,7 +1422,14 @@
             return url;
         },
         getRandomURL: function() {
-            return '/api/random?' + Math.floor(Math.random() * 1000000);
+            var url = '/api/random?r=' + Math.floor(Math.random() * 1000000);
+            var params = {
+                'roles': $('#filter select').val()
+            };
+            if (params.roles) {
+                url += '&' + decodeURIComponent($.param(params));
+            }
+            return url;
         },
         getRadialURL: function(entityKey) {
             var entityType = entityKey.split("-")[0];
@@ -1629,32 +1636,6 @@
                 pushHistory: true,
             });
         });
-        /*
-        $('#filter-roles').multiselect({
-            buttonWidth: "160px",
-            enableFiltering: true,
-            enableCaseInsensitiveFiltering: true,
-            inheritClass: true,
-            enableClickableOptGroups: true,
-            maxHeight: 400,
-            nonSelectedText: 'Select relationships'
-        });
-        $('#filter').on('reset', function(event) {
-            $('#filter-roles option:selected').each(function() {
-                $(this).prop('selected', false);
-            });
-            $('#filter-roles').multiselect('refresh');
-            event.preventDefault();
-        });
-        $('#filter').submit(function(event) {
-            event.preventDefault();
-            $(window).trigger({
-                type: 'discograph:request-network',
-                entityKey: dg.network.data.json.center.key,
-                pushHistory: true,
-            });
-        });
-        */
         $('#filter').fadeIn(3000);
         dg.fsm = new DiscographFsm();
         console.log('discograph initialized.');
