@@ -4,7 +4,6 @@ About Disco/graph
 - Interactive sociogram graphing
 - Single-page application, using asynchronous calls to a JSON API
 - Uses the Discogs XML dump, heavily transformed
-- Very mildly popular on Twitter, mostly in Europe
 
 The Stack
 ---------
