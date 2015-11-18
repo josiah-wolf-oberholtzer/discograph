@@ -40,7 +40,7 @@ Relations are extracted from artists, labels and releases:
 - band membership
 - sublabel / parent label
 
-Relation-extraction on releases is a little complicated.
+Relation-extraction on releases is a little complicated. Relations need to be drawn appropriately between artists, labels, companies, release-global extra-artists, track artists, track extra-artists, etc. Who did what role for whom?
 
 The `entities` table looks like this:
 
