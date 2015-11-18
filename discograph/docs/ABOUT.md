@@ -212,3 +212,5 @@ Searching around Morris Day...
         Page 10: 104
 Network query time: 0.6372168064117432
 ```
+
+See the JSON for this query here: http://discograph.mbrsi.org/api/artist/network/152882?roles[]=Guitar&roles[]=Alias&roles[]=Member+Of
