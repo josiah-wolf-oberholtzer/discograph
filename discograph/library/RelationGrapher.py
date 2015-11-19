@@ -15,7 +15,7 @@ class RelationGrapher(object):
     ### CLASS VARIABLES ###
 
     __slots__ = (
-        '_break_on_next_loop',
+        '_should_break_loop',
         '_center_entity',
         '_degree',
         '_entity_keys_to_visit',
@@ -83,7 +83,7 @@ class RelationGrapher(object):
         self._relational_roles = tuple(relational_roles)
         self._nodes = collections.OrderedDict()
         self._links = {}
-        self._break_on_next_loop = False
+        self._should_break_loop = False
         self._entity_keys_to_visit = set()
 
     ### SPECIAL METHODS ###
@@ -99,12 +99,12 @@ class RelationGrapher(object):
             entities = self._search_entities(self.entity_keys_to_visit)
             relations = {}
             self._process_entities(distance, entities)
-            if not self.entity_keys_to_visit or self.break_on_next_loop:
+            if not self.entity_keys_to_visit or self.should_break_loop:
                 break
             self._test_loop_one(distance)
             self._prune_roles(distance, provisional_roles)
-            self._search_via_structural_roles(distance, provisional_roles, relations)
-            if not self.break_on_next_loop:
+            if not self.should_break_loop:
+                self._search_via_structural_roles(distance, provisional_roles, relations)
                 self._search_via_relational_roles(distance, provisional_roles, relations)
             self._test_loop_two(distance, relations)
             self.entity_keys_to_visit.clear()
@@ -360,7 +360,7 @@ class RelationGrapher(object):
         self._nodes.clear()
         self._links.clear()
         self._entity_keys_to_visit.clear()
-        self._break_on_next_loop = False
+        self._should_break_loop = False
 
     def _cross_reference(self, distance):
         if not self.relational_roles:
@@ -529,18 +529,18 @@ class RelationGrapher(object):
         if 0 < distance:
             if self.max_nodes <= len(self.nodes):
                 print('        Max nodes: exiting next search loop.')
-                self.break_on_next_loop = True
+                self.should_break_loop = True
 
     def _test_loop_two(self, distance, relations):
         if not relations:
-            self.break_on_next_loop = True
+            self.should_break_loop = True
         if self.max_links * 3 <= len(relations):
             print('        Max links: exiting next search loop.')
-            self.break_on_next_loop = True
+            self.should_break_loop = True
         if 1 < distance:
             if self.max_links <= len(relations):
                 print('        Max links: exiting next search loop.')
-                self.break_on_next_loop = True
+                self.should_break_loop = True
 
     ### PUBLIC METHODS ###
 
@@ -597,12 +597,12 @@ class RelationGrapher(object):
         return self.structural_roles + self.relational_roles
 
     @property
-    def break_on_next_loop(self):
-        return self._break_on_next_loop
+    def should_break_loop(self):
+        return self._should_break_loop
 
-    @break_on_next_loop.setter
-    def break_on_next_loop(self, expr):
-        self._break_on_next_loop = bool(expr)
+    @should_break_loop.setter
+    def should_break_loop(self, expr):
+        self._should_break_loop = bool(expr)
 
     @property
     def center_entity(self):
