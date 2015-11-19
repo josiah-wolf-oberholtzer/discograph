@@ -63,12 +63,6 @@ class PostgresRelation(PostgresModel):
 
     class Meta:
         db_table = 'relations'
-        indexes = (
-            (('entity_one_type', 'entity_one_id', 'role', 'year'), False),
-            (('entity_two_type', 'entity_two_id', 'role', 'year'), False),
-            (('entity_one_type', 'entity_one_id',
-              'entity_two_type', 'entity_two_id', 'role', 'year'), False),
-            )
         primary_key = peewee.CompositeKey(
             'entity_one_type',
             'entity_one_id',
@@ -144,30 +138,10 @@ class PostgresRelation(PostgresModel):
         database = cls._meta.database
         with database.execution_context(with_transaction=False):
             release_class = discograph.PostgresRelease
-#            master_class = discograph.PostgresMaster
             query = release_class.select().where(release_class.id == release_id)
             if not query.count():
                 return
             document = query.get()
-#            if document.master_id:
-#                if document.master_id in corpus:
-#                    main_release_id = corpus[document.master_id]
-#                else:
-#                    where_clause = master_class.id == document.master_id
-#                    query = master_class.select().where(where_clause)
-#                    if query.count():
-#                        master = query.get()
-#                        corpus[document.master_id] = master.main_release_id
-#                        main_release_id = corpus[document.master_id]
-#                    else:
-#                        main_release_id = document.id
-#                if main_release_id != document.id:
-#                    print('[{}] (id:{}) [SKIPPED] {}'.format(
-#                        annotation,
-#                        document.id,
-#                        document.title,
-#                        ))
-#                    return
             relations = cls.from_release(document)
             print('[{}] (id:{})           [{}] {}'.format(
                 annotation,
@@ -469,27 +443,31 @@ class PostgresRelation(PostgresModel):
                 rh_artist_ids.append(entity_id)
             else:
                 rh_label_ids.append(entity_id)
-        relations = []
+        queries = []
         if lh_artist_ids:
             lh_type, lh_ids = 1, lh_artist_ids
             if rh_artist_ids:
                 rh_type, rh_ids = 1, rh_artist_ids
                 query = build_query(lh_type, lh_ids, rh_type, rh_ids)
-                relations.extend(list(query))
+                queries.append(query)
             if rh_label_ids:
                 rh_type, rh_ids = 2, rh_label_ids
                 query = build_query(lh_type, lh_ids, rh_type, rh_ids)
-                relations.extend(list(query))
+                queries.append(query)
         if lh_label_ids:
             lh_type, lh_ids = 2, lh_label_ids
             if rh_artist_ids:
                 rh_type, rh_ids = 1, rh_artist_ids
                 query = build_query(lh_type, lh_ids, rh_type, rh_ids)
-                relations.extend(list(query))
+                queries.append(query)
             if rh_label_ids:
                 rh_type, rh_ids = 2, rh_label_ids
                 query = build_query(lh_type, lh_ids, rh_type, rh_ids)
-                relations.extend(list(query))
+                queries.append(query)
+        relations = []
+        for query in queries:
+            #print(query)
+            relations.extend(query)
         relations = {
             relation.link_key: relation
             for relation in relations
