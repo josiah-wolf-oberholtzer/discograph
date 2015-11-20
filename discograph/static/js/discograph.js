@@ -1165,10 +1165,10 @@
                 self.showRadial();
             });
             $(window).on('select2:selecting', function(event) {
-                self.roleBackup = $('#filter select').val();
+                self.rolesBackup = $('#filter select').val();
             });
             $(window).on('select2:unselecting', function(event) {
-                self.roleBackup = $('#filter select').val();
+                self.rolesBackup = $('#filter select').val();
             });
             window.onpopstate = function(event) {
                 if (!event || !event.state || !event.state.key) {
