@@ -684,3 +684,16 @@ class Test(unittest.TestCase):
                 ),
             'pages': 1,
             }
+
+    def test___call___05(self):
+        artist = discograph.PostgresEntity.get(
+            entity_type=2, 
+            name='Computer Hell Cabin',
+            )
+        roles = ['Recorded At']
+        grapher = discograph.RelationGrapher(
+            artist,
+            degree=2,
+            roles=roles,
+            )
+        network = grapher.__call__()
