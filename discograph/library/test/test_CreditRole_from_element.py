@@ -1,12 +1,11 @@
 import discograph
-import unittest
 try:
     from xml.etree import cElementTree as ElementTree
 except ImportError:
     from xml.etree import ElementTree
 
 
-class Test(unittest.TestCase):
+class Test(discograph.DiscographTestCase):
 
     def test_1(self):
         element = ElementTree.fromstring('<test></test>')

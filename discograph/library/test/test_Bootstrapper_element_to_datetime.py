@@ -1,10 +1,9 @@
 # -*- encoding: utf-8 -*-
 import datetime
-import unittest
 import discograph
 
 
-class Test(unittest.TestCase):
+class Test(discograph.DiscographTestCase):
 
     def test_1(self):
         date_string = '1989-06-23'

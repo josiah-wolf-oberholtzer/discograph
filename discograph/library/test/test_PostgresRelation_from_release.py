@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 import discograph
-import unittest
 from abjad.tools import stringtools
 from discograph.library.Bootstrapper import Bootstrapper
 try:
@@ -9,7 +8,7 @@ except ImportError:
     from xml.etree import ElementTree
 
 
-class Test(unittest.TestCase):
+class Test(discograph.DiscographTestCase):
 
     def test_01(self):
         iterator = Bootstrapper.get_iterator('release')

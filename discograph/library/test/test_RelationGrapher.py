@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import discograph
 import json
-import unittest
 from abjad import stringtools
 
 
-class Test(unittest.TestCase):
+class Test(discograph.DiscographTestCase):
     """
     Problematic networks:
 

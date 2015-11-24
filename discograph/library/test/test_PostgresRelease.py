@@ -1,11 +1,10 @@
 # -*- encoding: utf-8 -*-
 import discograph
-import unittest
 from abjad import stringtools
 from discograph.library.Bootstrapper import Bootstrapper
 
 
-class Test(unittest.TestCase):
+class Test(discograph.DiscographTestCase):
 
     def test_01(self):
         iterator = Bootstrapper.get_iterator('release')

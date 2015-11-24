@@ -1,10 +1,9 @@
 # -*- encoding: utf-8 -*-
 import discograph
-import unittest
 from abjad import stringtools
 
 
-class Test(unittest.TestCase):
+class Test(discograph.DiscographTestCase):
 
     def test_01(self):
         iterator = discograph.Bootstrapper.get_iterator('artist')

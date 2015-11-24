@@ -1,9 +1,8 @@
-import unittest
 import discograph
 from abjad.tools import stringtools
 
 
-class Test(unittest.TestCase):
+class Test(discograph.DiscographTestCase):
 
     def test_01(self):
         entity = discograph.PostgresEntity.get(entity_type=1, entity_id=32550)

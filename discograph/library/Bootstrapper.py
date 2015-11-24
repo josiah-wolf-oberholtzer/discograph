@@ -20,17 +20,21 @@ class Bootstrapper(object):
     date_regex = re.compile('^(\d{4})-(\d{2})-(\d{2})$')
     date_no_dashes_regex = re.compile('^(\d{4})(\d{2})(\d{2})$')
     year_regex = re.compile('^\d\d\d\d$')
+    is_test = False
 
     ### PUBLIC METHODS ###
 
     @staticmethod
-    def get_xml_path(tag):
+    def get_xml_path(tag, test=False):
         data_directory = os.path.join(
             os.path.abspath(os.path.dirname(__file__)),
             '..',
             'data',
             )
-        glob_pattern = 'discogs_*_{}s.xml.gz'.format(tag)
+        if Bootstrapper.is_test or test:
+            glob_pattern = 'discogs_test_{}s.xml.gz'.format(tag)
+        else:
+            glob_pattern = 'discogs_*_{}s.xml.gz'.format(tag)
         with systemtools.TemporaryDirectoryChange(data_directory):
             files = sorted(glob.glob(glob_pattern))
         return os.path.join(data_directory, files[-1])
