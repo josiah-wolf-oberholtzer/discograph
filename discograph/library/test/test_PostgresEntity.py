@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
-from abjad import stringtools
 import discograph
 import unittest
+from abjad import stringtools
 
 
 class Test(unittest.TestCase):

@@ -221,6 +221,16 @@ class RelationGrapher(object):
                 target_node.children.add(source_node)
                 source_node.parents.add(target_node)
         self._recurse_trellis(self.nodes[self.center_entity.entity_key])
+        for node_key, node in tuple(self.nodes.items()):
+            if node.subgraph_size is None:
+                self.nodes.pop(node_key)
+        for link_key, relation in tuple(self.links.items()):
+            if (
+                relation.entity_one_key not in self.nodes or
+                relation.entity_two_key not in self.nodes
+                ):
+                self.links.pop(link_key)
+                continue
         message = '    Built trellis: {} nodes / {} links'
         message = message.format(len(self.nodes), len(self.links))
         print(message)
@@ -375,7 +385,7 @@ class RelationGrapher(object):
         entity_keys = sorted(self.nodes)
         entity_keys.remove(self.center_entity.entity_key)
         entity_key_slices = []
-        step = 1000
+        step = 250
         for start in range(0, len(entity_keys), step):
             entity_key_slices.append(entity_keys[start:start + step])
         iterator = itertools.product(entity_key_slices, entity_key_slices)
