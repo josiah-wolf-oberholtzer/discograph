@@ -7,6 +7,7 @@ import re
 import time
 from abjad.tools import datastructuretools
 from discograph.library.PostgresModel import PostgresModel
+from playhouse import postgres_ext
 
 
 class PostgresRelation(PostgresModel):
@@ -55,9 +56,8 @@ class PostgresRelation(PostgresModel):
     entity_one_id = peewee.IntegerField()
     entity_two_type = peewee.IntegerField()
     entity_two_id = peewee.IntegerField()
-    release_id = peewee.IntegerField(default=-1)
     role = peewee.CharField()
-    year = peewee.IntegerField(default=-1)
+    releases = postgres_ext.BinaryJSONField(null=True)
 
     ### PEEWEE META ###
 
@@ -69,8 +69,16 @@ class PostgresRelation(PostgresModel):
             'entity_two_type',
             'entity_two_id',
             'role',
-            'release_id',
-            'year',
+            )
+        indexes = (
+            ((
+                'entity_one_type', 'entity_one_id',
+                'entity_two_type', 'entity_two_id',
+                'role'), True),
+            ((
+                'entity_two_type', 'entity_two_id',
+                'entity_one_type', 'entity_one_id',
+                'role'), True),
             )
 
     ### PRIVATE METHODS ###
@@ -104,8 +112,8 @@ class PostgresRelation(PostgresModel):
 
     @classmethod
     def bootstrap(cls):
-        #cls.drop_table(True)
-        #cls.create_table()
+        cls.drop_table(True)
+        cls.create_table()
         cls.bootstrap_pass_three()
 
     @classmethod
@@ -113,7 +121,7 @@ class PostgresRelation(PostgresModel):
         import discograph
         release_class = discograph.PostgresRelease
         minimum_id = 0
-        minimum_id = 6000000
+        #minimum_id = 6000000
         maximum_id = release_class.select(peewee.fn.Max(release_class.id)).scalar()
         queue = multiprocessing.JoinableQueue()
         workers = [cls.BootstrapWorker(queue) for _ in range(4)]
@@ -137,8 +145,8 @@ class PostgresRelation(PostgresModel):
         import discograph
         database = cls._meta.database
         with database.execution_context(with_transaction=False):
-            release_class = discograph.PostgresRelease
-            query = release_class.select().where(release_class.id == release_id)
+            release_cls = discograph.PostgresRelease
+            query = release_cls.select().where(release_cls.id == release_id)
             if not query.count():
                 return
             document = query.get()
@@ -150,64 +158,20 @@ class PostgresRelation(PostgresModel):
                 document.title,
                 ))
             for relation in relations:
-                relation['random'] = random.random()
-                cls.create_or_get(**relation)
-
-    @classmethod
-    def from_artist(cls, artist):
-        triples = set()
-        role = 'Alias'
-        if artist.aliases:
-            for alias_name, alias_id in artist.aliases.items():
-                if not alias_id:
-                    continue
-                id_one, id_two = sorted([artist.id, alias_id])
-                entity_one = (cls.EntityType.ARTIST, id_one)
-                entity_two = (cls.EntityType.ARTIST, id_two)
-                triples.add((entity_one, role, entity_two))
-        if artist.members:
-            role = 'Member Of'
-            for member_name, member_id in artist.members.items():
-                if not member_id:
-                    continue
-                entity_one = (cls.EntityType.ARTIST, member_id)
-                entity_two = (cls.EntityType.ARTIST, artist.id)
-                triples.add((entity_one, role, entity_two))
-        triples = (_ for _ in triples
-            if all((_[0][1], _[1], _[2][1]))
-            )
-        key_function = lambda x: (x[0][1], x[1], x[2][1])
-        triples = sorted(triples, key=key_function)
-        relations = cls.from_triples(triples)
-        return relations
-
-    @classmethod
-    def from_label(cls, label):
-        triples = set()
-        role = 'Sublabel Of'
-        if label.sublabels:
-            for sublabel_name, sublabel_id in label.sublabels.items():
-                if not sublabel_id:
-                    continue
-                id_one, id_two = sublabel_id, label.id
-                entity_one = (cls.EntityType.LABEL, id_one)
-                entity_two = (cls.EntityType.LABEL, id_two)
-                triples.add((entity_one, role, entity_two))
-        if label.parent_label:
-            for parent_label_name, parent_label_id in label.parent_label.items():
-                if not parent_label_id:
-                    continue
-                id_one, id_two = label.id, parent_label_id
-                entity_one = (cls.EntityType.LABEL, id_one)
-                entity_two = (cls.EntityType.LABEL, id_two)
-                triples.add((entity_one, role, entity_two))
-        triples = (_ for _ in triples
-            if all((_[0][1], _[1], _[2][1]))
-            )
-        key_function = lambda x: (x[0][1], x[1], x[2][1])
-        triples = sorted(triples, key=key_function)
-        relations = cls.from_triples(triples)
-        return relations
+                instance, created = cls.create_or_get(
+                    entity_one_type=relation['entity_one_type'],
+                    entity_one_id=relation['entity_one_id'],
+                    entity_two_type=relation['entity_two_type'],
+                    entity_two_id=relation['entity_two_id'],
+                    role=relation['role'],
+                    )
+                if created:
+                    instance.releases = {}
+                if 'release_id' in relation:
+                    release_id = relation['release_id']
+                    year = relation.get('year')
+                    instance.releases[release_id] = year
+                instance.save()
 
     @classmethod
     def from_release(cls, release):

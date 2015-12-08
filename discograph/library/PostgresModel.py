@@ -24,7 +24,7 @@ class PostgresModel(gfk.Model):
 
     ### PEEWEE FIELDS ###
 
-    random = peewee.FloatField(index=True)
+    random = peewee.FloatField(index=True, null=True)
 
     ### PEEWEE META ###
 
