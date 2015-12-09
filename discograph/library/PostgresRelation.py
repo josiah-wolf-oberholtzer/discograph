@@ -4,7 +4,7 @@ import peewee
 import random
 import multiprocessing
 import re
-import time
+import traceback
 from abjad.tools import datastructuretools
 from discograph.library.PostgresModel import PostgresModel
 from playhouse import postgres_ext
@@ -22,23 +22,22 @@ class PostgresRelation(PostgresModel):
 
         corpus = {}
 
-        def __init__(self, queue):
+        def __init__(self, start, stop):
             multiprocessing.Process.__init__(self)
-            self.queue = queue
+            self.indices = (start, stop)
 
         def run(self):
             proc_name = self.name
-            while True:
-                task = self.queue.get()
-                if task is None:
-                    self.queue.task_done()
-                    break
-                PostgresRelation.bootstrap_pass_three_inner(
-                    task,
-                    self.corpus,
-                    annotation=proc_name,
-                    )
-                self.queue.task_done()
+            start, stop = self.indices
+            for release_id in range(start, stop + 1):
+                try:
+                    PostgresRelation.bootstrap_pass_three_inner(
+                        release_id,
+                        self.corpus,
+                        annotation=proc_name,
+                        )
+                except:
+                    traceback.print_exc()
 
     aggregate_roles = (
         'Compiled By',
@@ -120,21 +119,16 @@ class PostgresRelation(PostgresModel):
     def bootstrap_pass_three(cls):
         import discograph
         release_class = discograph.PostgresRelease
-        minimum_id = 0
-        #minimum_id = 6000000
-        maximum_id = release_class.select(peewee.fn.Max(release_class.id)).scalar()
-        queue = multiprocessing.JoinableQueue()
-        workers = [cls.BootstrapWorker(queue) for _ in range(4)]
+        maximum_id = release_class.select(
+            peewee.fn.Max(release_class.id)).scalar()
+        step = maximum_id // (multiprocessing.cpu_count() * 2)
+        workers = []
+        for start in range(0, maximum_id, step):
+            stop = start + step
+            worker = cls.BootstrapWorker(start, stop)
+            workers.append(worker)
         for worker in workers:
             worker.start()
-        for release_id in range(minimum_id, maximum_id + 1):
-            while not queue.empty():
-                time.sleep(0.0001)
-            queue.put(release_id)
-        for worker in workers:
-            queue.put(None)
-        queue.join()
-        queue.close()
         for worker in workers:
             worker.join()
         for worker in workers:
