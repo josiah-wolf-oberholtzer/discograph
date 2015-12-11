@@ -40,27 +40,13 @@ class DiscographTestCase(unittest.TestCase):
             print(PostgresModel._meta.database.database)
             PostgresModel.bootstrap_postgres_models(pessimistic=True)
 
-    @classmethod
-    def tearDownTestDB(cls):
-        Bootstrapper.is_test = True
-        return
-#        with test_utils.test_database(
-#            cls.test_database,
-#            cls.models,
-#            create_tables=False,
-#            fail_silently=True,
-#            ):
-#            for model in (
-#                PostgresEntity,
-#                PostgresMaster,
-#                PostgresModel,
-#                PostgresRelation,
-#                PostgresRelease,
-#                ):
-#                model.drop_table(True)
-
     def run(self, result=None):
         import discograph
         discograph.Bootstrapper.is_test = True
-        with test_utils.test_database(self.test_database, self.models):
+        with test_utils.test_database(
+            self.test_database,
+            self.models,
+            create_tables=False,
+            fail_silently=True,
+            ):
             super(DiscographTestCase, self).run(result)

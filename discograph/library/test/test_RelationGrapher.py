@@ -25,10 +25,6 @@ class Test(discograph.DiscographTestCase):
     def setUpClass(cls):
         cls.setUpTestDB()
 
-    @classmethod
-    def teardownClass(cls):
-        cls.tearDownTestDB()
-
     def test___call___01(self):
         print(discograph.PostgresEntity._meta.database)
         artist = discograph.PostgresEntity.get(entity_type=1, name='Seefeel')
