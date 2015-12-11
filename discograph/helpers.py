@@ -107,10 +107,7 @@ def get_relations(entity_id, entity_type):
         entity_type=entity.entity_type,
         query_only=True
         )
-    query = query.where(discograph.PostgresRelation.year != -1)
     query = query.order_by(
-        discograph.PostgresRelation.year,
-        discograph.PostgresRelation.release_id,
         discograph.PostgresRelation.role,
         discograph.PostgresRelation.entity_one_id,
         discograph.PostgresRelation.entity_one_type,
@@ -124,10 +121,7 @@ def get_relations(entity_id, entity_type):
             continue
         category = category[0]
         datum = {
-            'year': relation.year,
-            'release_id': relation.release_id,
             'role': relation.role,
-            'category': category,
             }
         data.append(datum)
     data = {'results': tuple(data)}

@@ -2,6 +2,7 @@
 import discograph
 import json
 from abjad import stringtools
+from playhouse import test_utils
 
 
 class Test(discograph.DiscographTestCase):
@@ -20,8 +21,17 @@ class Test(discograph.DiscographTestCase):
         'sort_keys': True,
         }
 
+    @classmethod
+    def setUpClass(cls):
+        cls.setUpTestDB()
+
+    @classmethod
+    def teardownClass(cls):
+        cls.tearDownTestDB()
+
     def test___call___01(self):
-        artist = discograph.PostgresEntity.get(entity_type=1, name='Morris Day')
+        print(discograph.PostgresEntity._meta.database)
+        artist = discograph.PostgresEntity.get(entity_type=1, name='Seefeel')
         roles = ['Alias', 'Member Of']
         grapher = discograph.RelationGrapher(
             artist,

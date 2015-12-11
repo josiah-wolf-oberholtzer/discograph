@@ -2,7 +2,8 @@
 import multiprocessing
 import peewee
 import re
-import time
+import traceback
+from abjad.tools import sequencetools
 from abjad.tools import stringtools
 from abjad.tools import systemtools
 from playhouse import postgres_ext
@@ -16,37 +17,59 @@ class PostgresEntity(PostgresModel):
 
     _strip_pattern = re.compile(r'(\(\d+\)|[^(\w\s)]+)')
 
-    class BootstrapWorker(multiprocessing.Process):
+    class BootstrapPassTwoWorker(multiprocessing.Process):
 
-        corpus = {}
-
-        def __init__(self, queue):
+        def __init__(self, entity_type, indices):
             multiprocessing.Process.__init__(self)
-            self.queue = queue
+            self.entity_type = entity_type
+            self.indices = indices
 
         def run(self):
             proc_name = self.name
-            while True:
-                task = self.queue.get()
-                if task is None:
-                    self.queue.task_done()
-                    break
-                entity_type, entity_id = task
-                PostgresEntity.bootstrap_pass_three_single(
-                    entity_type=entity_type,
-                    entity_id=entity_id,
-                    )
-                self.queue.task_done()
+            corpus = {}
+            for entity_id in self.indices:
+                with PostgresEntity._meta.database.execution_context():
+                    try:
+                        PostgresEntity.bootstrap_pass_two_single(
+                            entity_type=self.entity_type,
+                            entity_id=entity_id,
+                            annotation=proc_name,
+                            corpus=corpus,
+                            )
+                    except:
+                        print('ERROR:', self.entity_type, entity_id, proc_name)
+                        traceback.print_exc()
+
+    class BootstrapPassThreeWorker(multiprocessing.Process):
+
+        def __init__(self, entity_type, indices):
+            multiprocessing.Process.__init__(self)
+            self.entity_type = entity_type
+            self.indices = indices
+
+        def run(self):
+            proc_name = self.name
+            for entity_id in self.indices:
+                with PostgresEntity._meta.database.execution_context():
+                    try:
+                        PostgresEntity.bootstrap_pass_three_single(
+                            entity_type=self.entity_type,
+                            entity_id=entity_id,
+                            annotation=proc_name,
+                            )
+                    except:
+                        print('ERROR:', self.entity_type, entity_id, proc_name)
+                        traceback.print_exc()
 
     ### PEEWEE FIELDS ###
 
-    entity_id = peewee.IntegerField()
-    entity_type = peewee.IntegerField()
+    entity_id = peewee.IntegerField(index=False)
+    entity_type = peewee.IntegerField(index=False)
     name = peewee.TextField(index=True)
-    relation_counts = postgres_ext.BinaryJSONField(null=True)
-    metadata = postgres_ext.BinaryJSONField(null=True)
-    entities = postgres_ext.BinaryJSONField(null=True)
-    search_content = postgres_ext.TSVectorField()
+    relation_counts = postgres_ext.BinaryJSONField(null=True, index=False)
+    metadata = postgres_ext.BinaryJSONField(null=True, index=False)
+    entities = postgres_ext.BinaryJSONField(null=True, index=False)
+    search_content = postgres_ext.TSVectorField(index=True)
 
     ### PEEWEE META ###
 
@@ -68,112 +91,174 @@ class PostgresEntity(PostgresModel):
         PostgresModel.bootstrap_pass_one(
             cls,
             'artist',
+            id_attr='entity_id',
             name_attr='name',
             skip_without=['name'],
             )
         PostgresModel.bootstrap_pass_one(
             cls,
             'label',
+            id_attr='entity_id',
             name_attr='name',
             skip_without=['name'],
             )
 
     @classmethod
-    def get_entity_iterator(cls, entity_type):
-        id_query = cls.select(peewee.fn.Max(cls.entity_id))
-        id_query = id_query.where(cls.entity_type == entity_type)
-        max_id = id_query.scalar()
-        for i in range(1, max_id + 1):
-            query = cls.select().where(cls.entity_id == i, cls.entity_type == entity_type)
-            if not query.count():
-                continue
-            document = query.get()
-            yield document
+    def get_entity_iterator(cls, entity_type, pessimistic=False):
+        if not pessimistic:
+            id_query = cls.select(peewee.fn.Max(cls.entity_id))
+            id_query = id_query.where(cls.entity_type == entity_type)
+            max_id = id_query.scalar()
+            for i in range(1, max_id + 1):
+                query = cls.select().where(
+                    cls.entity_id == i,
+                    cls.entity_type == entity_type,
+                    )
+                if not query.count():
+                    continue
+                document = query.get()
+                yield document
+        else:
+            id_query = cls.select(cls.entity_id)
+            id_query = id_query.where(cls.entity_type == entity_type)
+            for entity in id_query:
+                entity_id = entity.entity_id
+                entity = cls.select().where(
+                    cls.entity_id == entity_id,
+                    cls.entity_type == entity_type,
+                    ).get()
+                yield entity
 
     @classmethod
-    def bootstrap_pass_two(cls):
-        skipped_template = u'{} [SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
-        changed_template = u'{}           (Pass 2) (id:{}) [{:.8f}]: {}'
-        corpus = {}
-        for document in cls.get_entity_iterator(entity_type=1):
-            with systemtools.Timer(verbose=False) as timer:
-                changed = document.resolve_references(corpus)
-            if not changed:
-                message = skipped_template.format(
-                    cls.__name__.upper(),
-                    (document.entity_type, document.entity_id),
-                    timer.elapsed_time,
-                    document.name,
-                    )
-                print(message)
-                continue
-            document.save()
-            message = changed_template.format(
-                cls.__name__.upper(),
-                (document.entity_type, document.entity_id),
-                timer.elapsed_time,
-                document.name,
-                )
-            print(message)
-        corpus = {}
-        for document in cls.get_entity_iterator(entity_type=2):
-            with systemtools.Timer(verbose=False) as timer:
-                changed = document.resolve_references(corpus)
-            if not changed:
-                message = skipped_template.format(
-                    cls.__name__.upper(),
-                    (document.entity_type, document.entity_id),
-                    timer.elapsed_time,
-                    document.name,
-                    )
-                print(message)
-                continue
-            document.save()
-            message = changed_template.format(
-                cls.__name__.upper(),
-                (document.entity_type, document.entity_id),
-                timer.elapsed_time,
-                document.name,
-                )
-            print(message)
+    def get_indices(cls, entity_type, pessimistic=False):
+        indices = []
+        if not pessimistic:
+            maximum_id = cls.select(
+                peewee.fn.Max(cls.entity_id)).where(
+                    cls.entity_type == entity_type
+                    ).scalar()
+            step = maximum_id // multiprocessing.cpu_count()
+            for start in range(0, maximum_id, step):
+                stop = start + step
+                indices.append(range(start, stop))
+        else:
+            query = cls.select(cls.entity_id)
+            query = query.where(cls.entity_type == entity_type)
+            query = query.order_by(cls.entity_id)
+            query = query.tuples()
+            all_ids = tuple(_[0] for _ in query)
+            ratio = [1] * multiprocessing.cpu_count()
+            for chunk in sequencetools.partition_sequence_by_ratio_of_lengths(
+                all_ids, ratio):
+                indices.append(chunk)
+        return indices
 
     @classmethod
-    def bootstrap_pass_three(cls):
-        queue = multiprocessing.JoinableQueue()
-        workers = [cls.BootstrapWorker(queue) for _ in range(4)]
+    def bootstrap_pass_two(cls, pessimistic=False):
+        entity_type = 1
+        indices = cls.get_indices(entity_type, pessimistic=pessimistic)
+        workers = [cls.BootstrapPassTwoWorker(entity_type, x)
+            for x in indices]
         for worker in workers:
             worker.start()
-        entity_type = 1
-        artist_id_query = cls.select(peewee.fn.Max(cls.entity_id))
-        artist_id_query = artist_id_query.where(cls.entity_type == entity_type)
-        max_artist_id = artist_id_query.scalar()
-        for entity_id in range(1, max_artist_id + 1):
-            while not queue.empty():
-                time.sleep(0.0001)
-            queue.put((entity_type, entity_id))
-        entity_type = 2
-        label_id_query = cls.select(peewee.fn.Max(cls.entity_id))
-        label_id_query = label_id_query.where(cls.entity_type == entity_type)
-        max_label_id = label_id_query.scalar()
-        for entity_id in range(1, max_label_id + 1):
-            while not queue.empty():
-                time.sleep(0.0001)
-            queue.put((entity_type, entity_id))
         for worker in workers:
-            queue.put(None)
-        queue.join()
-        queue.close()
+            worker.join()
+        for worker in workers:
+            worker.terminate()
+        entity_type = 2
+        indices = cls.get_indices(entity_type, pessimistic=pessimistic)
+        workers = [cls.BootstrapPassTwoWorker(entity_type, _)
+            for _ in indices]
+        for worker in workers:
+            worker.start()
         for worker in workers:
             worker.join()
         for worker in workers:
             worker.terminate()
 
     @classmethod
-    def bootstrap_pass_three_single(cls, entity_type, entity_id):
+    def bootstrap_pass_three(cls, pessimistic=False):
+        entity_type = 1
+        indices = cls.get_indices(entity_type, pessimistic=pessimistic)
+        workers = [cls.BootstrapPassThreeWorker(entity_type, x)
+            for x in indices]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join()
+        for worker in workers:
+            worker.terminate()
+        entity_type = 2
+        indices = cls.get_indices(entity_type, pessimistic=pessimistic)
+        workers = [cls.BootstrapPassThreeWorker(entity_type, _)
+            for _ in indices]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join()
+        for worker in workers:
+            worker.terminate()
+
+    @classmethod
+    def bootstrap_pass_two_single(
+        cls,
+        entity_type,
+        entity_id,
+        annotation='',
+        corpus=None,
+        ):
+        skipped_template = u'{} [{}]\t[SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
+        changed_template = u'{} [{}]\t          (Pass 2) (id:{}) [{:.8f}]: {}'
+        query = cls.select(
+            cls.entity_id,
+            cls.entity_type,
+            cls.name,
+            cls.relation_counts,
+            ).where(
+            cls.entity_id == entity_id,
+            cls.entity_type == entity_type,
+            )
+        if not query.count():
+            return
+        document = query.get()
+        corpus = corpus or {}
+        with systemtools.Timer(verbose=False) as timer:
+            changed = document.resolve_references(corpus)
+        if not changed:
+            message = skipped_template.format(
+                cls.__name__.upper(),
+                annotation,
+                (document.entity_type, document.entity_id),
+                timer.elapsed_time,
+                document.name,
+                )
+            print(message)
+            return
+        document.save()
+        message = changed_template.format(
+            cls.__name__.upper(),
+            annotation,
+            (document.entity_type, document.entity_id),
+            timer.elapsed_time,
+            document.name,
+            )
+        print(message)
+
+    @classmethod
+    def bootstrap_pass_three_single(
+        cls,
+        entity_type,
+        entity_id,
+        annotation='',
+        ):
         import discograph
-        template = u'{} (Pass 3) (id:{}) {}: {}'
-        query = cls.select().where(
-            cls.entity_id == entity_id, 
+        query = cls.select(
+            cls.entity_id,
+            cls.entity_type,
+            cls.name,
+            cls.relation_counts,
+            ).where(
+            cls.entity_id == entity_id,
             cls.entity_type == entity_type,
             )
         if not query.count():
@@ -206,12 +291,15 @@ class PostgresEntity(PostgresModel):
             return
         document.relation_counts = relation_counts
         document.save()
-        message = template.format(
+        message_pieces = [
             cls.__name__.upper(),
+            annotation,
             (document.entity_type, document.entity_id),
             document.name,
             len(relation_counts),
-            )
+            ]
+        template = u'{} [{}]\t(Pass 3) (id:{}) {}: {}'
+        message = template.format(*message_pieces)
         print(message)
 
     @classmethod
@@ -327,6 +415,8 @@ class PostgresEntity(PostgresModel):
 
     def resolve_references(self, corpus):
         changed = False
+        if not self.entities:
+            return changed
         if self.entity_type == 1:
             entity_type = 1
             for section in ('aliases', 'groups', 'members'):
@@ -403,11 +493,11 @@ class PostgresEntity(PostgresModel):
         search_string = stringtools.strip_diacritics(search_string)
         search_string = ','.join(search_string.split())
         query = PostgresEntity.raw("""
-            SELECT entity_type, 
-                entity_id, 
-                name, 
+            SELECT entity_type,
+                entity_id,
+                name,
                 ts_rank_cd(search_content, query, 63) AS rank
-            FROM entities, 
+            FROM entities,
                 to_tsquery(%s) query
             WHERE query @@ search_content
             ORDER BY rank DESC
@@ -420,7 +510,7 @@ class PostgresEntity(PostgresModel):
         string = string.lower()
         string = stringtools.strip_diacritics(string)
         string = cls._strip_pattern.sub('', string)
-        tsvector = peewee.fn.to_tsvector(string) 
+        tsvector = peewee.fn.to_tsvector(string)
         return tsvector
 
     def structural_roles_to_entity_keys(self, roles):

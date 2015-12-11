@@ -109,11 +109,11 @@ class RelationGrapher(object):
             self._test_loop_two(distance, relations)
             self.entity_keys_to_visit.clear()
             self._process_relations(relations)
-        self._cross_reference(distance)
-        self._find_clusters()
         self._build_trellis()
+        #self._cross_reference(distance)
         pages = self._partition_trellis(distance)
         self._page_entities(pages)
+        self._find_clusters()
         for node in self.nodes.values():
             expected_count = node.entity.roles_to_relation_count(self.all_roles)
             node.missing = expected_count - len(node.links)
@@ -373,6 +373,9 @@ class RelationGrapher(object):
         self._should_break_loop = False
 
     def _cross_reference(self, distance):
+        # TODO: We don't need to test all nodes, only those missing credit role 
+        #       relations. That may significantly reduce the computational 
+        #       load.
         if not self.relational_roles:
             print('    Skipping cross-referencing: no relational roles')
             return

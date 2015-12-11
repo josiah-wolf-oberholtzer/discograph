@@ -68,18 +68,27 @@ class PostgresModel(gfk.Model):
     ### PUBLIC METHODS ###
 
     @classmethod
-    def bootstrap_postgres_models(cls):
+    def bootstrap_postgres_models(cls, pessimistic=False):
         import discograph
-        discograph.PostgresEntity.bootstrap()
-        discograph.PostgresRelease.bootstrap()
-        discograph.PostgresRelation.bootstrap()
-        discograph.PostgresEntity.bootstrap_pass_three()
+        discograph.PostgresEntity.drop_table(True)
+        discograph.PostgresRelease.drop_table(True)
+        discograph.PostgresRelation.drop_table(True)
+        discograph.PostgresEntity.create_table(True)
+        discograph.PostgresRelease.create_table(True)
+        discograph.PostgresRelation.create_table(True)
+        discograph.PostgresEntity.bootstrap_pass_one()
+        discograph.PostgresEntity.bootstrap_pass_two(pessimistic=pessimistic)
+        discograph.PostgresRelease.bootstrap_pass_one()
+        discograph.PostgresRelease.bootstrap_pass_two(pessimistic=pessimistic)
+        discograph.PostgresRelation.bootstrap_pass_one(pessimistic=pessimistic)
+        discograph.PostgresEntity.bootstrap_pass_three(pessimistic=pessimistic)
 
     @classmethod
     def bootstrap_pass_one(
         cls,
         model_class,
         xml_tag,
+        id_attr='id',
         name_attr='name',
         skip_without=None,
         ):
@@ -104,7 +113,7 @@ class PostgresModel(gfk.Model):
                     message = template.format(
                         model_class.__name__.upper(),
                         i,
-                        document.id,
+                        getattr(document, id_attr),
                         timer.elapsed_time,
                         getattr(document, name_attr),
                         )

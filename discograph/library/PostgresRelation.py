@@ -22,16 +22,15 @@ class PostgresRelation(PostgresModel):
 
         corpus = {}
 
-        def __init__(self, start, stop):
+        def __init__(self, indices):
             multiprocessing.Process.__init__(self)
-            self.indices = (start, stop)
+            self.indices = indices
 
         def run(self):
             proc_name = self.name
-            start, stop = self.indices
-            for release_id in range(start, stop + 1):
+            for release_id in self.indices:
                 try:
-                    PostgresRelation.bootstrap_pass_three_inner(
+                    PostgresRelation.bootstrap_pass_one_inner(
                         release_id,
                         self.corpus,
                         annotation=proc_name,
@@ -51,12 +50,12 @@ class PostgresRelation(PostgresModel):
 
     ### PEEWEE FIELDS ###
 
-    entity_one_type = peewee.IntegerField()
-    entity_one_id = peewee.IntegerField()
-    entity_two_type = peewee.IntegerField()
-    entity_two_id = peewee.IntegerField()
-    role = peewee.CharField()
-    releases = postgres_ext.BinaryJSONField(null=True)
+    entity_one_type = peewee.IntegerField(index=False)
+    entity_one_id = peewee.IntegerField(index=False)
+    entity_two_type = peewee.IntegerField(index=False)
+    entity_two_id = peewee.IntegerField(index=False)
+    role = peewee.CharField(index=False)
+    releases = postgres_ext.BinaryJSONField(null=True, index=False)
 
     ### PEEWEE META ###
 
@@ -113,20 +112,13 @@ class PostgresRelation(PostgresModel):
     def bootstrap(cls):
         cls.drop_table(True)
         cls.create_table()
-        cls.bootstrap_pass_three()
+        cls.bootstrap_pass_one()
 
     @classmethod
-    def bootstrap_pass_three(cls):
+    def bootstrap_pass_one(cls, pessimistic=False):
         import discograph
-        release_class = discograph.PostgresRelease
-        maximum_id = release_class.select(
-            peewee.fn.Max(release_class.id)).scalar()
-        step = maximum_id // (multiprocessing.cpu_count() * 2)
-        workers = []
-        for start in range(0, maximum_id, step):
-            stop = start + step
-            worker = cls.BootstrapWorker(start, stop)
-            workers.append(worker)
+        indices = discograph.PostgresRelease.get_indices(pessimistic)
+        workers = [cls.BootstrapWorker(_) for _ in indices]
         for worker in workers:
             worker.start()
         for worker in workers:
@@ -135,7 +127,7 @@ class PostgresRelation(PostgresModel):
             worker.terminate()
 
     @classmethod
-    def bootstrap_pass_three_inner(cls, release_id, corpus, annotation=''):
+    def bootstrap_pass_one_inner(cls, release_id, corpus, annotation=''):
         import discograph
         database = cls._meta.database
         with database.execution_context(with_transaction=False):
@@ -145,7 +137,8 @@ class PostgresRelation(PostgresModel):
                 return
             document = query.get()
             relations = cls.from_release(document)
-            print('[{}] (id:{})           [{}] {}'.format(
+            print('{} [{}]\t(id:{})\t[{}] {}'.format(
+                cls.__name__.upper(),
                 annotation,
                 document.id,
                 len(relations),
@@ -161,9 +154,12 @@ class PostgresRelation(PostgresModel):
                     )
                 if created:
                     instance.releases = {}
+                    instance.random = random.random()
                 if 'release_id' in relation:
                     release_id = relation['release_id']
                     year = relation.get('year')
+                    if not instance.releases:
+                        instance.releases = {}
                     instance.releases[release_id] = year
                 instance.save()
 
@@ -261,7 +257,10 @@ class PostgresRelation(PostgresModel):
             where_clause = (cls.random > n)
             if roles:
                 where_clause &= (cls.role.in_(roles))
-            query = cls.select().where(where_clause).order_by(cls.random).limit(1)
+            query = cls.select()
+            query = query.where(where_clause)
+            query = query.order_by(cls.random)
+            query = query.limit(1)
             print('Query:', query)
         return query.get()
 
@@ -313,7 +312,14 @@ class PostgresRelation(PostgresModel):
         return relations
 
     @classmethod
-    def search(cls, entity_id, entity_type=1, roles=None, year=None, query_only=False):
+    def search(
+        cls,
+        entity_id,
+        entity_type=1,
+        roles=None,
+        year=None,
+        query_only=False,
+        ):
         where_clause = (
             (cls.entity_one_id == entity_id) &
             (cls.entity_one_type == entity_type)
@@ -347,13 +353,17 @@ class PostgresRelation(PostgresModel):
                 label_ids.append(entity_id)
         if artist_ids:
             artist_where_clause = (
-                ((cls.entity_one_type == 1) & (cls.entity_one_id.in_(artist_ids))) |
-                ((cls.entity_two_type == 1) & (cls.entity_two_id.in_(artist_ids)))
+                ((cls.entity_one_type == 1) &
+                    (cls.entity_one_id.in_(artist_ids))) |
+                ((cls.entity_two_type == 1) &
+                    (cls.entity_two_id.in_(artist_ids)))
                 )
         if label_ids:
             label_where_clause = (
-                ((cls.entity_one_type == 2) & (cls.entity_one_id.in_(label_ids))) |
-                ((cls.entity_two_type == 2) & (cls.entity_two_id.in_(label_ids)))
+                ((cls.entity_one_type == 2) &
+                    (cls.entity_one_id.in_(label_ids))) |
+                ((cls.entity_two_type == 2) &
+                    (cls.entity_two_id.in_(label_ids)))
                 )
         if artist_ids and label_ids:
             where_clause = artist_where_clause | label_where_clause
@@ -370,7 +380,14 @@ class PostgresRelation(PostgresModel):
         return relations
 
     @classmethod
-    def search_bimulti(cls, lh_entities, rh_entities, roles=None, year=None, verbose=True):
+    def search_bimulti(
+        cls,
+        lh_entities,
+        rh_entities,
+        roles=None,
+        year=None,
+        verbose=True,
+        ):
         def build_query(lh_type, lh_ids, rh_type, rh_ids):
             where_clause = cls.entity_one_type == lh_type
             where_clause &= cls.entity_two_type == rh_type

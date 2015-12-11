@@ -1,5 +1,8 @@
 # -*- encoding: utf-8 -*-
+import multiprocessing
 import peewee
+from abjad.tools import sequencetools
+from abjad.tools import systemtools
 from playhouse import postgres_ext
 from discograph.library.Bootstrapper import Bootstrapper
 from discograph.library.PostgresModel import PostgresModel
@@ -18,20 +21,20 @@ class PostgresRelease(PostgresModel):
     ### PEEWEE FIELDS ###
 
     id = peewee.IntegerField(primary_key=True)
-    artists = postgres_ext.BinaryJSONField(null=True)
-    companies = postgres_ext.BinaryJSONField(null=True)
-    country = peewee.TextField(null=True)
-    extra_artists = postgres_ext.BinaryJSONField(null=True)
-    formats = postgres_ext.BinaryJSONField(null=True)
-    genres = postgres_ext.ArrayField(peewee.TextField, null=True)
-    identifiers = postgres_ext.BinaryJSONField(null=True)
-    labels = postgres_ext.BinaryJSONField(null=True)
-    master_id = peewee.IntegerField(null=True)
-    notes = peewee.TextField(null=True)
-    release_date = peewee.DateTimeField(null=True)
-    styles = postgres_ext.ArrayField(peewee.TextField, null=True)
-    title = peewee.TextField()
-    tracklist = postgres_ext.BinaryJSONField(null=True)
+    artists = postgres_ext.BinaryJSONField(null=True, index=False)
+    companies = postgres_ext.BinaryJSONField(null=True, index=False)
+    country = peewee.TextField(null=True, index=False)
+    extra_artists = postgres_ext.BinaryJSONField(null=True, index=False)
+    formats = postgres_ext.BinaryJSONField(null=True, index=False)
+    genres = postgres_ext.ArrayField(peewee.TextField, null=True, index=False)
+    identifiers = postgres_ext.BinaryJSONField(null=True, index=False)
+    labels = postgres_ext.BinaryJSONField(null=True, index=False)
+    master_id = peewee.IntegerField(null=True, index=False)
+    notes = peewee.TextField(null=True, index=False)
+    release_date = peewee.DateTimeField(null=True, index=False)
+    styles = postgres_ext.ArrayField(peewee.TextField, null=True, index=False)
+    title = peewee.TextField(index=False)
+    tracklist = postgres_ext.BinaryJSONField(null=True, index=False)
 
     ### PEEWEE META ###
 
@@ -57,8 +60,69 @@ class PostgresRelease(PostgresModel):
             )
 
     @classmethod
-    def bootstrap_pass_two(cls):
-        PostgresModel.bootstrap_pass_two(cls, 'title')
+    def get_indices(cls, pessimistic=False):
+        indices = []
+        if not pessimistic:
+            maximum_id = cls.select(
+                peewee.fn.Max(cls.id)).scalar()
+            step = maximum_id // multiprocessing.cpu_count()
+            for start in range(0, maximum_id, step):
+                stop = start + step
+                indices.append(range(start, stop))
+        else:
+            query = cls.select(cls.id)
+            query = query.order_by(cls.id)
+            query = query.tuples()
+            all_ids = tuple(_[0] for _ in query)
+            ratio = [1] * (multiprocessing.cpu_count() * 2)
+            for chunk in sequencetools.partition_sequence_by_ratio_of_lengths(
+                all_ids, ratio):
+                indices.append(chunk)
+        return indices
+
+    @classmethod
+    def get_release_iterator(cls, pessimistic=False):
+        if not pessimistic:
+            maximum_id = cls.select(peewee.fn.Max(cls.id)).scalar()
+            for i in range(1, maximum_id + 1):
+                query = cls.select().where(cls.id == i)
+                if not query.count():
+                    continue
+                document = query.get()
+                yield document
+        else:
+            id_query = cls.select(cls.id)
+            for release in id_query:
+                release_id = release.id
+                release = cls.select().where(cls.id == release_id).get()
+                yield release
+
+    @classmethod
+    def bootstrap_pass_two(cls, pessimistic=False):
+        skipped_template = u'{} [SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
+        changed_template = u'{}           (Pass 2) (id:{}) [{:.8f}]: {}'
+        corpus = {}
+        iterator = cls.get_release_iterator(pessimistic=pessimistic)
+        for document in iterator:
+            with systemtools.Timer(verbose=False) as timer:
+                changed = document.resolve_references(corpus)
+            if not changed:
+                message = skipped_template.format(
+                    cls.__name__.upper(),
+                    document.id,
+                    timer.elapsed_time,
+                    document.title,
+                    )
+                print(message)
+                continue
+            document.save()
+            message = changed_template.format(
+                cls.__name__.upper(),
+                document.id,
+                timer.elapsed_time,
+                document.title,
+                )
+            print(message)
 
     @classmethod
     def element_to_artist_credits(cls, element):
@@ -234,7 +298,8 @@ PostgresRelease._tags_to_fields_mapping = {
     'artists': ('artists', PostgresRelease.element_to_artist_credits),
     'companies': ('companies', PostgresRelease.element_to_company_credits),
     'country': ('country', Bootstrapper.element_to_string),
-    'extraartists': ('extra_artists', PostgresRelease.element_to_artist_credits),
+    'extraartists': ('extra_artists',
+        PostgresRelease.element_to_artist_credits),
     'formats': ('formats', PostgresRelease.element_to_formats),
     'genres': ('genres', Bootstrapper.element_to_strings),
     'identifiers': ('identifiers', PostgresRelease.element_to_identifiers),
@@ -271,5 +336,6 @@ PostgresRelease._tracks_mapping = {
     'title': ('title', Bootstrapper.element_to_string),
     'duration': ('duration', Bootstrapper.element_to_string),
     'artists': ('artists', PostgresRelease.element_to_artist_credits),
-    'extraartists': ('extra_artists', PostgresRelease.element_to_artist_credits),
+    'extraartists': ('extra_artists',
+        PostgresRelease.element_to_artist_credits),
     }
