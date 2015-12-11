@@ -207,8 +207,8 @@ class PostgresEntity(PostgresModel):
         annotation='',
         corpus=None,
         ):
-        skipped_template = u'{} [{}]\t[SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
-        changed_template = u'{} [{}]\t          (Pass 2) (id:{}) [{:.8f}]: {}'
+        skipped_template = u'{} (Pass 2) [{}]\t[SKIPPED] (id:{}) [{:.8f}]: {}'
+        changed_template = u'{} (Pass 2) [{}]\t          (id:{}) [{:.8f}]: {}'
         query = cls.select(
             cls.entity_id,
             cls.entity_type,
@@ -298,7 +298,7 @@ class PostgresEntity(PostgresModel):
             document.name,
             len(relation_counts),
             ]
-        template = u'{} [{}]\t(Pass 3) (id:{}) {}: {}'
+        template = u'{} (Pass 3) [{}]\t(id:{}) {}: {}'
         message = template.format(*message_pieces)
         print(message)
 

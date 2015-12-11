@@ -137,7 +137,7 @@ class PostgresRelation(PostgresModel):
                 return
             document = query.get()
             relations = cls.from_release(document)
-            print('{} [{}]\t(id:{})\t[{}] {}'.format(
+            print('{} (Pass 1) [{}]\t(id:{})\t[{}] {}'.format(
                 cls.__name__.upper(),
                 annotation,
                 document.id,

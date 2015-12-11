@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import multiprocessing
 import peewee
+import traceback
 from abjad.tools import sequencetools
 from abjad.tools import systemtools
 from playhouse import postgres_ext
@@ -17,6 +18,27 @@ class PostgresRelease(PostgresModel):
     _companies_mapping = {}
 
     _tracks_mapping = {}
+
+    class BootstrapPassTwoWorker(multiprocessing.Process):
+
+        def __init__(self, indices):
+            multiprocessing.Process.__init__(self)
+            self.indices = indices
+
+        def run(self):
+            proc_name = self.name
+            corpus = {}
+            for release_id in self.indices:
+                with PostgresRelease._meta.database.execution_context():
+                    try:
+                        PostgresRelease.bootstrap_pass_two_inner(
+                            release_id=release_id,
+                            annotation=proc_name,
+                            corpus=corpus,
+                            )
+                    except:
+                        print('ERROR:', release_id, proc_name)
+                        traceback.print_exc()
 
     ### PEEWEE FIELDS ###
 
@@ -99,30 +121,49 @@ class PostgresRelease(PostgresModel):
 
     @classmethod
     def bootstrap_pass_two(cls, pessimistic=False):
-        skipped_template = u'{} [SKIPPED] (Pass 2) (id:{}) [{:.8f}]: {}'
-        changed_template = u'{}           (Pass 2) (id:{}) [{:.8f}]: {}'
-        corpus = {}
-        iterator = cls.get_release_iterator(pessimistic=pessimistic)
-        for document in iterator:
-            with systemtools.Timer(verbose=False) as timer:
-                changed = document.resolve_references(corpus)
-            if not changed:
-                message = skipped_template.format(
-                    cls.__name__.upper(),
-                    document.id,
-                    timer.elapsed_time,
-                    document.title,
-                    )
-                print(message)
-                continue
-            document.save()
-            message = changed_template.format(
+        indices = cls.get_indices(pessimistic=pessimistic)
+        workers = [cls.BootstrapPassTwoWorker(x) for x in indices]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join()
+        for worker in workers:
+            worker.terminate()
+
+    @classmethod
+    def bootstrap_pass_two_inner(
+        cls,
+        release_id,
+        annotation='',
+        corpus=None,
+        ):
+        skipped_template = u'{} (Pass 2) [{}]\t[SKIPPED] (id:{}) [{:.8f}]: {}'
+        changed_template = u'{} (Pass 2) [{}]\t          (id:{}) [{:.8f}]: {}'
+        query = cls.select().where(cls.id == release_id)
+        if not query.count():
+            return
+        document = query.get()
+        with systemtools.Timer(verbose=False) as timer:
+            changed = document.resolve_references(corpus)
+        if not changed:
+            message = skipped_template.format(
                 cls.__name__.upper(),
+                annotation,
                 document.id,
                 timer.elapsed_time,
                 document.title,
                 )
             print(message)
+            return
+        document.save()
+        message = changed_template.format(
+            cls.__name__.upper(),
+            annotation,
+            document.id,
+            timer.elapsed_time,
+            document.title,
+            )
+        print(message)
 
     @classmethod
     def element_to_artist_credits(cls, element):
