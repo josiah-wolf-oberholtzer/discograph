@@ -34,7 +34,7 @@ class Bootstrapper(object):
         if Bootstrapper.is_test or test:
             glob_pattern = 'discogs_test_{}s.xml.gz'.format(tag)
         else:
-            glob_pattern = 'discogs_*_{}s.xml.gz'.format(tag)
+            glob_pattern = 'discogs_2*_{}s.xml.gz'.format(tag)
         with systemtools.TemporaryDirectoryChange(data_directory):
             files = sorted(glob.glob(glob_pattern))
         return os.path.join(data_directory, files[-1])

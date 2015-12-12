@@ -28,13 +28,16 @@ class PostgresRelease(PostgresModel):
         def run(self):
             proc_name = self.name
             corpus = {}
-            for release_id in self.indices:
+            total = len(self.indices)
+            for i, release_id in enumerate(self.indices):
                 with PostgresRelease._meta.database.execution_context():
+                    progress = float(i) / total
                     try:
-                        PostgresRelease.bootstrap_pass_two_inner(
+                        PostgresRelease.bootstrap_pass_two_single(
                             release_id=release_id,
                             annotation=proc_name,
                             corpus=corpus,
+                            progress=progress,
                             )
                     except:
                         print('ERROR:', release_id, proc_name)
@@ -131,14 +134,15 @@ class PostgresRelease(PostgresModel):
             worker.terminate()
 
     @classmethod
-    def bootstrap_pass_two_inner(
+    def bootstrap_pass_two_single(
         cls,
         release_id,
         annotation='',
         corpus=None,
+        progress=None,
         ):
-        skipped_template = u'{} (Pass 2) [{}]\t[SKIPPED] (id:{}) [{:.8f}]: {}'
-        changed_template = u'{} (Pass 2) [{}]\t          (id:{}) [{:.8f}]: {}'
+        skipped_template = u'{} (Pass 2) {:.3%} [{}]\t[SKIPPED] (id:{}) [{:.8f}]: {}'
+        changed_template = u'{} (Pass 2) {:.3%} [{}]\t          (id:{}) [{:.8f}]: {}'
         query = cls.select().where(cls.id == release_id)
         if not query.count():
             return
@@ -148,6 +152,7 @@ class PostgresRelease(PostgresModel):
         if not changed:
             message = skipped_template.format(
                 cls.__name__.upper(),
+                progress,
                 annotation,
                 document.id,
                 timer.elapsed_time,
@@ -158,6 +163,7 @@ class PostgresRelease(PostgresModel):
         document.save()
         message = changed_template.format(
             cls.__name__.upper(),
+            progress,
             annotation,
             document.id,
             timer.elapsed_time,

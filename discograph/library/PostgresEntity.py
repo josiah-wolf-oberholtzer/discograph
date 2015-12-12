@@ -25,19 +25,27 @@ class PostgresEntity(PostgresModel):
             self.indices = indices
 
         def run(self):
-            proc_name = self.name
+            proc_number = self.name.split('-')[-1]
             corpus = {}
-            for entity_id in self.indices:
+            total = len(self.indices)
+            for i, entity_id in enumerate(self.indices):
                 with PostgresEntity._meta.database.execution_context():
+                    progress = float(i) / total
                     try:
                         PostgresEntity.bootstrap_pass_two_single(
                             entity_type=self.entity_type,
                             entity_id=entity_id,
-                            annotation=proc_name,
+                            annotation=proc_number,
                             corpus=corpus,
+                            progress=progress,
                             )
                     except:
-                        print('ERROR:', self.entity_type, entity_id, proc_name)
+                        print(
+                            'ERROR:',
+                            self.entity_type,
+                            entity_id,
+                            proc_number,
+                            )
                         traceback.print_exc()
 
     class BootstrapPassThreeWorker(multiprocessing.Process):
@@ -49,13 +57,16 @@ class PostgresEntity(PostgresModel):
 
         def run(self):
             proc_name = self.name
-            for entity_id in self.indices:
+            total = len(self.indices)
+            for i, entity_id in enumerate(self.indices):
                 with PostgresEntity._meta.database.execution_context():
+                    progress= float(i) / total
                     try:
                         PostgresEntity.bootstrap_pass_three_single(
                             entity_type=self.entity_type,
                             entity_id=entity_id,
                             annotation=proc_name,
+                            progress=progress,
                             )
                     except:
                         print('ERROR:', self.entity_type, entity_id, proc_name)
@@ -167,8 +178,8 @@ class PostgresEntity(PostgresModel):
             worker.terminate()
         entity_type = 2
         indices = cls.get_indices(entity_type, pessimistic=pessimistic)
-        workers = [cls.BootstrapPassTwoWorker(entity_type, _)
-            for _ in indices]
+        workers = [cls.BootstrapPassTwoWorker(entity_type, x)
+            for x in indices]
         for worker in workers:
             worker.start()
         for worker in workers:
@@ -206,15 +217,11 @@ class PostgresEntity(PostgresModel):
         entity_id,
         annotation='',
         corpus=None,
+        progress=None,
         ):
-        skipped_template = u'{} (Pass 2) [{}]\t[SKIPPED] (id:{}) [{:.8f}]: {}'
-        changed_template = u'{} (Pass 2) [{}]\t          (id:{}) [{:.8f}]: {}'
-        query = cls.select(
-            cls.entity_id,
-            cls.entity_type,
-            cls.name,
-            cls.relation_counts,
-            ).where(
+        skipped_template = u'{} (Pass 2) {:.3%} [{}]\t[SKIPPED] (id:{}) [{:.8f}]: {}'
+        changed_template = u'{} (Pass 2) {:.3%} [{}]\t          (id:{}) [{:.8f}]: {}'
+        query = cls.select().where(
             cls.entity_id == entity_id,
             cls.entity_type == entity_type,
             )
@@ -227,6 +234,7 @@ class PostgresEntity(PostgresModel):
         if not changed:
             message = skipped_template.format(
                 cls.__name__.upper(),
+                progress,
                 annotation,
                 (document.entity_type, document.entity_id),
                 timer.elapsed_time,
@@ -237,6 +245,7 @@ class PostgresEntity(PostgresModel):
         document.save()
         message = changed_template.format(
             cls.__name__.upper(),
+            progress,
             annotation,
             (document.entity_type, document.entity_id),
             timer.elapsed_time,
@@ -250,6 +259,7 @@ class PostgresEntity(PostgresModel):
         entity_type,
         entity_id,
         annotation='',
+        progress=None,
         ):
         import discograph
         query = cls.select(
@@ -293,12 +303,13 @@ class PostgresEntity(PostgresModel):
         document.save()
         message_pieces = [
             cls.__name__.upper(),
+            progress,
             annotation,
             (document.entity_type, document.entity_id),
             document.name,
             len(relation_counts),
             ]
-        template = u'{} (Pass 3) [{}]\t(id:{}) {}: {}'
+        template = u'{} (Pass 3) {:.3%} [{}]\t(id:{}) {}: {}'
         message = template.format(*message_pieces)
         print(message)
 
