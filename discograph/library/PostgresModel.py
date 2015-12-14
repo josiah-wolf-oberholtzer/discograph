@@ -11,9 +11,8 @@ from discograph.app import app
 from discograph.library.Bootstrapper import Bootstrapper
 
 
-database = pool.PooledPostgresqlExtDatabase(
+database = pool.PostgresqlExtDatabase(
     'discograph',
-    max_connections=16,
     host='127.0.0.1',
     user=app.config['POSTGRESQL_USERNAME'],
     password=app.config['POSTGRESQL_PASSWORD'],

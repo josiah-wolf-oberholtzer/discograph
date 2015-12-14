@@ -26,10 +26,11 @@ def get_entity(entity_type, entity_id):
     import discograph
     where_clause = discograph.PostgresEntity.entity_id == entity_id
     where_clause &= discograph.PostgresEntity.entity_type == entity_type
-    query = discograph.PostgresEntity.select().where(where_clause)
-    if not query.count():
-        return None
-    return query.get()
+    with discograph.PostgresModel._meta.database.execution_context():
+        query = discograph.PostgresEntity.select().where(where_clause)
+        if not query.count():
+            return None
+        return query.get()
 
 
 def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None):
@@ -67,7 +68,8 @@ def get_network(entity_id, entity_type, on_mobile=False, cache=True, roles=None)
         roles=roles,
         )
     with systemtools.Timer(exit_message='Network query time:'):
-        data = relation_grapher()
+        with discograph.PostgresModel._meta.database.execution_context():
+            data = relation_grapher()
     if cache:
         discograph.RelationGrapher.cache_set(cache_key, data)
     return data
@@ -81,7 +83,8 @@ def get_random_entity(roles=None):
         'Sublabel Of',
         ]
     if roles and any(_ not in structural_roles for _ in roles):
-        relation = discograph.PostgresRelation.get_random(roles=roles)
+        with discograph.PostgresModel._meta.database.execution_context():
+            relation = discograph.PostgresRelation.get_random(roles=roles)
         entity_choice = random.randint(1, 2)
         if entity_choice == 1:
             entity_type = relation.entity_one_type
@@ -90,7 +93,8 @@ def get_random_entity(roles=None):
             entity_type = relation.entity_two_type
             entity_id = relation.entity_two_id
     else:
-        entity = discograph.PostgresEntity.get_random()
+        with discograph.PostgresModel._meta.database.execution_context():
+            entity = discograph.PostgresEntity.get_random()
         entity_type, entity_id = entity.entity_type, entity.entity_id
     return entity_type, entity_id
 
@@ -102,11 +106,12 @@ def get_relations(entity_id, entity_type):
     entity = get_entity(entity_type, entity_id)
     if entity is None:
         return None
-    query = discograph.PostgresRelation.search(
-        entity_id=entity.entity_id,
-        entity_type=entity.entity_type,
-        query_only=True
-        )
+    with discograph.PostgresModel._meta.database.execution_context():
+        query = discograph.PostgresRelation.search(
+            entity_id=entity.entity_id,
+            entity_type=entity.entity_type,
+            query_only=True
+            )
     query = query.order_by(
         discograph.PostgresRelation.role,
         discograph.PostgresRelation.entity_one_id,
