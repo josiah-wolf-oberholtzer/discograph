@@ -169,19 +169,20 @@ def search_entities(search_string, cache=True):
             for datum in data['results']:
                 print('    {}'.format(datum))
             return data
-    query = discograph.PostgresEntity.search_text(search_string)
-    print('{}: NOT CACHED'.format(cache_key))
-    data = []
-    for entity in query:
-        datum = dict(
-            key='{}-{}'.format(
-                entity_type_names[entity.entity_type],
-                entity.entity_id,
-                ),
-            name=entity.name,
-            )
-        data.append(datum)
-        print('    {}'.format(datum))
+    with discograph.PostgresModel._meta.database.execution_context():
+        query = discograph.PostgresEntity.search_text(search_string)
+        print('{}: NOT CACHED'.format(cache_key))
+        data = []
+        for entity in query:
+            datum = dict(
+                key='{}-{}'.format(
+                    entity_type_names[entity.entity_type],
+                    entity.entity_id,
+                    ),
+                name=entity.name,
+                )
+            data.append(datum)
+            print('    {}'.format(datum))
     data = {'results': tuple(data)}
     if cache:
         discograph.RelationGrapher.cache_set(cache_key, data)

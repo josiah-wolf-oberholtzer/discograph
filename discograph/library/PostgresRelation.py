@@ -251,7 +251,7 @@ class PostgresRelation(PostgresModel):
         if roles:
             where_clause &= (cls.role.in_(roles))
         query = cls.select().where(where_clause).order_by(
-            cls.role, cls.random).limit(1)
+            cls.random, cls.role).limit(1)
         print('Query:', query)
         while not query.count():
             n = random.random()
