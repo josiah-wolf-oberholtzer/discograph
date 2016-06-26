@@ -925,19 +925,19 @@
         gradient.append('stop')
             .attr('offset', '0%')
             .attr('stop-color', '#333')
-            .attr('stop-opacity', '100%');
+            .attr('stop-opacity', '1.0');
         gradient.append('stop')
             .attr('offset', '50%')
             .attr('stop-color', '#333')
-            .attr('stop-opacity', '33%');
+            .attr('stop-opacity', '0.333');
         gradient.append('stop')
             .attr('offset', '75%')
             .attr('stop-color', '#333')
-            .attr('stop-opacity', '11%');
+            .attr('stop-opacity', '0.111');
         gradient.append('stop')
             .attr('offset', '100%')
             .attr('stop-color', '#333')
-            .attr('stop-opacity', '0%');
+            .attr('stop-opacity', '0.0');
     }
     dg.relations = {
         layers: {

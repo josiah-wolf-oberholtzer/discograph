@@ -82,20 +82,19 @@ def get_random_entity(roles=None):
         'Member Of',
         'Sublabel Of',
         ]
-    if roles and any(_ not in structural_roles for _ in roles):
-        with discograph.PostgresModel._meta.database.execution_context():
+    with discograph.PostgresModel._meta.database.execution_context():
+        if roles and any(_ not in structural_roles for _ in roles):
             relation = discograph.PostgresRelation.get_random(roles=roles)
-        entity_choice = random.randint(1, 2)
-        if entity_choice == 1:
-            entity_type = relation.entity_one_type
-            entity_id = relation.entity_one_id
+            entity_choice = random.randint(1, 2)
+            if entity_choice == 1:
+                entity_type = relation.entity_one_type
+                entity_id = relation.entity_one_id
+            else:
+                entity_type = relation.entity_two_type
+                entity_id = relation.entity_two_id
         else:
-            entity_type = relation.entity_two_type
-            entity_id = relation.entity_two_id
-    else:
-        with discograph.PostgresModel._meta.database.execution_context():
             entity = discograph.PostgresEntity.get_random()
-        entity_type, entity_id = entity.entity_type, entity.entity_id
+            entity_type, entity_id = entity.entity_type, entity.entity_id
     return entity_type, entity_id
 
 
