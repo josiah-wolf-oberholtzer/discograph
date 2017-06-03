@@ -60,7 +60,7 @@ class PostgresEntity(PostgresModel):
             total = len(self.indices)
             for i, entity_id in enumerate(self.indices):
                 with PostgresEntity._meta.database.execution_context():
-                    progress= float(i) / total
+                    progress = float(i) / total
                     try:
                         PostgresEntity.bootstrap_pass_three_single(
                             entity_type=self.entity_type,

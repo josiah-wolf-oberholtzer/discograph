@@ -555,26 +555,30 @@
     }
 
     function dg_network_onNodeEnterEventBindings(nodeEnter) {
-        nodeEnter.on("dblclick", function(d) {
-            $(window).trigger({
-                type: 'discograph:request-network',
-                entityKey: d.key,
-                pushHistory: true,
-            });
-        });
-        nodeEnter.on("mousedown", function(d) {
-            $(window).trigger({
-                type: 'discograph:select-entity',
-                entityKey: d.key,
-                fixed: true,
-            });
-            d3.event.stopPropagation(); // Prevents propagation to #svg element.
-        });
         nodeEnter.on("mouseover", function(d) {
             var selection = dg.network.selections.node.select(function(n) {
                 return n.key == d.key ? this : null;
             });
             selection.moveToFront();
+        });
+        nodeEnter.on("mousedown", function(d) {
+            var thisTime = $.now();
+            var lastTime = d.lastTouchTime;
+            d.lastTouchTime = thisTime;
+            if (!lastTime || (500 < (thisTime - lastTime))) {
+                $(window).trigger({
+                    type: 'discograph:select-entity',
+                    entityKey: d.key,
+                    fixed: true,
+                });
+            } else if ((thisTime - lastTime) < 500) {
+                $(window).trigger({
+                    type: 'discograph:request-network',
+                    entityKey: d.key,
+                    pushHistory: true,
+                });
+            }
+            d3.event.stopPropagation(); // Prevents propagation to #svg element.
         });
         nodeEnter.on("touchstart", function(d) {
             var thisTime = $.now();
